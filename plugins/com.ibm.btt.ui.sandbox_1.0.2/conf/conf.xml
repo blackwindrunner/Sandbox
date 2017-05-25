@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SandBox>
+	<Projects class="ExclusiveProjects">
+		   <project>BTTAutomation</project>
+		   <project>SandBox</project>
+		   <project>SandBox_Unix</project>
+		   <project>BTTInstallPackaging</project>
+	</Projects>	
+	<Projects class="MultiLevelProjects">
+		   <project>BTTRichClient</project>
+		   <project>BTTBusinessComponent</project>
+		   <project>BTTGraphicalBuilder</project>
+		   <project>BTTToolsFormatterSimulator</project>
+	</Projects>
+</SandBox>
+

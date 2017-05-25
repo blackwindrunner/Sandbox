@@ -1,0 +1,40 @@
+<project name="put_web" default="build_all" basedir=".">
+
+
+    <!-- The following properties files
+        1. set local build machine requirements for implementation in
+        2. general and custom variable definitions for all drivers -->
+    		
+    <property file="C:/LocalSettings.properties"/>
+    <property name="build.type" value="_was7" />     
+	<loadproperties srcFile="c:/mail_config.properties" encoding="utf-8"/>
+    <!-- Copy build result to BTT Build WebSite -->
+    
+     
+     <!-- Update BTT Build WebStie-->
+     <target name="SendReportToTeam">   
+         <mail mailhost="smtp.qq.com" mailport="465" ssl="true" enableStartTLS="true" subject="BTT8.2.1.0 Serial Build Report(Build Successfully)-${build.type}" user="${mail_user}" password="${maill_password}" charset="utf-8" encoding="mime" messagemimetype="text/html">    
+            <from address="yandongpeng@qq.com" name="BTT CI Server" /> 			
+                         
+            <to address="dong.peng.yan@unicomsi.com" name="dong.peng.yan" />  
+			<!--to address="jing.shang@unicomsi.com" name="dong.peng.yan" />-->	            	
+            <message>
+               
+               
+               Build Successfully!!! Pls check the attached file to identify the related Component/Feature/Defect.
+               
+                             
+               New level ${level} of BTT8.2.1.0 Serial Build are available at BTT Build Website:  
+
+                             https://btt.cn.ibm.com:8080
+                             
+               Build Environment: WAS7+RAD9.1+ANT1.6.5+JDK1.6.0+WINDOWS32bit
+
+               NOTE: This is a build machine generated memo.
+            </message>    
+        </mail>    
+      </target>
+  									
+    <target name="build_all" depends="SendReportToTeam"/>													
+    																	
+</project>

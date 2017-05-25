@@ -1,0 +1,241 @@
+<project name="build_bvt" default="build_all" basedir=".">
+
+
+    <!-- The following properties files
+        1. set local build machine requirements for implementation in
+        2. general and custom variable definitions for all drivers -->
+    		
+    <property file="C:/LocalSettings.properties"/>
+    <property name="test.root" value="${basedir}/../BTTAutomation"/>
+    <property name="bvtroot" value="${test.root}/bvt"/>
+    <property name="bvtbuildroot" value="${test.root}/build/bvt"/>
+    <property name="buildroot" value="${test.root}/build"/>
+    <property name="libdir" value="${test.root}/etc/libs"/>
+    <property name="javac.encoding" value="GBK"/>
+	<property name="java.home" value="D:\\WAS7\\AppServer\\java"/>
+    
+    <target name="copy_source"> 
+       <copy todir="H:\BTTInstallerIA\BTT8.1.1Build\BTT32bit\was70">
+				<fileset dir="../BTTInstallPackaging" includes="rcptools/**, reference/**, javadoc/**,lib/**,plugins/**,samples/**,template/**, migration/**"/>
+				</copy>
+			
+    </target>
+    
+    <!-- Create a silent installer for BVT-->
+   
+    <target name="create_installer">   	
+ 
+			<taskdef name="buildinstaller" classname="com.zerog.ia.integration.ant.InstallAnywhereAntTask">
+				<classpath location="${WAS_HOME}/deploytool/itp/plugins/org.apache.ant_1.6.5/lib/iaant.jar"/>
+			</taskdef>		
+		
+			<buildinstaller IAlocation="H:\BTTInstallerIA\InstallAnywhere8"
+                    IAProjectFile="H:\BTTInstallerIA\BTT801\BTT811.iap_xml"
+                    BuildWindowsWithVM = "true"
+                    BuildWindowsWithoutVM = "false"/>                   
+    </target>
+    
+     <!-- Create a gui installer for PVT-->
+   
+    <target name="create_guiinstaller">   	
+    	
+			<taskdef name="buildinstaller" classname="com.zerog.ia.integration.ant.InstallAnywhereAntTask">
+				<classpath location="${WAS_HOME}/deploytool/itp/plugins/org.apache.ant_1.6.5/lib/iaant.jar"/>
+			</taskdef>		
+		
+			<buildinstaller IAlocation="C:\Program Files\Macrovision\InstallAnywhere8"
+                    	IAProjectFile="H:\BTTInstallerIA\BTT801_gui\BTT801_gui_build.iap_xml"
+                    	BuildLinuxWithVM = "true"
+                    	BuildWindowsWithVM = "true"
+                    	BuildLinuxWithoutVM = "false"
+                    	BuildWindowsWithoutVM = "false"/>                   
+    </target>
+    
+    <!-- check the pre-installer-->
+    
+    <target name="dir_check">
+    	<condition property="uninstall_exist">
+        <and>
+            <available file="C://IBM//WebSphere//Multichannel Bank Transformation Toolkit 8.0.0.0//Uninstall"/>
+        </and>
+    	</condition>
+    	
+    	<condition property="installer_exist">
+        <and>
+            <available file="H://BTTInstallerIA/BTT801/BTT801_Build_Output/Web_Installers/InstData/Windows/VM/setup.exe"/>
+        </and>
+    	</condition>
+		</target>
+     
+    <!-- Uninstall the pre-installer-->
+    
+    <target name="uninstall_preinstaller" if="uninstall_exist">
+    	<exec executable="cmd" output="install.log" dir="C://IBM//WebSphere//Multichannel Bank Transformation Toolkit 8.0.0.0//Uninstall">
+        <arg line="/c Uninstall.exe"/>
+    	</exec> 
+    </target>
+    
+    <!-- Installing -->
+    
+    <target name="install" if="installer_exist">
+      <mkdir dir="temp_installer"/>
+      <copy todir="temp_installer">
+				<fileset dir="H://BTTInstallerIA/BTT801/BTT801_Build_Output/Web_Installers/InstData/Windows/VM" includes="setup.exe"/>
+			</copy>
+    	<exec executable="cmd" output="install.log" dir="temp_installer">
+        <arg line="/c setup.exe"/>
+    	</exec>   
+    </target>
+   
+    <!-- Run BVT, put the report of BVT to BTT Build Website-->
+    
+    <target name="runBVT">
+    
+    <!-- package the bvt case jar file -->
+		    <mkdir dir="${bvtbuildroot}/BTT80BVT"/>  
+		    <mkdir dir="${buildroot}/resultbvt"/>  
+				<antcall target="packageJarFile"/>
+				<antcall target="runJunit"/>
+				<antcall target="generateReport"/>
+    </target>
+    
+    <!--verify btt runtime case-->
+
+    <target name="packageJarFile" >
+    
+        <echo>-------Compile Jar project  starts-----------</echo>           
+        <javac encoding="${javac.encoding}" destdir="${bvtbuildroot}/BTT80BVT" srcdir="${bvtroot}/BTT80BVT" debug="on"  failonerror="false">
+            <classpath>
+
+                <fileset dir="${libdir}">
+                    <include name="**/*.jar"/>
+                </fileset>
+        
+            </classpath>
+        </javac> 
+
+        <echo>-------Package jar project starts-----------</echo>
+        <jar destfile="${bvtbuildroot}/BTT80BVT.jar"
+             basedir="${bvtbuildroot}/BTT80BVT">
+            <fileset dir="${bvtroot}/BTT80BVT/src">
+            	<include name="META-INF/*.*"/>
+              <exclude name="**/*.java"/>
+		          <include name="**/*.*"/>	
+            </fileset>
+        </jar>
+    </target>
+     
+    <target name="runJunit">
+    	<echo>...begin run junit test..</echo>
+   	
+    	<junit printsummary="yes" haltonfailure="no">
+	      <classpath>
+           <fileset dir="${bvtbuildroot}">
+			         <include name="**/*.jar" />
+		       </fileset>
+        </classpath>
+	
+	    <formatter type="xml"/>		  
+	  		<batchtest fork="yes" todir="${buildroot}/resultbvt" >
+					<fileset dir="${bvtroot}/BTT80BVT/src">
+		  			<include name="**/*.java"/>
+					</fileset>
+	  		</batchtest>
+   		</junit>
+    </target>
+    
+    <target name="generateReport">
+        <mkdir dir="${buildroot}/report/bvt/html"/>
+        <junitreport todir="${buildroot}/report/bvt">
+            <fileset dir="${buildroot}/resultbvt">
+                <include name="TEST-*.xml"/>
+            </fileset>
+            <report format="frames"  todir="${buildroot}/report/bvt/html"/>
+        </junitreport>
+    </target>
+    
+    <!-- Put the build zip to testing machine -->
+    <target name="put_build_aix">
+   			
+   			<ftp action="put" server="9.186.111.82" userid="root" password="u7i8o9p0"
+    					binary="yes" remotedir="SandBox" 
+    					skipFailedTransfers="true" preservelastmodified="yes" verbose="yes" depends="no">        
+     				<fileset dir="../BTTBuild" >
+     						<include name="composer811.zip"/>
+    				</fileset>
+    		</ftp>
+    </target>  
+    
+    <!-- Put the build zip to testing machine -->
+    <target name="put_build_lin">
+   			
+   			<ftp action="put" server="9.186.111.81" userid="root" password="u7i8o9p0"
+    					binary="yes" remotedir="/SandBox" 
+    					skipFailedTransfers="true" preservelastmodified="yes" verbose="yes" depends="no">        
+     				<fileset dir="../BTTBuild" >
+     						<include name="composer811.zip"/>
+    				</fileset>
+    		</ftp>
+    </target>  
+    
+    <!-- Put the build zip to testing machine -->
+    <target name="put_build_sol">
+   			
+   			<ftp action="put" server="9.186.111.84" userid="root" password="u7i8o9p0"
+    					binary="yes" remotedir="SandBox" 
+    					skipFailedTransfers="true" preservelastmodified="yes" verbose="yes" depends="no">        
+     				<fileset dir="../BTTBuild" >
+     						<include name="composer811.zip"/>
+    				</fileset>
+    		</ftp>
+    </target>  
+    
+    <!-- Put the build zip to testing machine -->
+    <target name="put_build_win">
+        <delete>
+            <fileset dir="L:" includes="composer811/**,composer811.zip"/>
+        </delete>
+        <copy todir="L:">
+				   <fileset dir="../BTTBuild" includes="composer811.zip"/>
+			  </copy>  
+    </target>
+
+    <!-- Put the build Successful Infomation to testing machine -->
+    <target name="put_build_status">
+        <ftp action="put" server="9.125.140.51" userid="buildFtp" password="newkey11"
+    					binary="yes" remotedir="/usr/local/stax/prod/customLibrary/BTT_Sandbox/buildlogs/composer811" 
+    					skipFailedTransfers="true" preservelastmodified="yes" verbose="yes" depends="no">        
+     				<fileset dir="./" >
+     						<include name="build_status.bat"/>
+                                                <include name="build_level.bat"/>
+    				</fileset>
+        </ftp> 
+    </target>  
+    
+       
+    <!--Initialize the build environment-->
+    <target name="remove_installer_soure">
+        <delete includeEmptyDirs="true">
+            <fileset dir="H:\BTTInstallerIA\BTT8.1.1Build\BTT32bit\was70\" includes="**"/>
+        </delete>
+    </target>
+    
+    <target name="initialize" depends="remove_installer_soure"/>
+                                      
+    <!--target name="build_all" depends="initialize,
+    																	copy_source,
+                                      create_installer,
+                                      create_guiinstaller,
+    																	dir_check,
+    																	uninstall_preinstaller,
+                                      install,
+                                      runBVT,
+                                      put_build_win,
+                                      put_build_sol,
+                                      put_build_lin,
+                                      put_build_aix"/-->  
+                                      
+   <target name="build_all" depends="initialize,
+                                     copy_source,
+                                     put_build_status"/>                  
+</project>

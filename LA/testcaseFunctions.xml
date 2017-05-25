@@ -1,0 +1,998 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "stax.dtd">
+<stax>
+
+<!-- ****************************************************************** -->
+  <!--                         mon_TestAutoParts                          -->
+  <!--                                                                    -->
+  <!--                                                                    -->
+  <!-- ****************************************************************** -->
+
+  <function name="busSpace_FvtTest" scope="local">
+    <function-prolog>
+      This function will run the fvt model test, it will:
+		generate an EAR for the build thats passed (the build thats on the target)
+		sends some pre bactched events
+    </function-prolog>
+
+    <function-epilog>
+      <![CDATA[
+		<p>This is the AutoParts test function</p>
+		<p>This function will run the AutoParts automation test </p>
+		<p>It will do the following:</p>
+		<ul>
+			<li>install an EAR to a monitor installation</li>
+			<li>send pre-made batched events</li>
+			<li>validate the events were processed and correct values in metric through Junit Java Call<li>	  
+		</ul>
+		<p>this is another paragraph...</p>
+      ]]>
+    </function-epilog>
+
+    <function-list-args>
+      <function-required-arg name="target">Hostname/IP address of the target machine</function-required-arg>
+	  <function-required-arg name="buildPath">build level to generate EAR for (build that resides on target)</function-required-arg>
+      <function-required-arg name="wasHomeDirectory">Location of was directory on target</function-required-arg>
+	  <function-required-arg name="wasServerName">Name of the WAS Server monitor profile runs under</function-required-arg>
+      <function-required-arg name="profileNameInWas">monitor profile name</function-required-arg>
+      <function-required-arg name="isMonSecurity">is Monitor Security enabled true/false</function-required-arg>
+	  <!--  function-required-arg name="runPortalDash">on or off selection, will run Portal Dashboard test</function-required-arg>
+	  <function-required-arg name="runBspaceDash">on or off selection, will run Business Space Dashboard Test</function-required-arg-->
+	  <function-required-arg name="uninstallModel">Will Uninstall Model at the completion of test</function-required-arg>
+	  <!-- function-optional-arg name="portalHostname">hostname/ip of the Portal machine</function-optional-arg-->
+	  <!-- function-optional-arg name="portalWASInstallLocation">Where the WAS running Portal is installed</function-optional-arg-->
+	  <!-- function-optional-arg name="portalUser">username for Portal user</function-optional-arg-->
+	  <!-- function-optional-arg name="portalPass">password for Portal user</function-optional-arg-->
+	  <function-optional-arg name="monUser">monitor user for security</function-optional-arg>
+	  <function-optional-arg name="monPass">monitor pasword for security</function-optional-arg>
+	  <function-optional-arg name="browserSelect">valid values are "Mozilla Firefox" or "Internet Explorer"</function-optional-arg>					
+    </function-list-args>
+	
+    <try>
+		
+	  <sequence>
+	
+	  <!-- Local Variables -->	  
+      <script>myLogLevel="User7"</script>
+		  
+	  <!-- Import the library needed -->		
+      <script>libraryLoc="BTT_Sandbox/testcaseLibrary.xml"</script>
+      <log level='myLogLevel'>'MJL: Library Location is %s' % (libraryLoc)</log> 
+      <call function="'cafImportCustomLibrary'"> [libraryLoc] </call>
+      <script>importRC = STAXResult</script>
+      <if expr="importRC != 0">
+		  <throw exception="'eTerminateFunction'">'Failed to Import the necessary library %s for this test.' % (libraryLoc)</throw>
+	  </if>
+		  
+	  <!-- Call the autoParts test from testcaseLibrary -->	  
+	  <try>
+		<call function="'busFvt_OrderItemInst'">{
+			'target'                    : target,
+			'buildPath'                 : buildPath,
+			'wasHomeDirectory'          : wasHomeDirectory,
+			'wasServerName'             : wasServerName,
+			'profileNameInWas'          : profileNameInWas,
+		    'isMonSecurity'             : isMonSecurity,
+			'uninstallModel'            : uninstallModel,		
+			'monUser'                   : monUser,
+			'monPass'                   : monPass,
+			'browserSelect'             : browserSelect
+		}</call>
+		<catch exception="'...'" var="eInfo">
+			<throw exception="'eTerminateFunction'">eInfo</throw>
+		</catch>
+	  </try>
+		
+	  <return>0</return>
+	  	
+	  </sequence>
+		
+	  <!-- ################################### Begin exception handlers ###################################################### -->
+
+      <catch exception="'eTerminateFunction'" var="eInfo">
+        <sequence>
+		  <!-- Collect logs here : SystemOut.log, maybe trace.log etc -->
+          <log level="'fail'">'%s  %s:  Terminating function   Error: %s' % (STAXCurrentTestcase,STAXCurrentFunction,eInfo)</log>
+          <tcstatus result="'fail'">eInfo</tcstatus>
+          <return>1</return>
+        </sequence>
+      </catch>
+
+      <!-- ################################### End exception handlers ######################################################### -->
+			
+    </try>
+	  
+  </function>
+
+		
+  <!-- ****************************************************************** -->
+  <!--                         mon_TestAutoParts                          -->
+  <!--                                                                    -->
+  <!--                                                                    -->
+  <!-- ****************************************************************** -->
+
+  <function name="mon_TestAutoParts" scope="local">
+    <function-prolog>
+      This function will run the AutoParts model test, it will:
+		generate an EAR for the build thats passed (the build thats on the target)
+		sends some pre bactched events
+		and validates that the correct values reside in monitor through REST services
+    </function-prolog>
+
+    <function-epilog>
+      <![CDATA[
+<p>This is the AutoParts test function</p>
+<p>This function will run the AutoParts automation test </p>
+<p>It will do the following:</p>
+<ul>
+	<li>install an EAR to a monitor installation</li>
+	<li>send pre-made batched events</li>
+	<li>validate the events were processed and correct values in metric through Junit Java Call<li>	  
+</ul>
+<p>this is another paragraph...</p>
+      ]]>
+    </function-epilog>
+
+    <function-list-args>
+      <function-required-arg name="target">Hostname/IP address of the target machine</function-required-arg>
+	  <function-required-arg name="buildPath">build level to generate EAR for (build that resides on target)</function-required-arg>
+      <function-required-arg name="wasHomeDirectory">Location of was directory on target</function-required-arg>
+	  <function-required-arg name="wasServerName">Name of the WAS Server monitor profile runs under</function-required-arg>
+      <function-required-arg name="profileNameInWas">monitor profile name</function-required-arg>
+	  <function-required-arg name="isMonSecurity">is Monitor Security enabled true/false</function-required-arg>
+	  <function-required-arg name="runPortalDash">on or off selection, will run Portal Dashboard test</function-required-arg>
+	  <function-required-arg name="runBspaceDash">on or off selection, will run Business Space Dashboard Test</function-required-arg>
+	  <function-required-arg name="uninstallModel">Will Uninstall Model at the completion of test</function-required-arg>
+	  <function-optional-arg name="portalHostname">hostname/ip of the Portal machine</function-optional-arg>
+	  <function-optional-arg name="portalWASInstallLocation">Where the WAS running Portal is installed</function-optional-arg>
+	  <function-optional-arg name="portalUser">username for Portal user</function-optional-arg>
+	  <function-optional-arg name="portalPass">password for Portal user</function-optional-arg>
+	  <function-optional-arg name="monUser">monitor user for security</function-optional-arg>
+	  <function-optional-arg name="monPass">monitor pasword for security</function-optional-arg>
+	  <function-optional-arg name="browserSelect">valid values are "Mozilla Firefox" or "Internet Explorer"</function-optional-arg>					
+    </function-list-args>
+	
+    <try>
+		
+	  <sequence>
+	
+	  <!-- Local Variables -->	  
+      <script>myLogLevel="User7"</script>
+		  
+	  <!-- Import the library needed -->		
+      <script>libraryLoc="BTT_Sandbox/testcaseLibrary.xml"</script>
+      <log level='myLogLevel'>'MJL: Library Location is %s' % (libraryLoc)</log> 
+      <call function="'cafImportCustomLibrary'"> [libraryLoc] </call>
+      <script>importRC = STAXResult</script>
+      <if expr="importRC != 0">
+		  <throw exception="'eTerminateFunction'">'Failed to Import the necessary library %s for this test.' % (libraryLoc)</throw>
+	  </if>
+		  
+	  <!-- Call the autoParts test from testcaseLibrary -->	  
+	  <try>
+		<call function="'mon_TestAutoParts_All'">{
+			'target'                    : target,
+			'buildPath'                 : buildPath,
+			'wasHomeDirectory'          : wasHomeDirectory,
+			'wasServerName'             : wasServerName,
+			'profileNameInWas'          : profileNameInWas,
+			'isMonSecurity'             : isMonSecurity,
+			'runPortalDash'             : runPortalDash,
+			'runBspaceDash'             : runBspaceDash,
+			'uninstallModel'            : uninstallModel,
+			'portalHostname'            : portalHostname,
+			'portalWASInstallLocation'  : portalWASInstallLocation,
+			'portalUser'                : portalUser,
+			'portalPass'                : portalPass,
+			'monUser'                   : monUser,
+			'monPass'                   : monPass,
+			'browserSelect'             : browserSelect
+		}</call>
+		<catch exception="'...'" var="eInfo">
+			<throw exception="'eTerminateFunction'">eInfo</throw>
+		</catch>
+	  </try>
+		
+	  <return>0</return>
+	  	
+	  </sequence>
+		
+	  <!-- ################################### Begin exception handlers ###################################################### -->
+
+      <catch exception="'eTerminateFunction'" var="eInfo">
+        <sequence>
+		  <!-- Collect logs here : SystemOut.log, maybe trace.log etc -->
+          <log level="'fail'">'%s  %s:  Terminating function   Error: %s' % (STAXCurrentTestcase,STAXCurrentFunction,eInfo)</log>
+          <tcstatus result="'fail'">eInfo</tcstatus>
+          <return>1</return>
+        </sequence>
+      </catch>
+
+      <!-- ################################### End exception handlers ######################################################### -->
+			
+    </try>
+	  
+  </function>
+	
+  <!-- ****************************************************************** -->
+  <!--                      mon_TestBeverageMonitor                       -->
+  <!--                                                                    -->
+  <!--                                                                    -->
+  <!-- ****************************************************************** -->
+
+  <function name="mon_TestBeverageMonitor" scope="local">
+    <function-prolog>
+      This function will run the BeverageMonitor model test, it will:
+		generate an EAR for the build that user selects that is on the target
+		sends some pre batched events
+		and validates that the correct values reside in monitor through REST services
+    </function-prolog>
+
+    <function-epilog>
+      <![CDATA[
+<p>This is the BeverageMonitor test function</p>
+<p>This function will run the BeverageMonitor automation test </p>
+<p>It will do the following:</p>
+<ul>
+	<li>install an EAR to a monitor installation</li>
+	<li>send pre-made batched events</li>
+	<li>validate the events were processed and correct values in metric through REST Services<li>	  
+</ul>
+<p>this is another paragraph...</p>
+      ]]>
+    </function-epilog>
+
+    <function-list-args>
+      <function-required-arg name="target">Hostname/IP address of the target machine</function-required-arg>
+	  <function-required-arg name="buildPath">build level to generate EAR for (build that resides on target)</function-required-arg>
+      <function-required-arg name="wasHomeDirectory">Location of was directory on target</function-required-arg>
+	  <function-required-arg name="wasServerName">Name of the WAS Server monitor profile runs under</function-required-arg>
+      <function-required-arg name="profileNameInWas">monitor profile name</function-required-arg>
+	  <function-required-arg name="isMonSecurity">is Monitor Security enabled true/false</function-required-arg>
+	  <function-required-arg name="runPortalDash">on or off selection, will run Portal Dashboard test</function-required-arg>
+	  <function-required-arg name="runBspaceDash">on or off selection, will run Business Space Dashboard Test</function-required-arg>
+	  <function-required-arg name="uninstallModel">Will Uninstall Model at the completion of test</function-required-arg>
+	  <function-optional-arg name="portalHostname">hostname/ip of the Portal machine</function-optional-arg>
+	  <function-optional-arg name="portalWASInstallLocation">Where the WAS running Portal is installed</function-optional-arg>
+	  <function-optional-arg name="portalUser">username for Portal user</function-optional-arg>
+	  <function-optional-arg name="portalPass">password for Portal user</function-optional-arg>
+	  <function-optional-arg name="monUser">monitor user for security</function-optional-arg>
+	  <function-optional-arg name="monPass">monitor pasword for security</function-optional-arg>
+	  <function-optional-arg name="browserSelect">valid values are "Mozilla Firefox" or "Internet Explorer"</function-optional-arg>				
+    </function-list-args>
+	
+    <try>
+		
+	  <sequence>
+	
+	  <!-- Local Variables -->	  
+      <script>myLogLevel="User7"</script>
+		  
+	  <!-- Import the library needed -->		
+      <script>libraryLoc="BTT_Sandbox/testcaseLibrary.xml"</script>
+      <log level='myLogLevel'>'MJL: Library Location is %s' % (libraryLoc)</log>
+      <call function="'cafImportCustomLibrary'"> [libraryLoc] </call>
+      <script>importRC = STAXResult</script>
+      <if expr="importRC != 0">
+		  <throw exception="'eTerminateFunction'">'Failed to Import the necessary library %s for this test.' % (libraryLoc)</throw>
+	  </if>
+		  
+	  <!-- Call the autoParts test from testcaseLibrary -->	  
+	  <try>
+		<call function="'mon_TestBeverageMonitor_All'">{
+			'target'                    : target,
+			'buildPath'                 : buildPath,
+			'wasHomeDirectory'          : wasHomeDirectory,
+			'wasServerName'             : wasServerName,
+			'profileNameInWas'          : profileNameInWas,
+			'isMonSecurity'             : isMonSecurity,
+			'runPortalDash'             : runPortalDash,
+			'runBspaceDash'             : runBspaceDash,
+			'uninstallModel'            : uninstallModel,
+			'portalHostname'            : portalHostname,
+			'portalWASInstallLocation'  : portalWASInstallLocation,
+			'portalUser'                : portalUser,
+			'portalPass'                : portalPass,
+			'monUser'                   : monUser,
+			'monPass'                   : monPass,
+			'browserSelect'             : browserSelect
+		}</call>
+		<catch exception="'...'" var="eInfo">
+			<throw exception="'eTerminateFunction'">eInfo</throw>
+		</catch>
+	  </try>
+		
+	  <return>0</return>
+	  	
+	  </sequence>
+		
+	  <!-- ################################### Begin exception handlers ###################################################### -->
+
+      <catch exception="'eTerminateFunction'" var="eInfo">
+        <sequence>
+		  <!-- Collect logs here : SystemOut.log, maybe trace.log etc -->
+          <log level="'fail'">'%s  %s:  Terminating function   Error: %s' % (STAXCurrentTestcase,STAXCurrentFunction,eInfo)</log>
+          <tcstatus result="'fail'">eInfo</tcstatus>
+          <return>1</return>
+        </sequence>
+      </catch>
+
+      <!-- ################################### End exception handlers ######################################################### -->
+			
+    </try>
+  </function>
+	
+  <!-- ****************************************************************** -->
+  <!--                      mon_TestClaimProcess                          -->
+  <!--                                                                    -->
+  <!--                                                                    -->
+  <!-- ****************************************************************** -->
+
+  <function name="mon_TestClaimProcess" scope="local">
+    <function-prolog>
+      This function will run the ClaimProcessingTracker model test, it will:
+		generate an EAR for the build that user selects that is on the target
+		sends some pre batched events
+		and validates that the correct values reside in monitor through REST services
+    </function-prolog>
+
+    <function-epilog>
+      <![CDATA[
+<p>This is the ClaimProcessTracker test function</p>
+<p>This function will run the ClaimProcessTracker automation test </p>
+<p>It will do the following:</p>
+<ul>
+	<li>install an EAR to a monitor installation</li>
+	<li>send pre-made batched events</li>
+	<li>validate the events were processed and correct values in metric through REST Services<li>	  
+</ul>
+<p>this is another paragraph...</p>
+      ]]>
+    </function-epilog>
+
+    <function-list-args>
+      <function-required-arg name="target">Hostname/IP address of the target machine</function-required-arg>
+	  <function-required-arg name="buildPath">build level to generate EAR for (build that resides on target)</function-required-arg>
+      <function-required-arg name="wasHomeDirectory">Location of was directory on target</function-required-arg>
+	  <function-required-arg name="wasServerName">Name of the WAS Server monitor profile runs under</function-required-arg>
+      <function-required-arg name="profileNameInWas">monitor profile name</function-required-arg>
+	  <function-required-arg name="isMonSecurity">is Monitor Security enabled true/false</function-required-arg>
+	  <function-required-arg name="runPortalDash">on or off selection, will run Portal Dashboard test</function-required-arg>
+	  <function-required-arg name="runBspaceDash">on or off selection, will run Business Space Dashboard Test</function-required-arg>
+	  <function-required-arg name="uninstallModel">Will Uninstall Model at the completion of test</function-required-arg>
+	  <function-optional-arg name="portalHostname">hostname/ip of the Portal machine</function-optional-arg>
+	  <function-optional-arg name="portalWASInstallLocation">Where the WAS running Portal is installed</function-optional-arg>
+	  <function-optional-arg name="portalUser">username for Portal user</function-optional-arg>
+	  <function-optional-arg name="portalPass">password for Portal user</function-optional-arg>
+	  <function-optional-arg name="monUser">monitor user for security</function-optional-arg>
+	  <function-optional-arg name="monPass">monitor pasword for security</function-optional-arg>
+	  <function-optional-arg name="browserSelect">valid values are "Mozilla Firefox" or "Internet Explorer"</function-optional-arg>				
+    </function-list-args>
+	
+    <try>
+		
+	 <sequence>
+	
+	  <!-- Local Variables -->	  
+      <script>myLogLevel="User7"</script>
+		  
+	  <!-- Import the library needed -->		
+      <script>libraryLoc="BTT_Sandbox/testcaseLibrary.xml"</script>
+      <log level='myLogLevel'>'MJL: Library Location is %s' % (libraryLoc)</log>
+      <call function="'cafImportCustomLibrary'"> [libraryLoc] </call>
+      <script>importRC = STAXResult</script>
+      <if expr="importRC != 0">
+		  <throw exception="'eTerminateFunction'">'Failed to Import the necessary library %s for this test.' % (libraryLoc)</throw>
+	  </if>
+		  
+	  <!-- Call the autoParts test from testcaseLibrary -->	  
+	  <try>
+		<call function="'mon_TestClaimProcess_All'">{
+			'target'                    : target,
+			'buildPath'                 : buildPath,
+			'wasHomeDirectory'          : wasHomeDirectory,
+			'wasServerName'             : wasServerName,
+			'profileNameInWas'          : profileNameInWas,
+			'isMonSecurity'             : isMonSecurity,
+			'runPortalDash'             : runPortalDash,
+			'runBspaceDash'             : runBspaceDash,
+			'uninstallModel'            : uninstallModel,
+			'portalHostname'            : portalHostname,
+			'portalWASInstallLocation'  : portalWASInstallLocation,
+			'portalUser'                : portalUser,
+			'portalPass'                : portalPass,
+			'monUser'                   : monUser,
+			'monPass'                   : monPass,
+			'browserSelect'             : browserSelect
+		}</call>
+		<catch exception="'...'" var="eInfo">
+			<throw exception="'eTerminateFunction'">eInfo</throw>
+		</catch>
+	  </try>
+		
+	  <return>0</return>
+	  	
+	  </sequence>
+		
+	  <!-- ################################### Begin exception handlers ###################################################### -->
+
+      <catch exception="'eTerminateFunction'" var="eInfo">
+        <sequence>
+		  <!-- Collect logs here : SystemOut.log, maybe trace.log etc -->
+          <log level="'fail'">'%s  %s:  Terminating function   Error: %s' % (STAXCurrentTestcase,STAXCurrentFunction,eInfo)</log>
+          <tcstatus result="'fail'">eInfo</tcstatus>
+          <return>1</return>
+        </sequence>
+      </catch>
+
+      <!-- ################################### End exception handlers ######################################################### -->
+			
+    </try>
+  </function>
+	
+  <!-- ****************************************************************** -->
+  <!--                         mon_TestOrderItem                          -->
+  <!--                                                                    -->
+  <!--                                                                    -->
+  <!-- ****************************************************************** -->
+
+  <function name="mon_TestOrderItem" scope="local">
+    <function-prolog>
+      This function will run the OrderItem model test, it will:
+		generate an EAR for the build thats passed in (the build thats on the target)
+		sends some pre batched events
+		and validates that the correct values reside in monitor through REST services via Junit
+    </function-prolog>
+
+    <function-epilog>
+      <![CDATA[
+<p>This is the OrderItem test function</p>
+<p>This function will run the OrderItem automation test </p>
+<p>It will do the following:</p>
+<ul>
+	<li>install an EAR to a monitor installation</li>
+	<li>send pre-made batched events</li>
+	<li>validate the events were processed and correct values in metric through Junit Java Call<li>	  
+</ul>
+<p>this is another paragraph...</p>
+      ]]>
+    </function-epilog>
+
+    <function-list-args>
+      <function-required-arg name="target">Hostname/IP address of the target machine</function-required-arg>
+	  <function-required-arg name="buildPath">build level to generate EAR for (build that resides on target)</function-required-arg>
+      <function-required-arg name="wasHomeDirectory">Location of was directory on target</function-required-arg>
+	  <function-required-arg name="wasServerName">Name of the WAS Server monitor profile runs under</function-required-arg>
+      <function-required-arg name="profileNameInWas">monitor profile name</function-required-arg>
+	  <function-required-arg name="isMonSecurity">is Monitor Security enabled true/false</function-required-arg>
+	  <function-required-arg name="runPortalDash">on or off selection, will run Portal Dashboard test</function-required-arg>
+	  <function-required-arg name="runBspaceDash">on or off selection, will run Business Space Dashboard Test</function-required-arg>
+	  <function-required-arg name="uninstallModel">Will Uninstall Model at the completion of test</function-required-arg>
+	  <function-optional-arg name="portalHostname">hostname/ip of the Portal machine</function-optional-arg>
+	  <function-optional-arg name="portalWASInstallLocation">Where the WAS running Portal is installed</function-optional-arg>
+	  <function-optional-arg name="portalUser">username for Portal user</function-optional-arg>
+	  <function-optional-arg name="portalPass">password for Portal user</function-optional-arg>
+	  <function-optional-arg name="monUser">monitor user for security</function-optional-arg>
+	  <function-optional-arg name="monPass">monitor pasword for security</function-optional-arg>
+	  <function-optional-arg name="browserSelect">valid values are "Mozilla Firefox" or "Internet Explorer"</function-optional-arg>					
+    </function-list-args>
+	
+    <try>
+		
+	  <sequence>
+	
+	  <!-- Local Variables -->	  
+      <script>myLogLevel="User7"</script>
+		  
+	  <!-- Import the library needed -->		
+      <script>libraryLoc="BTT_Sandbox/testcaseLibrary.xml"</script>
+      <log level='myLogLevel'>'MJL: Library Location is %s' % (libraryLoc)</log>
+      <call function="'cafImportCustomLibrary'"> [libraryLoc] </call>
+      <script>importRC = STAXResult</script>
+      <if expr="importRC != 0">
+		  <throw exception="'eTerminateFunction'">'Failed to Import the necessary library %s for this test.' % (libraryLoc)</throw>
+	  </if>
+		  
+	  <!-- Call the autoParts test from testcaseLibrary -->	  
+	  <try>
+		<call function="'mon_TestOrderItem_All'">{
+			'target'                    : target,
+			'buildPath'                 : buildPath,
+			'wasHomeDirectory'          : wasHomeDirectory,
+			'wasServerName'             : wasServerName,
+			'profileNameInWas'          : profileNameInWas,
+			'isMonSecurity'             : isMonSecurity,
+			'runPortalDash'             : runPortalDash,
+			'runBspaceDash'             : runBspaceDash,
+			'uninstallModel'            : uninstallModel,
+			'portalHostname'            : portalHostname,
+			'portalWASInstallLocation'  : portalWASInstallLocation,
+			'portalUser'                : portalUser,
+			'portalPass'                : portalPass,
+			'monUser'                   : monUser,
+			'monPass'                   : monPass,
+			'browserSelect'             : browserSelect
+		}</call>
+		<catch exception="'...'" var="eInfo">
+			<throw exception="'eTerminateFunction'">eInfo</throw>
+		</catch>
+	  </try>
+		
+	  <return>0</return>
+	  	
+	  </sequence>
+		
+	  <!-- ################################### Begin exception handlers ###################################################### -->
+
+      <catch exception="'eTerminateFunction'" var="eInfo">
+        <sequence>
+		  <!-- Collect logs here : SystemOut.log, maybe trace.log etc -->
+          <log level="'fail'">'%s  %s:  Terminating function   Error: %s' % (STAXCurrentTestcase,STAXCurrentFunction,eInfo)</log>
+          <tcstatus result="'fail'">eInfo</tcstatus>
+          <return>1</return>
+        </sequence>
+      </catch>
+
+      <!-- ################################### End exception handlers ######################################################### -->
+			
+    </try>
+	  
+  </function>
+	
+  <!-- ****************************************************************** -->
+  <!--                      mon_TestPatientVisit                          -->
+  <!--                                                                    -->
+  <!--                                                                    -->
+  <!-- ****************************************************************** -->
+
+  <function name="mon_TestPatientVisit" scope="local">
+    <function-prolog>
+      This function will run the PatientVisit model test, it will:
+		generate an EAR for the build that user selects that is on the target
+		sends some pre batched events
+		and validates that the correct values reside in monitor through REST services
+    </function-prolog>
+
+    <function-epilog>
+      <![CDATA[
+<p>This is the PatientVisit test function</p>
+<p>This function will run the PatientVisit automation test </p>
+<p>It will do the following:</p>
+<ul>
+	<li>install an EAR to a monitor installation</li>
+	<li>send pre-made batched events</li>
+	<li>validate the events were processed and correct values in metric through REST Services<li>	  
+</ul>
+<p>this is another paragraph...</p>
+      ]]>
+    </function-epilog>
+
+    <function-list-args>
+      <function-required-arg name="target">Hostname/IP address of the target machine</function-required-arg>
+	  <function-required-arg name="buildPath">build level to generate EAR for (build that resides on target)</function-required-arg>
+      <function-required-arg name="wasHomeDirectory">Location of was directory on target</function-required-arg>
+	  <function-required-arg name="wasServerName">Name of the WAS Server monitor profile runs under</function-required-arg>
+      <function-required-arg name="profileNameInWas">monitor profile name</function-required-arg>
+	  <function-required-arg name="isMonSecurity">is Monitor Security enabled true/false</function-required-arg>
+	  <function-required-arg name="runPortalDash">on or off selection, will run Portal Dashboard test</function-required-arg>
+	  <function-required-arg name="runBspaceDash">on or off selection, will run Business Space Dashboard Test</function-required-arg>
+	  <function-required-arg name="uninstallModel">Will Uninstall Model at the completion of test</function-required-arg>
+	  <function-optional-arg name="portalHostname">hostname/ip of the Portal machine</function-optional-arg>
+	  <function-optional-arg name="portalWASInstallLocation">Where the WAS running Portal is installed</function-optional-arg>
+	  <function-optional-arg name="portalUser">username for Portal user</function-optional-arg>
+	  <function-optional-arg name="portalPass">password for Portal user</function-optional-arg>
+	  <function-optional-arg name="monUser">monitor user for security</function-optional-arg>
+	  <function-optional-arg name="monPass">monitor pasword for security</function-optional-arg>
+	  <function-optional-arg name="browserSelect">valid values are "Mozilla Firefox" or "Internet Explorer"</function-optional-arg>				
+    </function-list-args>
+	
+    <try>
+		
+	   <sequence>
+	
+	  <!-- Local Variables -->	  
+      <script>myLogLevel="User7"</script>
+		  
+	  <!-- Import the library needed -->		
+      <script>libraryLoc="BTT_Sandbox/testcaseLibrary.xml"</script>
+      <log level='myLogLevel'>'MJL: Library Location is %s' % (libraryLoc)</log>
+      <call function="'cafImportCustomLibrary'"> [libraryLoc] </call>
+      <script>importRC = STAXResult</script>
+      <if expr="importRC != 0">
+		  <throw exception="'eTerminateFunction'">'Failed to Import the necessary library %s for this test.' % (libraryLoc)</throw>
+	  </if>
+		  
+	  <!-- Call the autoParts test from testcaseLibrary -->	  
+	  <try>
+		<call function="'mon_TestPatientVisit_All'">{
+			'target'                    : target,
+			'buildPath'                 : buildPath,
+			'wasHomeDirectory'          : wasHomeDirectory,
+			'wasServerName'             : wasServerName,
+			'profileNameInWas'          : profileNameInWas,
+			'isMonSecurity'             : isMonSecurity,
+			'runPortalDash'             : runPortalDash,
+			'runBspaceDash'             : runBspaceDash,
+			'uninstallModel'            : uninstallModel,
+			'portalHostname'            : portalHostname,
+			'portalWASInstallLocation'  : portalWASInstallLocation,
+			'portalUser'                : portalUser,
+			'portalPass'                : portalPass,
+			'monUser'                   : monUser,
+			'monPass'                   : monPass,
+			'browserSelect'             : browserSelect
+		}</call>
+		<catch exception="'...'" var="eInfo">
+			<throw exception="'eTerminateFunction'">eInfo</throw>
+		</catch>
+	  </try>
+		
+	  <return>0</return>
+	  	
+	  </sequence>
+		
+	  <!-- ################################### Begin exception handlers ###################################################### -->
+
+      <catch exception="'eTerminateFunction'" var="eInfo">
+        <sequence>
+		  <!-- Collect logs here : SystemOut.log, maybe trace.log etc -->
+          <log level="'fail'">'%s  %s:  Terminating function   Error: %s' % (STAXCurrentTestcase,STAXCurrentFunction,eInfo)</log>
+          <tcstatus result="'fail'">eInfo</tcstatus>
+          <return>1</return>
+        </sequence>
+      </catch>
+
+      <!-- ################################### End exception handlers ######################################################### -->
+			
+    </try>
+  </function>
+	
+  <!-- ****************************************************************** -->
+  <!--                      mon_TestCodegen003                            -->
+  <!--                                                                    -->
+  <!--                                                                    -->
+  <!-- ****************************************************************** -->
+
+  <function name="mon_TestCodegen003" scope="local">
+    <function-prolog>
+      This function will run the Codegen003 (CDG003) model test, it will:
+		generate an EAR for the build that user selects that is on the target
+		sends some pre batched events
+		and validates that the correct values reside in monitor through REST services
+    </function-prolog>
+
+    <function-epilog>
+      <![CDATA[
+<p>This is the Codegen003 (CDG003) test function</p>
+<p>This function will run the Codegen003 (CDG003) automation test </p>
+<p>It will do the following:</p>
+<ul>
+	<li>install an EAR to a monitor installation</li>
+	<li>send pre-made batched events</li>
+	<li>validate the events were processed and correct values in metric through REST Services<li>	  
+</ul>
+<p>this is another paragraph...</p>
+      ]]>
+    </function-epilog>
+
+    <function-list-args>
+      <function-required-arg name="target">Hostname/IP address of the target machine</function-required-arg>
+	  <function-required-arg name="buildPath">build level to generate EAR for (build that resides on target)</function-required-arg>
+      <function-required-arg name="wasHomeDirectory">Location of was directory on target</function-required-arg>
+	  <function-required-arg name="wasServerName">Name of the WAS Server monitor profile runs under</function-required-arg>
+      <function-required-arg name="profileNameInWas">monitor profile name</function-required-arg>				
+    </function-list-args>
+	
+    <try>
+		
+	  <sequence>
+	
+	  <!-- Local Variables -->	  
+      <script>myLogLevel="User7"</script>
+		  
+	  <!-- Import the library needed -->		
+      <script>libraryLoc="BTT_Sandbox/testcaseLibrary.xml"</script>
+      <log level='myLogLevel'>'MJL: Library Location is %s' % (libraryLoc)</log>
+		 
+      <call function="'cafImportCustomLibrary'"> [libraryLoc] </call>
+      <script>importRC = STAXResult</script>
+      <if expr="importRC != 0">
+		  <throw exception="'eTerminateFunction'">'Failed to Import the necessary library %s for this test.' % (libraryLoc)</throw>
+	  </if>
+		  
+	  <!-- Call the autoParts test from testcaseLibrary -->	  
+	  <try>
+		<call function="'mon_TestCodegen003_All'">{
+			'target'                    : target,
+			'buildPath'                 : buildPath,
+			'wasHomeDirectory'          : wasHomeDirectory,
+			'wasServerName'             : wasServerName,
+			'profileNameInWas'          : profileNameInWas
+		}</call>
+		<catch exception="'...'" var="eInfo">
+			<throw exception="'eTerminateFunction'">eInfo</throw>
+		</catch>
+	  </try>
+		
+	  <return>0</return>
+	  	
+	  </sequence>
+		
+	  <!-- ################################### Begin exception handlers ###################################################### -->
+
+      <catch exception="'eTerminateFunction'" var="eInfo">
+        <sequence>
+		  <!-- Collect logs here : SystemOut.log, maybe trace.log etc -->
+          <log level="'fail'">'%s  %s:  Terminating function   Error: %s' % (STAXCurrentTestcase,STAXCurrentFunction,eInfo)</log>
+          <tcstatus result="'fail'">eInfo</tcstatus>
+          <return>1</return>
+        </sequence>
+      </catch>
+
+      <!-- ################################### End exception handlers ######################################################### -->
+			
+    </try>
+  </function>
+	
+  <!-- ****************************************************************** -->
+  <!--                      mon_TestCodegen005                            -->
+  <!--                                                                    -->
+  <!--                                                                    -->
+  <!-- ****************************************************************** -->
+
+  <function name="mon_TestCodegen005" scope="local">
+    <function-prolog>
+      This function will run the Codegen005 (CDG005) model test, it will:
+		generate an EAR for the build that user selects that is on the target
+		sends some pre batched events
+		and validates that the correct values reside in monitor through REST services
+    </function-prolog>
+
+    <function-epilog>
+      <![CDATA[
+<p>This is the Codegen005 (CDG005) test function</p>
+<p>This function will run the Codegen005 (CDG005) automation test </p>
+<p>It will do the following:</p>
+<ul>
+	<li>install an EAR to a monitor installation</li>
+	<li>send pre-made batched events</li>
+	<li>validate the events were processed and correct values in metric through REST Services<li>	  
+</ul>
+<p>this is another paragraph...</p>
+      ]]>
+    </function-epilog>
+
+    <function-list-args>
+      <function-required-arg name="target">Hostname/IP address of the target machine</function-required-arg>
+	  <function-required-arg name="buildPath">build level to generate EAR for (build that resides on target)</function-required-arg>
+      <function-required-arg name="wasHomeDirectory">Location of was directory on target</function-required-arg>
+	  <function-required-arg name="wasServerName">Name of the WAS Server monitor profile runs under</function-required-arg>
+      <function-required-arg name="profileNameInWas">monitor profile name</function-required-arg>				
+    </function-list-args>
+	
+    <try>
+		
+	  <sequence>
+	
+	  <!-- Local Variables -->	  
+      <script>myLogLevel="User7"</script>
+		  
+	  <!-- Import the library needed -->		
+      <script>libraryLoc="BTT_Sandbox/testcaseLibrary.xml"</script>
+      <log level='myLogLevel'>'MJL: Library Location is %s' % (libraryLoc)</log>
+		 
+      <call function="'cafImportCustomLibrary'"> [libraryLoc] </call>
+      <script>importRC = STAXResult</script>
+      <if expr="importRC != 0">
+		  <throw exception="'eTerminateFunction'">'Failed to Import the necessary library %s for this test.' % (libraryLoc)</throw>
+	  </if>
+		  
+	  <!-- Call the autoParts test from testcaseLibrary -->	  
+	  <try>
+		<call function="'mon_TestCodegen005_All'">{
+			'target'                    : target,
+			'buildPath'                 : buildPath,
+			'wasHomeDirectory'          : wasHomeDirectory,
+			'wasServerName'             : wasServerName,
+			'profileNameInWas'          : profileNameInWas
+		}</call>
+		<catch exception="'...'" var="eInfo">
+			<throw exception="'eTerminateFunction'">eInfo</throw>
+		</catch>
+	  </try>
+		
+	  <return>0</return>
+	  	
+	  </sequence>
+		
+	  <!-- ################################### Begin exception handlers ###################################################### -->
+
+      <catch exception="'eTerminateFunction'" var="eInfo">
+        <sequence>
+		  <!-- Collect logs here : SystemOut.log, maybe trace.log etc -->
+          <log level="'fail'">'%s  %s:  Terminating function   Error: %s' % (STAXCurrentTestcase,STAXCurrentFunction,eInfo)</log>
+          <tcstatus result="'fail'">eInfo</tcstatus>
+          <return>1</return>
+        </sequence>
+      </catch>
+
+      <!-- ################################### End exception handlers ######################################################### -->
+
+    </try>
+  </function>
+	
+  <!-- ****************************************************************** -->
+  <!--                      mon_TestCodegen012                            -->
+  <!--                                                                    -->
+  <!--                                                                    -->
+  <!-- ****************************************************************** -->
+
+  <function name="mon_TestCodegen012" scope="local">
+    <function-prolog>
+      This function will run the Codegen012 (CDG012) model test, it will:
+		generate an EAR for the build that user selects that is on the target
+		sends some pre batched events
+		and validates that the correct values reside in monitor through REST services
+    </function-prolog>
+
+    <function-epilog>
+      <![CDATA[
+<p>This is the Codegen012 (CDG012) test function</p>
+<p>This function will run the Codegen005 (CDG012) automation test </p>
+<p>It will do the following:</p>
+<ul>
+	<li>install an EAR to a monitor installation</li>
+	<li>send pre-made batched events</li>
+	<li>validate the events were processed and correct values in metric through REST Services<li>	  
+</ul>
+<p>this is another paragraph...</p>
+      ]]>
+    </function-epilog>
+
+    <function-list-args>
+      <function-required-arg name="target">Hostname/IP address of the target machine</function-required-arg>
+	  <function-required-arg name="buildPath">build level to generate EAR for (build that resides on target)</function-required-arg>
+      <function-required-arg name="wasHomeDirectory">Location of was directory on target</function-required-arg>
+	  <function-required-arg name="wasServerName">Name of the WAS Server monitor profile runs under</function-required-arg>
+      <function-required-arg name="profileNameInWas">monitor profile name</function-required-arg>				
+    </function-list-args>
+	
+    <try>
+		
+	  <sequence>
+	
+	  <!-- Local Variables -->	  
+      <script>myLogLevel="User7"</script>
+		  
+	  <!-- Import the library needed -->		
+      <script>libraryLoc="BTT_Sandbox/testcaseLibrary.xml"</script>
+      <log level='myLogLevel'>'MJL: Library Location is %s' % (libraryLoc)</log>
+		 
+      <call function="'cafImportCustomLibrary'"> [libraryLoc] </call>
+      <script>importRC = STAXResult</script>
+      <if expr="importRC != 0">
+		  <throw exception="'eTerminateFunction'">'Failed to Import the necessary library %s for this test.' % (libraryLoc)</throw>
+	  </if>
+		  
+	  <!-- Call the autoParts test from testcaseLibrary -->	  
+	  <try>
+		<call function="'mon_TestCodegen012_All'">{
+			'target'                    : target,
+			'buildPath'                 : buildPath,
+			'wasHomeDirectory'          : wasHomeDirectory,
+			'wasServerName'             : wasServerName,
+			'profileNameInWas'          : profileNameInWas
+		}</call>
+		<catch exception="'...'" var="eInfo">
+			<throw exception="'eTerminateFunction'">eInfo</throw>
+		</catch>
+	  </try>
+		
+	  <return>0</return>
+	  	
+	  </sequence>
+		
+	  <!-- ################################### Begin exception handlers ###################################################### -->
+
+      <catch exception="'eTerminateFunction'" var="eInfo">
+        <sequence>
+		  <!-- Collect logs here : SystemOut.log, maybe trace.log etc -->
+          <log level="'fail'">'%s  %s:  Terminating function   Error: %s' % (STAXCurrentTestcase,STAXCurrentFunction,eInfo)</log>
+          <tcstatus result="'fail'">eInfo</tcstatus>
+          <return>1</return>
+        </sequence>
+      </catch>
+
+      <!-- ################################### End exception handlers ######################################################### -->
+
+    </try>
+  </function>
+	
+  <!-- ****************************************************************** -->
+  <!--                      mon_TestCodegen015                            -->
+  <!--                                                                    -->
+  <!--                                                                    -->
+  <!-- ****************************************************************** -->
+
+  <function name="mon_TestCodegen015" scope="local">
+    <function-prolog>
+      This function will run the Codegen015 (CDG015) model test, it will:
+		generate an EAR for the build that user selects that is on the target
+		sends some pre batched events
+		and validates that the correct values reside in monitor through REST services
+    </function-prolog>
+
+    <function-epilog>
+      <![CDATA[
+<p>This is the Codegen015 (CDG015) test function</p>
+<p>This function will run the Codegen015 (CDG015) automation test </p>
+<p>It will do the following:</p>
+<ul>
+	<li>install an EAR to a monitor installation</li>
+	<li>send pre-made batched events</li>
+	<li>validate the events were processed and correct values in metric through REST Services<li>	  
+</ul>
+<p>this is another paragraph...</p>
+      ]]>
+    </function-epilog>
+
+    <function-list-args>
+      <function-required-arg name="target">Hostname/IP address of the target machine</function-required-arg>
+	  <function-required-arg name="buildPath">build level to generate EAR for (build that resides on target)</function-required-arg>
+      <function-required-arg name="wasHomeDirectory">Location of was directory on target</function-required-arg>
+	  <function-required-arg name="wasServerName">Name of the WAS Server monitor profile runs under</function-required-arg>
+      <function-required-arg name="profileNameInWas">monitor profile name</function-required-arg>				
+    </function-list-args>
+	
+    <try>
+		
+	  <sequence>
+	
+	  <!-- Local Variables -->	  
+      <script>myLogLevel="User7"</script>
+		  
+	  <!-- Import the library needed -->		
+      <script>libraryLoc="BTT_Sandbox/testcaseLibrary.xml"</script>
+      <log level='myLogLevel'>'MJL: Library Location is %s' % (libraryLoc)</log>
+		 
+      <call function="'cafImportCustomLibrary'"> [libraryLoc] </call>
+      <script>importRC = STAXResult</script>
+      <if expr="importRC != 0">
+		  <throw exception="'eTerminateFunction'">'Failed to Import the necessary library %s for this test.' % (libraryLoc)</throw>
+	  </if>
+		  
+	  <!-- Call the autoParts test from testcaseLibrary -->	  
+	  <try>
+		<call function="'mon_TestCodegen015_All'">{
+			'target'                    : target,
+			'buildPath'                 : buildPath,
+			'wasHomeDirectory'          : wasHomeDirectory,
+			'wasServerName'             : wasServerName,
+			'profileNameInWas'          : profileNameInWas
+		}</call>
+		<catch exception="'...'" var="eInfo">
+			<throw exception="'eTerminateFunction'">eInfo</throw>
+		</catch>
+	  </try>
+		
+	  <return>0</return>
+	  	
+	  </sequence>
+		
+	  <!-- ################################### Begin exception handlers ###################################################### -->
+
+      <catch exception="'eTerminateFunction'" var="eInfo">
+        <sequence>
+		  <!-- Collect logs here : SystemOut.log, maybe trace.log etc -->
+          <log level="'fail'">'%s  %s:  Terminating function   Error: %s' % (STAXCurrentTestcase,STAXCurrentFunction,eInfo)</log>
+          <tcstatus result="'fail'">eInfo</tcstatus>
+          <return>1</return>
+        </sequence>
+      </catch>
+
+      <!-- ################################### End exception handlers ######################################################### -->
+
+    </try>
+  </function>
+	
+</stax>

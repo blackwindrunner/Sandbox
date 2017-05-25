@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<modulemap:EARProjectMap xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:application="application.xmi" xmlns:modulemap="modulemap.xmi" xmi:id="EARProjectMap_1154660457974">
+  <mappings xmi:id="ModuleMapping_1154660457974" projectName="BTTCHAEJB">
+    <module xmi:type="application:EjbModule" href="META-INF/application.xml#EjbModule_1154660457974"/>
+  </mappings>
+  <utilityJARMappings xmi:id="UtilityJARMapping_1154660922522" projectName="bttcore" uri="bttcore.jar"/>
+</modulemap:EARProjectMap>

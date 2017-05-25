@@ -1,0 +1,2 @@
+//>>built
+define("dojo/cldr/nls/ar-dz/generic",{"dateFormat-short":"GGGGG y/M/d","dateFormat-medium":"G y/MM/dd","dateFormatItem-MMdd":"MM/dd","dateFormatItem-yyyyM":"G y/M","dateFormatItem-Md":"M/d","dateFormatItem-yyyyMM":"G y/MM","dateFormatItem-yyyyMd":"G y/M/d"});

@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "stax.dtd">
+<stax>
+	
+  <!-- ****************************************************************** -->
+  <!--                       BTT_FileDistribution_GUI                     -->
+  <!--                                                                    -->
+  <!-- ****************************************************************** -->
+
+  <function name="BTT_FileDistribution_GUI" scope="local">
+			  
+  <function-prolog>
+    This Function is used to:
+	  1) Distribute the zip files of GUI Automation to different targets.
+	  2) Run the GUI Automatoin on the targets which has the Composer file.
+	  
+  </function-prolog>
+	  
+  <function-epilog>
+     <![CDATA[
+		 <p>This function fits the platforms of Windows/Linux</p>
+     ]]>
+  </function-epilog>
+	  
+  <function-list-args>
+	<function-required-arg name="target"></function-required-arg>
+	<function-required-arg name="SourceServer"></function-required-arg>
+	<function-required-arg name="SourceDirectory"></function-required-arg>
+	<function-required-arg name="SourceFileName"></function-required-arg>
+	<function-required-arg name="SourceServer_GUI"></function-required-arg>
+	<function-required-arg name="SourceDirectory_GUI"></function-required-arg>
+	<function-required-arg name="GUIFileName"></function-required-arg>
+  </function-list-args>
+	
+	<try>
+    
+	  <sequence>
+		<!-- Local Variables -->
+		<script>myLogLevel = "User7"</script>
+
+		<if expr="Platform == 'Windows'">
+			<sequence>
+				<script>TargetDirectory = "C:\SandBox"</script>
+				<script>myCommand = "sandbox.bat"</script>
+			</sequence>	
+			<elseif expr="OS == 'Linux'">
+				<sequence>
+					<script>TargetDirectory = "/SandBox"</script>
+					<script>myCommand = "sandbox.sh"</script>
+				</sequence>
+			</elseif>
+			<else>
+				<log level='error'>'The Operating System is not Windows or Linux, not supported yet!'</log>
+			</else>
+		</if>
+		  
+		<log level='myLogLevel'>'Starting the distribution of the zip files.'</log>	
+		  
+		<!-- Copy the Composer file from the Source machine to different targets.-->    
+		<call function="'cafCopyFile'">SourceServer_GUI,SourceDirectory_GUI,GUIFileName,target,TargetDirectory,GUIFileName</call>
+		<script>(callRC,callResult) = STAXResult</script>
+		<if expr="callRC != 0">
+			<throw exception="'File.Distribution.Exception'">'I had a problem copying the GUI zip files.'</throw>
+		</if>
+		
+		<call function="'cafCopyFile'">SourceServer,SourceDirectory,SourceFileName,target,TargetDirectory,SourceFileName</call>
+		<script>(callRC,callResult) = STAXResult</script>
+		<if expr="callRC != 0">
+			<throw exception="'File.Distribution.Exception'">'I had a problem copying the composer zip files.'</throw>
+		</if>
+		  
+		<!-- Run the Sandbox Testing -->
+		<log level='myLogLevel'>'Starting to run the sandbox.sh/sandbox.bat on the target.'</log>
+		<call function="'cafRunCommandAdv'">target,'%s%s%s' % (TargetDirectory,FileSeparator,myCommand),'',TargetDirectory,'%s%ssandbox.log' %(TargetDirectory,FileSeparator)</call>
+		<script>(callRC,callResult) = STAXResult</script>
+		<if expr="callRC != 0">
+			<throw exception="'Command.Execution.Exception'">'I had a problem running the copy files command.'</throw>
+		</if>
+		 
+		<log level="'info'">'Done with the File Distribution and copy Execution'</log>
+	  	  	  
+		<return>0</return>
+
+	  </sequence>
+		
+  <!-- ################################### Begin exception handlers ############################################################################# -->
+    <catch exception="'File.Distribution.Exception'" var="eInfo">
+      <sequence>
+        <log level="'fail'">'%s  %s:  Terminating function   Error: %s' % (STAXCurrentTestcase,STAXCurrentFunction,eInfo)</log>
+        <tcstatus result="'fail'">eInfo</tcstatus>
+      <return>1</return>
+      </sequence>
+    </catch>
+	
+	<catch exception="'Command.Execution.Exception'" var="eInfo">
+      <sequence>
+        <log level="'fail'">'%s  %s:  Terminating function   Error: %s' % (STAXCurrentTestcase,STAXCurrentFunction,eInfo)</log>
+        <tcstatus result="'fail'">eInfo</tcstatus>
+      <return>1</return>
+      </sequence>
+    </catch>
+  <!-- ################################### End exception handlers ############################################################################### -->
+
+	</try>
+	    
+  </function>
+	
+</stax>

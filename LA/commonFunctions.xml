@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "stax.dtd">
+<stax>
+	
+  <!-- ****************************************************************** -->
+  <!--                         mon_InstallEAR_Windows                     -->
+  <!--                                                                    -->
+  <!--                                                                    -->
+  <!-- ****************************************************************** -->
+
+  <function name="mon_TestBevMon" scope="local">
+    <function-prolog>
+      This function will Install an EAR
+    </function-prolog>
+
+    <function-epilog>
+      <![CDATA[
+<p>This is Install EAR function</p>
+<p>This function will install a model in EAR form into a Monitor installation </p>
+<p>It will do the following:</p>
+<ul>
+	<li>Install EAR description</li>
+</ul>
+<p>this is another paragraph...</p>
+      ]]>
+    </function-epilog>
+
+    <function-list-args>
+      <function-required-arg name="target">Hostname/IP address of the target machine</function-required-arg>
+      <function-required-arg name="wasHomeDirectory">Location of the WAS directory on target</function-required-arg>
+      <function-required-arg name="earFileLocation">Location of the EAR File</function-required-arg>				
+    </function-list-args>
+	
+	<return></return>    
+	  
+  </function>
+	
+  
+</stax>

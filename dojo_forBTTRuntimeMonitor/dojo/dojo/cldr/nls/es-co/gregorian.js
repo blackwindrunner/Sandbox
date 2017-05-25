@@ -1,0 +1,2 @@
+//>>built
+define("dojo/cldr/nls/es-co/gregorian",{"dateFormat-short":"d/MM/yy","dateFormat-medium":"d/MM/y","timeFormat-long":"h:mm:ss a z","timeFormat-medium":"h:mm:ss a","timeFormat-short":"h:mm a","timeFormat-full":"h:mm:ss a (zzzz)"});

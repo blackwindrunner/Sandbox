@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "stax.dtd">
+<stax>
+	
+  <!-- ****************************************************************** -->
+  <!--                       RFT_TestMMs                        -->
+  <!--                                                                    -->
+  <!-- ****************************************************************** -->
+
+  <function name="RFT_TestMMs" scope="local">
+			  
+  <function-prolog>
+    This Function is to call the RFT to perform Dashboard testing for Monitor Models.
+	  
+  </function-prolog>
+	  
+  <function-epilog>
+     <![CDATA[
+		 <p>This function feeds some parameters to RFT</p>
+		 <p>And then call the command line to run testing.</p>
+     ]]>
+  </function-epilog>
+	  
+  <function-list-args>
+	<function-required-arg name="target"></function-required-arg>
+	<function-required-arg name="monitormodels"></function-required-arg>			
+	<function-required-arg name="PortalUserName"></function-required-arg>
+	<function-required-arg name="PortalPassword"></function-required-arg>
+	<function-required-arg name="rftbrowserName"></function-required-arg>
+  </function-list-args>
+
+		  
+
+  <try>
+	  
+    
+  <sequence>
+	
+	<!-- Local Variables -->
+	
+	<script>myLogLevel = "User7"</script>
+    <script>myName="autoparts01"</script>
+	  
+    <!-- Starting the important part -->
+    
+	<log level='myLogLevel'>'Starting the %s RFT test' % (myName)</log>	
+	  
+	<if expr="rftbrowserName == 'Mozilla Firefox'">
+	  <sequence>
+		<script>rftbrowserPath = 'C:\Program Files\Mozilla Firefox'</script>
+		<script>rftbrowserCommand = 'firefox.exe'</script>
+	  </sequence>
+	</if>
+
+	<if expr="rftbrowserName == 'Internet Explorer'">
+	  <sequence>
+		<script>rftbrowserPath = 'C:\Program Files\Internet Explorer'</script>
+		<script>rftbrowserCommand = 'iexplore.exe'</script>
+	  </sequence>
+	</if>	
+	  
+	<if expr="monitormodels == 'AutoParts'">
+		<script>rftScript = 'testcases.models.autoparts.KpiTableViewValidation'</script>
+	</if>
+	<if expr="monitormodels == 'BeverageMonitor'">
+		<script>rftScript = 'testcases.models.beverage.InstanceMetricValidation'</script>
+	</if>
+	<if expr="monitormodels == 'ClaimProcessing'">
+		<script>rftScript = 'testcases.models.claimproc.InstanceMetricValidation'</script>
+	</if>
+	<if expr="monitormodels == 'PatientVisit'">
+		<script>rftScript = 'testcases.models.patient.InstanceMetricValidation'</script>
+	</if>
+	<if expr="monitormodels == 'OrderItem'">
+		<script>rftScript = 'testcases.models.orderitem.KpiTableViewValidation'</script>
+	</if>	  
+	  
+    <!-- Load the RFT library functions -->
+    
+	<log level='myLogLevel'>'Loading Rational Functional Tester automation libraries...'</log>
+	<call function="'cafImportCAFLibrary'">'rftFunctions/libraryFunctions.xml'</call>
+	<script>callRC = STAXResult</script>
+	<if expr="callRC != 0">
+		<throw exception="'MonitorAutoException.PortalDashboard.RFTLibraryImportFailed'">'Failed to import the Rational Functional Tester automation libraries.  Please install the Rational Lotus Automator update before continuing or contact your Lotus Automator administrator for assistance'</throw>
+    </if>
+	  
+	<!-- Request a RFT server from the resouce pool -->
+	
+	<log level='myLogLevel'>'Checking out RFT server from resource pool...'</log>
+	<call function="'cafRespoolRequest'">'local','RFT Servers','1800000'</call>
+	<script>(callRC,rftServer) = STAXResult</script>
+	<if expr="callRC != 0">
+		<throw exception="'MonitorAutoException.PortalDashboard.RFTResPoolCheckOutException'">'Failed to check out a server from the RFT server resource pool.  Please contact your automation administrator for further assistance'</throw>
+    </if>
+	  
+	<!-- Call RFT to run test-->
+	  
+	<log level='myLogLevel'>'Call RFT to run Portal Dashboard testing...'</log>
+	<call function="'cafRunRFTTest'">
+	  {
+		'rftServer'                    : rftServer,
+		'rftScript'                    : rftScript,
+		'rftScriptArgs'                : '%s %s' % (PortalUserName,PortalPassword),
+		'maxExecutionTime'             : '60m',
+		'rftProjectArchive'            : 'monitor/jars/PortalGui612.jar',
+		'initializeRftServer'          : 1,
+		'scriptSource'                 : 'custom',
+		'appName'                      : 'PortalGui612',
+		'appKind'                      : 'html',
+		'appPath'                      : 'http://%s:10038/wps/portal' % (target),
+		'appCommand'                   : '',
+		'appJvm'                       : rftbrowserName,
+		'appClasspath'                 : '',
+		'appArgs'                      : '',
+		'appWorkingDir'                : '',
+		'browserName'                  : rftbrowserName,
+		'browserPath'                  : rftbrowserPath,
+		'browserCommand'               : rftbrowserCommand,
+		'jobOutputLogTargetDescriptor' : target
+	  }
+	</call>
+	<script>(callRC,callResult) = STAXResult</script>
+	<if expr="callRC != 0">
+		<throw exception="'MonitorAutoException.PortalDashboard.RFTTestingFailed'">'Failed to run RFT testing for monitor models.  Error:  %s' % (callResult)</throw>
+	</if>
+	  	  	  
+	<return>0</return>
+
+  </sequence>
+
+	<!-- Release the RFT server to the resouce pool -->
+	<finally>
+		<sequence>
+		  <log level='myLogLevel'>'Checking in RFT server to resource pool...'</log>
+		  <call function="'cafRespoolRelease'">'local','RFT Servers',rftServer</call>
+		</sequence>				
+	</finally>
+  </try>
+	    
+  </function>
+	
+</stax>

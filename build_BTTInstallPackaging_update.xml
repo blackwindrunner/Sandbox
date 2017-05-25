@@ -1,0 +1,553 @@
+<project name="BTTInstallPackaging" default="build_all" basedir=".">
+
+  <!-- The following property defines the package base path -->
+  <property name="base.dse.package" value="com/ibm/dse"/>
+  <property name="base.btt.package" value="com/ibm/btt"/>
+  <property name="btt.version" value="_8.1.1"/>
+	
+  <!-- The following properties files
+      1. set local build machine requirements for implementation in
+      2. general and custom variable definitions for all drivers -->
+  <property file="C:/LocalSettings.properties"/>
+  
+  <target name="build">
+        <javac srcdir="tools" 
+               destdir="tools" debug="on">
+        </javac>
+  </target> 
+  
+<!--=============================================================================-->
+  
+<target name="fetch_BTT_Installation">                   
+  <copy todir=".">
+    <fileset dir="../BTTBusinessComponent/installation" includes="**"/>
+    <fileset dir="../BTTBusinessLogic/installation" includes="**"/>
+    <fileset dir="../BTTCHAEJB/installation" includes="**"/>
+    <fileset dir="../BTTChannels/installation" includes="**"/>
+    <fileset dir="../BTTClientServerMechanism/installation" includes="**"/>
+    <fileset dir="../BTTCompatibility/installation" includes="**"/>
+    <fileset dir="../BTTCore/installation" includes="**"/>
+    <fileset dir="../BTTDatabaseServices/installation" includes="**"/>
+    <fileset dir="../BTTDummySnaLu0Connector/installation" includes="**"/>
+    <fileset dir="../BTTInvoker/installation" includes="**"/>
+    <fileset dir="../BTTLu0Connector/installation" includes="**"/>
+    <fileset dir="../BTTLu62Connector/installation" includes="**"/>
+    <fileset dir="../BTTMqConnectionService/installation" includes="**"/>
+    <fileset dir="../BTTRichClient/installation" includes="**"/>
+    <fileset dir="../BTTRuntimeMonitor/installation" includes="**"/>
+    <fileset dir="../BTTSample/installation" includes="**"/>
+    <fileset dir="../BTTServices/installation" includes="**"/>
+    <fileset dir="../BTTMobileAdapter/installation" includes="**"/>
+    <fileset dir="../BTTToolsAPAR/installation" includes="**"/>
+    <fileset dir="../BTTToolsFormatterSimulator/installation" includes="**"/>
+    <fileset dir="../BTTToolsMigration/installation" includes="**"/>
+    <fileset dir="../BTTTransactionBasedTool/installation" includes="**"/>
+    <fileset dir="../BTTValidationTool/installation" includes="**"/>
+    <fileset dir="../BTTToolsXUIEditor/installation" includes="**"/>
+    <fileset dir="../BTTTransactionBuilder/installation" includes="**"/>
+    <fileset dir="../BTTRichClientXUIEngine/installation" includes="**"/>
+    <fileset dir="../BTTRichClientMonitor/installation" includes="**"/>
+    <fileset dir="../BTTWeb2Container/installation" includes="**"/> 
+    <fileset dir="../BTTToolsAppWizard/installation" includes="**"/> 
+    <fileset dir="../BTTWeb2InternetBankSample/installation" includes="**"/>
+    <fileset dir="../BTTJumpStartSample/installation" includes="**"/>
+    <fileset dir="../BTTToolsDDEEditor/installation" includes="**"/> 
+    
+	</copy>                         
+ </target>  
+
+  
+  <!--=============================================================================-->
+  <target name="fetch_DSE_jars">
+  	   
+  	     	
+       <copy todir="migration" flatten="true">
+						<fileset dir= "../" 
+						         includes="DSE**/deliverables/*.jar" 
+						         excludes="BTT**/**"/>
+       </copy>
+             
+       <copy file="../ComposerWOSA/newnt/dlls/bdsewidc.dll" tofile="migration/wosa/bdsewidc.nt" /> 
+	     <copy file="../ComposerWOSA/newnt/dlls/bdsewosa.dll" tofile="migration/wosa/bdsewosa.nt" /> 
+	     <copy file="../ComposerWOSA/newnt/dlls/bdsewptr.dll" tofile="migration/wosa/bdsewptr.nt" /> 
+	     <copy file="../ComposerWOSA/newnt/dlls/dsewidc.dll" tofile="migration/wosa/dsewidc.nt" /> 
+	     <copy file="../ComposerWOSA/newnt/dlls/dsewosa.dll" tofile="migration/wosa/dsewosa.nt" /> 
+	     <copy file="../ComposerWOSA/newnt/dlls/dsewptr.dll" tofile="migration/wosa/dsewptr.nt" />
+	     
+	     <!--copy todir="migration">
+	           <fileset dir="../DSEAccessControlAdmin" includes="dbtools/**"/>
+	           <fileset dir="../DSEEjViewerServer" includes="dbtools/**"/>
+	     </copy-->        
+  	   
+  	   
+  	   <!--mkdir dir="plugins/com.ibm.btt.compatible${btt.version}${build.time}"/>
+  	   <mkdir dir="plugins/com.ibm.btt.compatible${btt.version}${build.time}/META-INF"/>
+  	   <copy todir="plugins/com.ibm.btt.compatible${btt.version}${build.time}/META-INF">
+  	       			<fileset file="com.ibm.btt.compatible\META-INF\MANIFEST.MF" includes="desktop/**"/>
+  	   </copy>
+  	
+       <copy todir="plugins/com.ibm.btt.compatible${btt.version}${build.time}" flatten="true">
+						<fileset dir= "../" 
+						         includes="DSE**/deliverables/*.jar" 
+						         excludes="BTT**/**"/>
+       </copy>
+       
+       <copy todir="plugins/com.ibm.btt.compatible${btt.version}${build.time}">
+       			<fileset dir="../DSEDesktop/src" includes="desktop/**"/>
+       </copy>
+       
+       <copy file="../ComposerWOSA/newnt/dlls/bdsewidc.dll" tofile="plugins/com.ibm.btt.compatible${btt.version}${build.time}/wosa/bdsewidc.nt" /> 
+	     <copy file="../ComposerWOSA/newnt/dlls/bdsewosa.dll" tofile="plugins/com.ibm.btt.compatible${btt.version}${build.time}/wosa/bdsewosa.nt" /> 
+	     <copy file="../ComposerWOSA/newnt/dlls/bdsewptr.dll" tofile="plugins/com.ibm.btt.compatible${btt.version}${build.time}/wosa/bdsewptr.nt" /> 
+	     <copy file="../ComposerWOSA/newnt/dlls/dsewidc.dll" tofile="plugins/com.ibm.btt.compatible${btt.version}${build.time}/wosa/dsewidc.nt" /> 
+	     <copy file="../ComposerWOSA/newnt/dlls/dsewosa.dll" tofile="plugins/com.ibm.btt.compatible${btt.version}${build.time}/wosa/dsewosa.nt" /> 
+	     <copy file="../ComposerWOSA/newnt/dlls/dsewptr.dll" tofile="plugins/com.ibm.btt.compatible${btt.version}${build.time}/wosa/dsewptr.nt" />
+	     
+	     <copy todir="plugins/com.ibm.btt.compatible${btt.version}${build.time}">
+	           <fileset dir="../DSEAccessControlAdmin" includes="dbtools/**"/>
+	           <fileset dir="../DSEEjViewerServer" includes="dbtools/**"/>
+	     </copy-->                 
+  </target>
+                              
+  <target name="fetch_jars"> 
+   	
+	<copy file="../ComposerComms/lu62/winj2c/Lu62jwrap.dll" tofile="lib/comms/lu62jwrap.dll" /> 
+	<copy file="../ComposerComms/lu0/winj2c/lu0wrap.winj2c" tofile="lib/comms/lu0wrap.dll" />
+	<copy file="../ComposerComms/lu62/linuxj2c/liblu62jwrap.so" tofile="lib/comms/liblu62jwrap.so.linux" /> 
+	<copy file="../ComposerComms/lu0/linuxj2c/liblu0wrap.so" tofile="lib/comms/liblu0wrap.so.linux" />
+	<copy file="../ComposerComms/lu62/aixj2c/liblu62jwrap.so" tofile="lib/comms/liblu62jwrap.so.aix" /> 
+	<copy file="../ComposerComms/lu0/aixj2c/liblu0wrap.so" tofile="lib/comms/liblu0wrap.so.aix" />
+	<copy file="../ComposerComms/lu62/winj2c_AIXLinuxClient/lu62jwrap.dll" tofile="lib/comms/lu62jwrap.dll.winj2c_AIXLinuxClient" />
+	<copy file="../ComposerComms/lu0/aixj2c/liblu0wrap.so.AIX64" tofile="lib/comms/liblu0wrap.so.AIX64" />
+	<copy file="../ComposerComms/lu62/aixj2c/liblu62jwrap.so.AIX64" tofile="lib/comms/liblu62jwrap.so.AIX64" />
+	<copy file="../ComposerComms/lu0/linuxj2c/liblu0wrap.so.zLinux64" tofile="lib/comms/liblu0wrap.so.zLinux64" />
+	<copy file="../ComposerComms/lu62/linuxj2c/liblu62jwrap.so.zLinux64" tofile="lib/comms/liblu62jwrap.so.zLinux64" />
+	
+  </target>
+  
+  
+  <!--=============================================================================-->
+
+  <target name="version_deliverable_jars" depends="fetch_jars">
+    <exec dir="tools" executable="Perl.exe">
+      <arg line='versionJars.perl -r composer700 -c BTTInstallPackaging -l ${level}'/>
+    </exec>
+  </target>
+
+  <!--=============================================================================-->
+  
+  <target name="fetch_source">
+      <copy todir="source" flatten="true">
+         <fileset dir="../" includes="BTT**/deliverables/*zip"/>
+      </copy>
+  </target>
+ 
+
+  <!--=============================================================================-->
+  
+  <target name="fetch_plugins">
+  
+			<move todir="plugins/com.ibm.btt.core${btt.version}${build.time}">
+        <fileset dir="plugins/com.ibm.btt.core"/>
+			</move>
+  
+			
+			<move todir="plugins/com.ibm.btt.csclient.http${btt.version}${build.time}">
+        <fileset dir="plugins/com.ibm.btt.csclient.http"/>
+			</move>
+
+    	<move todir="plugins/com.ibm.btt.rcp.broker${btt.version}${build.time}">
+        <fileset dir="plugins/com.ibm.btt.rcp.broker"/>
+			</move>
+			
+      <move todir="plugins/com.ibm.btt.rcp.broker.xpd${btt.version}${build.time}">
+        <fileset dir="plugins/com.ibm.btt.rcp.broker.xpd"/>
+			</move>
+  
+      <move todir="plugins/com.ibm.btt.rcp.activity${btt.version}${build.time}">
+        <fileset dir="plugins/com.ibm.btt.rcp.activity"/>
+			</move>
+    
+    	<move todir="plugins/com.ibm.btt.rcp.navigator${btt.version}${build.time}">
+        <fileset dir="plugins/com.ibm.btt.rcp.navigator"/>
+			</move>
+
+    	<move todir="plugins/com.ibm.btt.rcp.perspective${btt.version}${build.time}">
+        <fileset dir="plugins/com.ibm.btt.rcp.perspective"/>
+			</move>
+ 
+    	<move todir="plugins/com.ibm.btt.rcp.service.manager${btt.version}${build.time}">
+        <fileset dir="plugins/com.ibm.btt.rcp.service.manager"/>
+			</move>
+    
+    	<move todir="plugins/com.ibm.btt.rcp.workingarea${btt.version}${build.time}">
+        <fileset dir="plugins/com.ibm.btt.rcp.workingarea"/>
+			</move>
+
+      <move todir="plugins/com.ibm.btt.rcp.theme${btt.version}${build.time}">
+        <fileset dir="plugins/com.ibm.btt.rcp.theme"/>
+			</move>
+    
+    	<move todir="plugins/com.ibm.btt.tools.validation${btt.version}${build.time}">
+        <fileset dir="plugins/com.ibm.btt.tools.validation"/>
+			</move>
+     
+     <move todir="plugins/com.ibm.btt.tools.migration${btt.version}${build.time}">
+        <fileset dir="plugins/com.ibm.btt.tools.migration"/>
+			</move>
+    
+    	<move todir="plugins/com.ibm.btt.bc.cm.common${btt.version}${build.time}">
+        <fileset dir="plugins/com.ibm.btt.bc.cm.common"/>
+			</move>
+    
+      <move todir="plugins/com.ibm.btt.bc.cm.rcp${btt.version}${build.time}">
+        <fileset dir="plugins/com.ibm.btt.bc.cm.rcp"/>
+			</move>
+    
+    	<move todir="plugins/com.ibm.btt.tools.apar${btt.version}${build.time}">
+        <fileset dir="plugins/com.ibm.btt.tools.apar"/>
+			</move>
+			
+			<move todir="plugins/com.ibm.btt.rcp.xui${btt.version}${build.time}">
+        <fileset dir="plugins/com.ibm.btt.rcp.xui"/>
+			</move>
+			
+			<move todir="plugins/com.ibm.btt.rcp.xui.editor${btt.version}${build.time}">
+        <fileset dir="plugins/com.ibm.btt.rcp.xui.editor"/>
+			</move>
+						
+			 <move todir="plugins/com.ibm.btt.bc.ej.viewer${btt.version}${build.time}">
+        <fileset dir="plugins/com.ibm.btt.bc.ej.viewer"/>
+			</move>
+			
+			<move todir="plugins/com.ibm.btt.bc.common${btt.version}${build.time}">
+        <fileset dir="plugins/com.ibm.btt.bc.common"/>
+			</move>
+			
+			<move todir="plugins/com.ibm.btt.bc.override.common${btt.version}${build.time}">
+        <fileset dir="plugins/com.ibm.btt.bc.override.common"/>
+			</move>
+			
+			<move todir="plugins/com.ibm.btt.bc.override.customization${btt.version}${build.time}">
+        <fileset dir="plugins/com.ibm.btt.bc.override.customization"/>
+			</move>
+			
+			<move todir="plugins/com.ibm.btt.bc.override.supervisor${btt.version}${build.time}">
+        <fileset dir="plugins/com.ibm.btt.bc.override.supervisor"/>
+			</move>
+			
+			<move todir="plugins/com.ibm.btt.bc.override.teller${btt.version}${build.time}">
+        <fileset dir="plugins/com.ibm.btt.bc.override.teller"/>
+			</move>
+			
+			<move todir="plugins/com.ibm.btt.bc.ac.common${btt.version}${build.time}">
+        <fileset dir="plugins/com.ibm.btt.bc.ac.common"/>
+			</move>
+						
+			<move todir="plugins/com.ibm.btt.bc.ej${btt.version}${build.time}">
+        <fileset dir="plugins/com.ibm.btt.bc.ej"/>
+			</move>
+			
+			<move todir="plugins/com.ibm.btt.bc.ej.viewer.nl${btt.version}${build.time}">
+        <fileset dir="plugins/com.ibm.btt.bc.ej.viewer.nl"/>
+			</move>
+			
+			<move todir="plugins/com.ibm.btt.bc.override.customization.nl${btt.version}${build.time}">
+        <fileset dir="plugins/com.ibm.btt.bc.override.customization.nl"/>
+			</move>
+			
+			<move todir="plugins/com.ibm.btt.bc.override.supervisor.nl${btt.version}${build.time}">
+        <fileset dir="plugins/com.ibm.btt.bc.override.supervisor.nl"/>
+			</move>
+			
+			<move todir="plugins/com.ibm.btt.bc.override.teller.nl${btt.version}${build.time}">
+        <fileset dir="plugins/com.ibm.btt.bc.override.teller.nl"/>
+			</move>
+			
+			<move todir="plugins/com.ibm.btt.message${btt.version}${build.time}">
+        <fileset dir="plugins/com.ibm.btt.message"/>
+			</move>
+			
+			<move todir="plugins/com.ibm.btt.remote${btt.version}${build.time}">
+        <fileset dir="plugins/com.ibm.btt.remote"/>
+			</move>
+			
+			<move todir="plugins/com.ibm.btt.bc.ac.rcp${btt.version}${build.time}">
+        <fileset dir="plugins/com.ibm.btt.bc.ac.rcp"/>
+			</move>
+			
+			<move todir="plugins/com.ibm.btt.bc.ac.rcp.nl${btt.version}${build.time}">
+        <fileset dir="plugins/com.ibm.btt.bc.ac.rcp.nl"/>
+			</move>
+			
+			<move todir="plugins/com.ibm.btt.tools.transaction${btt.version}${build.time}">
+        <fileset dir="plugins/com.ibm.btt.tools.transaction"/>
+			</move>
+			
+			<move todir="plugins/com.ibm.btt.tools.transaction.diagram${btt.version}${build.time}">
+        <fileset dir="plugins/com.ibm.btt.tools.transaction.diagram"/>
+			</move>
+			
+			<move todir="plugins/com.ibm.btt.tools.transaction.dominate${btt.version}${build.time}">
+        <fileset dir="plugins/com.ibm.btt.tools.transaction.dominate"/>
+			</move>
+			
+			<move todir="plugins/com.ibm.btt.tools.transaction.edit${btt.version}${build.time}">
+        <fileset dir="plugins/com.ibm.btt.tools.transaction.edit"/>
+			</move>
+			
+			<move todir="plugins/com.ibm.btt.tools.transaction.editor${btt.version}${build.time}">
+        <fileset dir="plugins/com.ibm.btt.tools.transaction.editor"/>
+			</move>
+			
+			<move todir="plugins/com.ibm.btt.tools.dde.editor${btt.version}${build.time}">
+        <fileset dir="plugins/com.ibm.btt.tools.dde.editor"/>
+			</move>
+    
+                  <!--=============================================================================-->
+                  <mkdir dir="plugins/depracted_plugins"/>
+                  
+                  <!--mkdir dir="plugins/depracted_plugins/com.ibm.btt.tools.chaeditor${btt.version}${build.time}"/>
+    							<copy todir="plugins/depracted_plugins/com.ibm.btt.tools.chaeditor${btt.version}${build.time}">
+  	  									<fileset dir="../BTTGraphicalBuilder/plugins/com.ibm.btt.tools.chaeditor" includes="**/*"/>
+    							</copy>
+    							
+    							<mkdir dir="plugins/depracted_plugins/com.ibm.btt.tools.chaeditor.model.emf${btt.version}${build.time}"/>
+    							<copy todir="plugins/depracted_plugins/com.ibm.btt.tools.chaeditor.model.emf${btt.version}${build.time}">
+  	  									<fileset dir="../BTTGraphicalBuilder/plugins/com.ibm.btt.tools.chaeditor.model.emf" includes="**/*"/>
+    							</copy>
+    
+    							<mkdir dir="plugins/depracted_plugins/com.ibm.btt.tools.common${btt.version}${build.time}"/>
+    							<copy todir="plugins/depracted_plugins/com.ibm.btt.tools.common${btt.version}${build.time}">
+  	  									<fileset dir="../BTTGraphicalBuilder/plugins/com.ibm.btt.tools.common" includes="**/*"/>
+    							</copy>
+    
+    							<mkdir dir="plugins/depracted_plugins/com.ibm.btt.tools.fmteditor${btt.version}${build.time}"/>
+    							<copy todir="plugins/depracted_plugins/com.ibm.btt.tools.fmteditor${btt.version}${build.time}">
+  	  									<fileset dir="../BTTGraphicalBuilder/plugins/com.ibm.btt.tools.fmteditor" includes="**/*"/>
+    							</copy>
+    
+    							<mkdir dir="plugins/depracted_plugins/com.ibm.btt.tools.fmteditor.model.emf${btt.version}${build.time}"/>
+    							<copy todir="plugins/depracted_plugins/com.ibm.btt.tools.fmteditor.model.emf${btt.version}${build.time}">
+  	  									<fileset dir="../BTTGraphicalBuilder/plugins/com.ibm.btt.tools.fmteditor.model.emf" includes="**/*"/>
+    							</copy>
+    
+    							<mkdir dir="plugins/depracted_plugins/com.ibm.btt.tools.gw${btt.version}${build.time}"/>
+    							<copy todir="plugins/depracted_plugins/com.ibm.btt.tools.gw${btt.version}${build.time}">
+  	  									<fileset dir="../BTTGraphicalBuilder/plugins/com.ibm.btt.tools.gw" includes="**/*"/>
+    							</copy>
+    
+    							<mkdir dir="plugins/depracted_plugins/com.ibm.btt.tools.gw.model.emf${btt.version}${build.time}"/>
+    							<copy todir="plugins/depracted_plugins/com.ibm.btt.tools.gw.model.emf${btt.version}${build.time}">
+  	  									<fileset dir="../BTTGraphicalBuilder/plugins/com.ibm.btt.tools.gw.model.emf" includes="**/*"/>
+    							</copy>
+    
+    							<mkdir dir="plugins/depracted_plugins/com.ibm.btt.tools.selfdefine${btt.version}${build.time}"/>
+    							<copy todir="plugins/depracted_plugins/com.ibm.btt.tools.selfdefine${btt.version}${build.time}">
+  	  									<fileset dir="../BTTGraphicalBuilder/plugins/com.ibm.btt.tools.selfdefine" includes="**/*"/>
+    							</copy>
+    
+    							<mkdir dir="plugins/depracted_plugins/com.ibm.btt.tools.struts${btt.version}${build.time}"/>
+    							<copy todir="plugins/depracted_plugins/com.ibm.btt.tools.struts${btt.version}${build.time}">
+  	  									<fileset dir="../BTTGraphicalBuilder/plugins/com.ibm.btt.tools.struts" includes="**/*"/>
+    							</copy>
+    
+    							<mkdir dir="plugins/depracted_plugins/com.ibm.btt.tools.webdiagrameditor${btt.version}${build.time}"/>
+    							<copy todir="plugins/depracted_plugins/com.ibm.btt.tools.webdiagrameditor${btt.version}${build.time}">
+  	  									<fileset dir="../BTTGraphicalBuilder/plugins/com.ibm.btt.tools.webdiagrameditor" includes="**/*"/>
+    							</copy-->  
+    							
+    							<!--mkdir dir="plugins/depracted_plugins/com.ibm.dse.guibeans${btt.version}${build.time}"/-->
+                  <copy todir="migration/com.ibm.dse.guibeans${btt.version}${build.time}">
+  	                    <fileset dir="../DSEGuiBeans/plugins/com.ibm.dse.guibeans" includes="**/*"/>
+                  </copy>
+    
+  </target>
+ 
+  <!--=============================================================================-->
+<target name="CreateJavaDoc">
+	<copy todir="temp/temp_forbtt">	
+	  <fileset dir="../BTTDummySnaLu0Connector" includes="**/${base.btt.package}/**/*.java" excludes="**/EJS*,*.properties,**/_*"/>
+    <fileset dir="../BTTCore" includes="**/${base.btt.package}/**/*.java" excludes="**/EJS*,*.properties,**/_*,rcp/**"/>
+    <fileset dir="../BTTCHAEJB" includes="**/${base.btt.package}/**/*.java" excludes="**/EJS*,*.properties,**/_*"/>
+    <!--fileset dir="../BTTCompatibility" includes="**/${base.btt.package}/**/*.java" excludes="**/EJS*,*.properties,**/_*"/-->  
+    <fileset dir="../BTTInvoker" includes="**/${base.btt.package}/**/*.java" excludes="**/EJS*,*.properties,**/_*"/>
+    <fileset dir="../BTTChannels" includes="**/${base.btt.package}/**/*.java" excludes="**/EJS*,*.properties,**/_*"/>
+	  <fileset dir="../BTTServices" includes="**/${base.btt.package}/**/*.java" excludes="**/EJS*,*.properties,**/_*"/>
+		<fileset dir="../BTTBusinessLogic" includes="**/${base.btt.package}/**/*.java" excludes="**/EJS*,*.properties,**/_*"/>
+		<fileset dir="../BTTBusinessComponent" includes="**/${base.btt.package}/**/*.java" excludes="**/EJS*,*.properties,**/_*,CashDrawerManagement/com.ibm.btt.bc.cm.rcp/**"/>
+		<fileset dir="../BTTDatabaseServices" includes="**/${base.btt.package}/**/*.java" excludes="**/EJS*,*.properties,**/_*"/>
+		<fileset dir="../BTTMqConnectionService" includes="**/${base.btt.package}/**/*.java" excludes="**/EJS*,*.properties,**/_*"/>
+		<fileset dir="../BTTRuntimeMonitor" includes="**/${base.btt.package}/**/*.java" excludes="**/EJS*,*.properties,**/_*"/>	
+		<fileset dir="../BTTMqConnectionService" includes="**/${base.btt.package}/**/*.java" excludes="**/EJS*,*.properties,**/_*"/>	
+		<fileset dir="../BTTClientServerMechanism" includes="**/${base.btt.package}/**/*.java" excludes="**/EJS*,*.properties,**/_*"/>	
+		<fileset dir="../BTTWeb2Container" includes="**/${base.btt.package}/**/*.java" excludes="**/EJS*,*.properties,**/_*"/>	
+		<fileset dir="../BTTRichClientXUIEngine" includes="**/${base.btt.package}/**/*.java" excludes="**/EJS*,*.properties,**/_*"/>	
+		<fileset dir="../BTTRichClient" includes="**/${base.btt.package}/**/*.java" excludes="**/EJS*,*.properties,**/_*"/>	
+		<fileset dir="../BTTMobileAdapter" includes="**/${base.btt.package}/**/*.java" excludes="**/EJS*,*.properties,**/_*"/>	
+		<fileset dir="../BTTRichClientMonitor" includes="**/${base.btt.package}/**/*.java" excludes="**/EJS*,*.properties,**/_*"/>	
+
+  </copy>
+
+
+
+    <copy todir="temp/temp_forbtt">
+    		<fileset dir="../BTTLu62Connector" includes="*/com/ibm/connector2/**/*.java" excludes="**/EJS*,**/_*"/>
+    		<fileset dir="../BTTLu0Connector" includes="*/com/ibm/connector2/**/*.java" excludes="**/EJS*,**/_*"/>
+    </copy>
+    
+    <copy todir="temp">
+    		<fileset dir="temp/temp_forbtt/AccessControl/BCAccessControl/src" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		<fileset dir="temp/temp_forbtt/AccessControl/BCAccessControlCommon/src" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		<fileset dir="temp/temp_forbtt/AccessControl/com.ibm.btt.bc.ac.ui/src" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		<fileset dir="temp/temp_forbtt/advice" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		<fileset dir="temp/temp_forbtt/bean" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		<fileset dir="temp/temp_forbtt/BTTEJ/src" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		<fileset dir="temp/temp_forbtt/BTTEJViewer/src" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		<fileset dir="temp/temp_forbtt/BTTJMSMessage/msg_clt" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		<fileset dir="temp/temp_forbtt/BTTJMSMessage/msg_srv" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		<fileset dir="temp/temp_forbtt/BTTMessage/msg" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		<fileset dir="temp/temp_forbtt/BTTMessage/msg_clt" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		<fileset dir="temp/temp_forbtt/BTTMessage/msg_srv" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		<fileset dir="temp/temp_forbtt/BTTRemote/remote" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		<fileset dir="temp/temp_forbtt/BTTRemote/remote_clt" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		<fileset dir="temp/temp_forbtt/BTTRemote/remote_ejb" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		<fileset dir="temp/temp_forbtt/BTTRemote/remote_srv" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		<fileset dir="temp/temp_forbtt/BTTSWTVisualBeans/BTTSWTVisualBeansRuntime/src" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		
+    		<fileset dir="temp/temp_forbtt/CashDrawerManagement/BCCashDrawerManagement/src" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		<fileset dir="temp/temp_forbtt/CashDrawerManagement/BCCashDrawerManagementCommon/src" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		<fileset dir="temp/temp_forbtt/CashDrawerManagement/BCCashDrawerManagementDB2/src" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		<fileset dir="temp/temp_forbtt/com.ibm.btt.rcp.activity/src" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		<fileset dir="temp/temp_forbtt/com.ibm.btt.rcp.broker/src" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		<fileset dir="temp/temp_forbtt/com.ibm.btt.rcp.broker.xpd/src" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		<fileset dir="temp/temp_forbtt/com.ibm.btt.rcp.navigator/src" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		<fileset dir="temp/temp_forbtt/com.ibm.btt.rcp.perspective/src" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		<fileset dir="temp/temp_forbtt/com.ibm.btt.rcp.service.manager/src" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		<fileset dir="temp/temp_forbtt/com.ibm.btt.rcp.theme/src" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		<fileset dir="temp/temp_forbtt/com.ibm.btt.rcp.workingarea/src" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		<fileset dir="temp/temp_forbtt/command" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		<fileset dir="temp/temp_forbtt/Common/com.ibm.btt.bc.common/src" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		
+    		<fileset dir="temp/temp_forbtt/config" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		<fileset dir="temp/temp_forbtt/context" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		<fileset dir="temp/temp_forbtt/Counter/BCCounter/src" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		<fileset dir="temp/temp_forbtt/data" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		<fileset dir="temp/temp_forbtt/ejbModule" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		<fileset dir="temp/temp_forbtt/element" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		<fileset dir="temp/temp_forbtt/event" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		<fileset dir="temp/temp_forbtt/exception" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		<fileset dir="temp/temp_forbtt/externalizer" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		<fileset dir="temp/temp_forbtt/ForeignExchange/BCForeignExchange/src" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		<fileset dir="temp/temp_forbtt/format" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		<fileset dir="temp/temp_forbtt/gui" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		<fileset dir="temp/temp_forbtt/html" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		<fileset dir="temp/temp_forbtt/http" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		<fileset dir="temp/temp_forbtt/http/src" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		<fileset dir="temp/temp_forbtt/infra" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		<fileset dir="temp/temp_forbtt/java" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		<fileset dir="temp/temp_forbtt/jdbc" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		<fileset dir="temp/temp_forbtt/journal" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		<fileset dir="temp/temp_forbtt/jsf" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		<fileset dir="temp/temp_forbtt/Ldap" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		<fileset dir="temp/temp_forbtt/mobile" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		<fileset dir="temp/temp_forbtt/model" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		<fileset dir="temp/temp_forbtt/operation" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		<fileset dir="temp/temp_forbtt/OpStepAdaptor" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		<fileset dir="temp/temp_forbtt/OpStepAdaptorEJB" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		
+    		<fileset dir="temp/temp_forbtt/Override/BTTOverrideAgent/src" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		<fileset dir="temp/temp_forbtt/Override/com.ibm.btt.bc.override.common/src" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		<fileset dir="temp/temp_forbtt/Override/com.ibm.btt.bc.override.customization/src" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		<fileset dir="temp/temp_forbtt/Override/com.ibm.btt.bc.override.supervisor/src" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		<fileset dir="temp/temp_forbtt/Override/com.ibm.btt.bc.override.teller/src" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		<fileset dir="temp/temp_forbtt/portal" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		<fileset dir="temp/temp_forbtt/processor" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		<fileset dir="temp/temp_forbtt/sae" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		<fileset dir="temp/temp_forbtt/service" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		<fileset dir="temp/temp_forbtt/session" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		<fileset dir="temp/temp_forbtt/src" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		<fileset dir="temp/temp_forbtt/store" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		<fileset dir="temp/temp_forbtt/struts" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		<fileset dir="temp/temp_forbtt/table" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		<fileset dir="temp/temp_forbtt/tagsrc" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		<fileset dir="temp/temp_forbtt/trace" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		<fileset dir="temp/temp_forbtt/type" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		<fileset dir="temp/temp_forbtt/utils" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		<fileset dir="temp/temp_forbtt/webapp" includes="**/*.java" excludes="**/EJS*,**/_*"/>
+    		
+    </copy>
+    
+    <delete dir="temp/temp_forbtt"/> 
+    
+    <mkdir dir="doc/javadoc/BankTransformationToolkit"/>
+    <javadoc sourcepath="temp/" 
+      excludepackagenames="${base.dse.package}._*,${base.dse.package}.EJS*,${base.btt.package}._*,${base.btt.package}.EJS*"  
+      verbose="true" 
+      destdir="doc/javadoc/BankTransformationToolkit" 
+      package="true" 
+      packagenames="${base.dse.package}.*, ${base.btt.package}.*, com.ibm.connector2.*,src.${base.btt.package}.*"
+      windowtitle="IBM WebSphere Multichannel Bank Transformation Toolkit Javadoc" 
+      classpath="temp;
+      		       ${WAS_HOME}/java/jre/lib/core.jar;
+      		       ${WAS_HOME}/lib/j2ee.jar;
+      		       ${WAS_HOME}/deploytool/itp/plugins/com.ibm.websphere.webservice.rt.v5.1.1_6.1.2.v200803090003/lib/ras.jar;
+      		       ${WAS_HOME}/plugins/com.ibm.ws.runtime_6.1.0.jar;
+      		       ${WAS_HOME}/optionalLibraries/Apache/Struts/1.1/struts.jar;
+		             ${WAS_HOME}/optionalLibraries/Apache/Struts/1.1/commons-digester.jar;
+		             ${WAS_HOME}/optionalLibraries/Apache/Struts/1.1/commons-logging.jar;
+		             ${WAS_HOME}/optionalLibraries/Apache/Struts/1.1/commons-beanutils.jar;
+		             ${WAS_HOME}/optionalLibraries/Apache/Struts/1.1/commons-collections.jar;
+		             ${WAS_HOME}/optionalLibraries/Apache/Struts/1.1/commons-validator.jar;
+		             ${WAS_HOME}/lib/wsif-compatb.jar;
+		             ${WAS_HOME}/lib/wsatlib.jar;
+		             ${RAD_SHARED_HOME}/plugins/org.eclipse.core.runtime_3.4.0.v20080512.jar;${RAD_SHARED_HOME}/plugins/org.eclipse.osgi_3.4.2.R34x_v20080826-1230.jar;${RAD_SHARED_HOME}/plugins/org.eclipse.equinox.common_3.4.0.v20080421-2006.jar;${RAD_SHARED_HOME}/plugins/org.eclipse.core.jobs_3.4.0.v20080512.jar;${RAD_SHARED_HOME}/plugins/org.eclipse.core.runtime.compatibility_3.2.0.v20071008.jar;${RAD_SHARED_HOME}/plugins/org.eclipse.equinox.preferences_3.2.201.R34x_v20080709.jar;${RAD_SHARED_HOME}/plugins/org.eclipse.equinox.registry_3.4.0.v20080516-0950.jar;${RAD_SHARED_HOME}/plugins/org.eclipse.core.contenttype_3.3.0.v20080604-1400.jar;${RAD_SHARED_HOME}/plugins/org.eclipse.jdt.launching_3.4.1.v20080729_r341.jar;${RAD_SHARED_HOME}/plugins/org.eclipse.jdt.core_3.4.2.v_883_R34x.jar;${RAD_SHARED_HOME}/plugins/org.eclipse.core.resources_3.4.1.R34x_v20080902.jar;${RAD_SHARED_HOME}/plugins/org.eclipse.swt.win32.win32.x86_3.4.1.v3449c.jar;${RAD_SHARED_HOME}/plugins/org.eclipse.swt_3.4.1.v3449c.jar;${RAD_SHARED_HOME}/plugins/org.eclipse.jface.text_3.4.1.r341_v20080827-1100.jar;${RAD_SHARED_HOME}/plugins/org.eclipse.text_3.4.0.v20080605-1800.jar;${RAD_SHARED_HOME}/plugins/org.eclipse.ui_3.4.1.M20080910-0800.jar;${RAD_SHARED_HOME}/plugins/org.eclipse.core.commands_3.4.0.I20080509-2000.jar;${RAD_SHARED_HOME}/plugins/org.eclipse.ui.workbench_3.4.1.M20080827-0800a.jar;${RAD_SHARED_HOME}/plugins/org.eclipse.ui.ide_3.4.1.M20080903-2000.jar;${RAD_SHARED_HOME}/plugins/org.eclipse.ui.forms_3.3.101.v20080708_34x.jar;${RAD_SHARED_HOME}/plugins/org.eclipse.debug.core_3.4.0.v20080612.jar;${RAD_SHARED_HOME}/plugins/org.eclipse.debug.ui_3.4.1.v20080811_r341.jar;${RAD_SHARED_HOME}/plugins/org.eclipse.jface_3.4.1.M20080827-2000.jar;
+		             ${WAS_HOME}/deploytool/itp/plugins/org.apache.axis_1.3.0.v200608161946/lib/axis.jar;
+		             ${ENG_WORK_SPACE}/SandBox/jars/wps61/lib/WMQ/java/lib/com.ibm.mq.jar;
+		             ${WAS_HOME}/plugins/com.ibm.ws.webcontainer_2.0.0.jar;
+		             ${WAS_HOME}/plugins/com.ibm.ws.runtime_6.1.0.jar"
+      maxmemory="250m" 
+      header="IBM WebSphere Multichannel Bank Transformation Toolkit Javadoc" 
+      bottom="(c) Copyright IBM Corporation 1998, 2009"
+      locale="en_US" breakiterator="yes"> 
+      <tag dir="tools" includes="javadoc.txt"/>
+    </javadoc>            
+    <mkdir dir="javadoc"/>
+    <zip zipfile="javadoc/BankTransformationToolkitJavadoc.zip" basedir="." includes="doc/**"/>
+      <copy todir="doc">
+        <fileset dir="doc" includes="**/*"/>
+      </copy>
+    <delete dir="doc"/>
+    <delete dir="temp"/> 
+  </target>
+  
+  <target name="clean">
+    <mkdir dir="lib"/>
+    <mkdir dir="plugins"/>
+    <mkdir dir="samples"/>
+    <mkdir dir="template"/>
+    <mkdir dir="javadoc"/>
+    <mkdir dir="source"/>
+    <mkdir dir="migration"/>
+        <delete  includeEmptyDirs="true">
+            <fileset dir="lib" includes="**"/>
+            <fileset dir="plugins" includes="**"/>
+            <fileset dir="samples" includes="**"/>
+            <fileset dir="template" includes="**"/>
+            <fileset dir="javadoc" includes="**"/>
+            <fileset dir="source" includes="**"/>
+            <fileset dir="migration" includes="**"/>
+        </delete>
+    </target>
+  <tstamp><format property="build.time" pattern=""/></tstamp>
+  <target name="build_all" depends="clean,
+                                    build,
+                                    fetch_source,
+  																	fetch_BTT_Installation,
+  																	fetch_DSE_jars,
+                                    version_deliverable_jars,
+                                    fetch_plugins,
+                                    CreateJavaDoc"/> 
+  <!--target name="build_all" depends="CreateJavaDoc"/--> 
+                                                                   
+</project>

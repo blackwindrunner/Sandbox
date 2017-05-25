@@ -1,0 +1,123 @@
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\common\Global.js
+
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\common\ServicelistAPI.js
+
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\common\WorkareaAPI.js
+
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\desktop\view\desk.js
+
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\common\MessageBox.js
+
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\common\Util.js
+
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\desktop\desktop.js
+
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\desktop\view\fixedboard.js
+
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\desktop\view\setting.js
+
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\desktop\view\taskbar.js
+
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\exception\Console.js
+
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\desktop\view\desktopicon.js
+
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\desktop\view\servicetree.js
+
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\desktop\view\window.js
+
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\exception\Error.js
+
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\desktop\view\startmenu.js
+
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\ioc\component\ComponentIoc.js
+
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\ioc\component\ServiceIoc.js
+
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\ioc\core\Engine.js
+
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\ioc\core\Repository.js
+
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\ioc\component\LayoutIoc.js
+
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\ioc\core\ConfigParser.js
+
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\runtime\iContext.js
+
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\ioc\core\Factory.js
+
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\runtime\WgtDefService.js
+
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\runtime\WidgetDef.js
+
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\workplace\abstractcontroller\AbstractColumnLogic.js
+
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\runtime\CatalogService.js
+
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\workplace\abstractcontroller\AbstractRowLogic.js
+
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\runtime\ResourceService.js
+
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\workplace\abstractcontroller\AbstractTabLogic.js
+
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\runtime\Widget.js
+
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\workplace\controller\PageLogic.js
+
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\runtime\WidgetRT.js
+
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\workplace\controller\ServicelistLogic.js
+
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\workplace\abstractcontroller\AbstractPageLogic.js
+
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\workplace\MainPage.js
+
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\workplace\abstractcontroller\AbstractServicelistLogic.js
+
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\workplace\model\base\ComponentBase.js
+
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\workplace\controller\ColumnLogic.js
+
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\workplace\model\layout\Page.js
+
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\workplace\controller\RowLogic.js
+
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\workplace\controller\TabLogic.js
+
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\workplace\MainPortal.js
+
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\workplace\model\layout\Tab.js
+
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\workplace\model\servicelist\ServiceBase.js
+
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\workplace\model\servicelist\ServiceRepository.js
+
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\workplace\model\layout\Column.js
+
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\workplace\model\layout\Row.js
+
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\workplace\model\servicelist\Service.js
+
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\workplace\model\servicelist\ServiceCategory.js
+
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\workplace\model\servicelist\ServiceWidget.js
+
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\workplace\model\servicelist\WidgetAttribute.js
+
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\workplace\view\ColumnContainerComp.js
+
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\workplace\view\Container.js
+
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\workplace\view\MenuService.js
+
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\workplace\view\TabContainerComp.js
+
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\workplace\model\servicelist\WidgetChildren.js
+
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\workplace\view\Component.js
+
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\workplace\view\Drag.js
+
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\workplace\view\PageContainerComp.js
+
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\workplace\view\WidgetVO.js

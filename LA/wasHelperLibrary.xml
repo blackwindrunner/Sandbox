@@ -1,0 +1,459 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "stax.dtd">
+<stax>
+	
+  <!-- ****************************************************************** -->
+  <!--                         wasGetPort                                 -->
+  <!--                                                                    -->
+  <!--                                                                    -->
+  <!-- ****************************************************************** -->
+
+  <function name="wasGetPort" scope="local">
+    <function-prolog>
+      This function will attempt to retrieve a specificed port value from the portdef.props file of a given WAS profile.
+	  Given the WAS Home directory, the profile name, and the property to query it will return the port as a string value
+	  or appropriate error information. See below for return value information. 
+    </function-prolog>
+
+    <function-epilog>
+      <![CDATA[
+<p>This function will attempt to return the port of the requested property for a specified WAS profile</p>
+<p>Returns (RC,Result)</p>
+<ul>
+	<li>RC is an integer return code, 1 on error determining port, 0 if successful</li>
+	<li>Result will contain the port number listed in the WAS portdef.props file for the specified WAS profile if RC was 0</li>
+	<li>Result will contain error information string if RC is 1</li>
+</ul>
+      ]]>
+    </function-epilog>
+
+    <function-list-args>
+      <function-required-arg name="target">Hostname/IP address of the target machine</function-required-arg>
+      <function-required-arg name="wasHomeDir">Location of WAS on target</function-required-arg>
+	  <function-required-arg name="profileName">WAS profile to query</function-required-arg>
+	  <function-required-arg name="propertyName">Name of the property in portdef.props</function-required-arg>
+    </function-list-args>
+	  
+	<sequence>
+	
+	  <log level="'User1'">'Attempting to determine %s port for profile %s' % (propertyName,profileName)</log>
+		
+	  <!-- Set returnPort to None -->
+	  <script>returnPort = None</script>
+		
+	  <!-- pathname to portdef.props -->
+	  <script>pathToQuery = '%s%sprofiles%s%s%sproperties' % (wasHomeDir,FileSeparator,FileSeparator,profileName,FileSeparator)</script>
+	  <log level="'info'">'Path to query for portdef.props = %s' % (pathToQuery)</log>	
+	  <script>fullQuery = '%s%s%s' % (pathToQuery,FileSeparator,'portdef.props')</script>	
+		
+	  <!-- Validate portdef.props is where we expect it to be -->
+	  <call function="'cafQueryFSEntry'">target,fullQuery</call>
+        <script>(callRC,callResult) = STAXResult</script>
+        <if expr="callRC != 0">
+		  <sequence>
+			  <log level="'error'">'portdef.props file does not exist at location %s as expected. Error: %s' % (fullQuery,callResult)</log>
+			  <return>(1,'portdef.props not at expected location')</return>
+		  </sequence>
+		  <else>
+			  <log level="'info'">'%s located successfully on target %s' % (fullQuery,target)</log>
+		  </else>
+		</if>
+		
+	  <!-- read in and parse portdef.props file to find port -->
+	  <call function="'cafGetFileContents'">target,fullQuery</call>
+      <script>(callResult) = STAXResult</script>
+      <if expr="callResult == ''">
+		<return>1,'Failed to get contents of portdef.props'</return>
+		<else>
+			<script>
+				portStr = callResult
+				lines = portStr.splitlines()
+			</script>
+		</else>			
+      </if>
+
+	  <iterate var="line" in="lines">
+		  <if expr="line.find(propertyName) >= 0">
+			<sequence>
+				<script>line = line.strip()</script>
+				<script>returnPort = line.split('=')</script>
+			</sequence>
+		  </if>
+	  </iterate>
+		
+	  <!-- return SOAP port -->
+	  <if expr="returnPort != None">
+	    <sequence>
+		  <log level="'info'">'Port for %s determined. Returning port %s as string' % (propertyName,returnPort[1])</log>			
+		  <return>(0,returnPort[1])</return>
+		</sequence>
+		<else>
+			<return>(1,'Unable to determine %s port of WAS profile %s in %s on target %s' % (propertyName,profileName,fullQuery,target))</return>
+		</else>
+	  </if>
+			
+	</sequence>
+	  
+  </function>
+	
+  <!-- ****************************************************************** -->
+  <!--                     monCheckVersion                                -->
+  <!--                                                                    -->
+  <!--                                                                    -->
+  <!-- ****************************************************************** -->
+
+  <function name="monCheckVersion" scope="local">
+    <function-prolog>
+      This function will take a modelID value and an expected Version (as string) and use listVersions.jy 
+	  jython script to list the versions of the model that are currently installed. 
+	  See below for return value information.
+	  Note : Listing Versions for a model ID effectively queries 'register' value is true, as
+		listVersions will fail if register is false. 
+    </function-prolog>
+
+    <function-epilog>
+      <![CDATA[
+<p>This function will throw an exception on error </p>
+<ul>
+	<li>MonitorAutoException.CheckVersion.CopyError - unable to copy jython script to target</li>
+	<li>MonitorAutoException.CheckVersion.CallError - error calling wsadmin on target machine<li>	  
+	<li>MonitorAutoException.CheckVersion.NoVersionsInstalled - No Versions Installed</li>
+	<li>MonitorAutoException.CheckVersion.LIfecycleUnavailable - LifecycleMBean not available</li>
+</ul>
+      ]]>
+    </function-epilog>
+
+    <function-list-args>
+      <function-required-arg name="target">Hostname/IP address of the target machine</function-required-arg>
+      <function-required-arg name="wasHomeDir">Location of WAS on target</function-required-arg>
+	  <function-required-arg name="profileName">WAS profile to query</function-required-arg>
+	  <function-required-arg name="modelID">Model ID to list versions</function-required-arg>
+	  <function-required-arg name="modelVersion">Model Version to check is complete</function-required-arg>
+    </function-list-args>
+	  
+	<sequence>
+	
+	  <log level="'User1'">'Attempting to list versions of %s' % (modelID)</log>
+	  
+	  <!-- Local Variables -->
+	  <script>lifecycleJar = 'com.ibm.wbimonitor.lifecycle.spi_6.1.0.jar'</script>
+	  <script>classPath = '%s%splugins%s%s' % (wasHomeDir,FileSeparator,FileSeparator,lifecycleJar)</script>
+	  <log level="'info'">'monCheckVersion using wsadmin classpath: %s' % (classPath)</log>
+		
+	  <!-- ****** Win/Nix command substitution ******* -->
+	  <if expr="Platform == 'Windows'">
+		  <script>wsadminCmd = 'wsadmin'</script>
+		  <elseif expr="OS == ('Linux' or 'AIX' or 'SunOS')">
+			  <script>wsadminCmd = 'wsadmin.sh'</script>
+		  </elseif>
+		  <else>
+			  <throw exception="'MonitorAutoException.CheckVersion.UnsupportedOS'">'CheckVersion function Error: Unsupported OS %s' % (OS)</throw>
+		  </else>
+	  </if>
+	  
+	  <!-- Copy the listVersions.jy file from media Server to target -->
+	  <!-- variables are local path to jython files and jython script file name -->
+	  <script>jythonPath = '/usr/local/stax/prod/customLibrary/scripts/monitor/jython'</script>
+	  <script>jythonScript = 'listVersions.jy'</script>
+		
+	  <call function="'cafCopyFile'">LAServer,jythonPath,jythonScript,target,AutomationTmpDir,jythonScript</call>
+	  <script>(callRC,callResult) = STAXResult</script>
+      <if expr="callRC != 0">
+        <throw exception="'MonitorAutoException.CheckVersion.CopyError'">'Unable to copy %s/%s to target machine' % (jythonPath,jythonScript)</throw>
+      </if>		 
+		
+	  <!-- Call wsadmin passing listVersions.jy script -->
+	  <script>cmdStr = '%s/bin/%s' % (wasHomeDir,wsadminCmd)</script>
+	  <script>parmStr = '-wsadmin_classpath %s -lang jython -f %s%s%s %s' % (classPath,AutomationTmpDir,FileSeparator,jythonScript,modelID)</script>
+	  <script>outLog = '%s-%s.log' % (jythonScript,modelID)</script>
+	   <call function="'cafRunCommandAdv'">[
+          target,
+		  cmdStr,
+          parmStr,
+          AutomationTmpDir,
+          '%s%s%s' % (AutomationTmpDir,FileSeparator,outLog), 
+          '2m' 
+          ]
+		</call>
+        <script>(callRC,callResult) = STAXResult</script>
+        <if expr="callRC != 0">
+		  <sequence>
+		   <call function="'cafGetFileContents'">target,'%s%s%s' % (AutomationTmpDir,FileSeparator,outLog)</call>
+            <call function="'cafWriteJobOutputLog'">target,'local',STAXResult,'ERROR: checkVersion wsadmin output',outLog</call>
+            <script>(callRC) = STAXResult</script>
+            <if expr="callRC != 0">
+                <log level="'error'">'Failed to create new LA Job Output Log for checkVersion wsadmin ERROR output'</log>
+            </if>  
+           <throw exception="'MonitorAutoException.CheckVersion.CallError'">'The wsadmin call: %s %s failed. Please check the Job Output log for file %s' % (cmdStr,parmStr,outLog)</throw>			  
+		  </sequence>
+		  <else>
+			<sequence>
+			  <log level="'info'">'checkVersion wsadmin call succeeded'</log>
+              <script>resultString = callResult</script>
+			</sequence>
+          </else>
+        </if>
+	  
+	  <!-- Interpret the results -->
+	  <if expr="resultString.count('No Versions') > 0">
+		  <throw exception="'MonitorAutoException.CheckVersion.NoVersionsInstalled'">'No versions returned from listVersions wsadmin call'</throw>
+	  </if>
+	  <if expr="resultString.count('LifecycleServices MBean') > 0">
+		  <throw exception="'MonitorAutoException.CheckVersion.LifecycleUnavailable'">'Unable to get Lifecycle Services MBean handle'</throw>
+	  </if>
+	  <if expr="resultString.count(modelVersion) > 0">
+		  <log level='myLogLevel'>'CheckVersion - Model: %s Version: %s succeeded.' % (modelID,modelVersion)</log>
+		  <else>
+			  <throw exception="'MonitorAutoException.CheckVersion.UnknownError'">'CheckVersion Failed - unable to validate Model: %s Version: %s installed' % (modelID,modelVersion)</throw>
+		  </else>
+	  </if>
+		
+		
+	  <return/>
+				
+	</sequence>
+	  
+  </function>
+
+  <!-- ****************************************************************** -->
+  <!--                     monCheckConfirmInstall                         -->
+  <!--                                                                    -->
+  <!--                                                                    -->
+  <!-- ****************************************************************** -->
+
+  <function name="monCheckConfirmInstall" scope="local">
+    <function-prolog>
+	 This function will take a modelID and modelVersions and check that the confirm Install DB value for that version is 1
+     See below for return value information. 
+    </function-prolog>
+
+    <function-epilog>
+      <![CDATA[
+<p>This function will throw an exception on error </p>
+<ul>
+	<li>MonitorAutoException.CheckConfirmInstall.CopyError - unable to copy jython script to target</li>
+	<li>MonitorAutoException.CheckConfirmInstall.CallError - error calling wsadmin on target machine<li>	  
+	<li>MonitorAutoException.CheckConfirmInstall.NoVersionsInstalled - No Versions Installed</li>
+	<li>MonitorAutoException.CheckConfirmInstall.NoStepBean - No Step Bean returned</li>
+	<li>MonitorAutoException.CheckConfirmInstall.LifecycleUnavailable - LifecycleMBean not available</li>
+</ul>
+      ]]>
+    </function-epilog>
+
+    <function-list-args>
+      <function-required-arg name="target">Hostname/IP address of the target machine</function-required-arg>
+      <function-required-arg name="wasHomeDir">Location of WAS on target</function-required-arg>
+	  <function-required-arg name="profileName">WAS profile to query</function-required-arg>
+	  <function-required-arg name="modelID">Model ID of monitor model</function-required-arg>
+	  <function-required-arg name="modelVersion">Model Version to check is complete</function-required-arg>
+    </function-list-args>
+	  
+	<sequence>
+	
+	  <log level="'User1'">'Attempting to confirm Install model: %s version: %s isComplete value' % (modelID,modelVersion)</log>
+		
+	  
+	   <!-- Local Variables -->
+	  <script>lifecycleJar = 'com.ibm.wbimonitor.lifecycle.spi_6.1.0.jar'</script>
+	  <script>classPath = '%s%splugins%s%s' % (wasHomeDir,FileSeparator,FileSeparator,lifecycleJar)</script>
+	  <log level="'info'">'monCheckConfirmInstall using wsadmin classpath: %s' % (classPath)</log>
+		
+	  <!-- ****** Win/Nix command substitution ******* -->
+	  <if expr="Platform == 'Windows'">
+		  <script>wsadminCmd = 'wsadmin'</script>
+		  <elseif expr="OS == ('Linux' or 'AIX' or 'SunOS')">
+			  <script>wsadminCmd = 'wsadmin.sh'</script>
+		  </elseif>
+		  <else>
+			  <throw exception="'MonitorAutoException.CheckConfirmInstall.UnsupportedOS'">'CheckVersion function Error: Unsupported OS %s' % (OS)</throw>
+		  </else>
+	  </if>
+	
+	  <!-- Copy the confirmInstallComplete.jy file from media Server to target -->	
+	  <script>jythonPath = '/usr/local/stax/prod/customLibrary/scripts/monitor/jython'</script>
+	  <script>jythonScript = 'confirmInstallComplete.jy'</script>
+		
+	  <call function="'cafCopyFile'">LAServer,jythonPath,jythonScript,target,AutomationTmpDir,jythonScript</call>
+	  <script>(callRC,callResult) = STAXResult</script>
+      <if expr="callRC != 0">
+        <throw exception="'MonitorAutoException.CheckConfirmInstall.CopyError'">'Unable to copy %s/%s to target machine' % (jythonPath,jythonScript)</throw>
+      </if>	
+	  
+	  <!-- Call wsadmin passing confirmInstallComplete.jy script -->
+	  <!-- variables are local path to jython files and jython script file name -->
+	  <script>cmdStr = '%s/bin/%s' % (wasHomeDir,wsadminCmd)</script>
+	  <script>parmStr = '-wsadmin_classpath %s -lang jython -f %s%s%s %s %s' % (classPath,AutomationTmpDir,FileSeparator,jythonScript,modelID,modelVersion)</script>
+	  <script>outLog = '%s-%s.log' % (jythonScript,modelID)</script>
+	  <call function="'cafRunCommandAdv'">[
+          target,
+		  cmdStr,
+          parmStr,
+          AutomationTmpDir,
+          '%s%s%s' % (AutomationTmpDir,FileSeparator,outLog), 
+          '2m' 
+          ]
+	  </call>
+      <script>(callRC,callResult) = STAXResult</script>
+      <if expr="callRC != 0">
+	    <sequence>
+		   <call function="'cafGetFileContents'">target,'%s%s%s' % (AutomationTmpDir,FileSeparator,outLog)</call>
+           <call function="'cafWriteJobOutputLog'">target,'local',STAXResult,'ERROR: checkConfirmInstall wsadmin output',outLog</call>
+           <script>(callRC) = STAXResult</script>
+           <if expr="callRC != 0">
+               <log level="'error'">'Failed to create new LA Job Output Log for checkConfirmInstall wsadmin ERROR output'</log>
+           </if>  
+           <throw exception="'MonitorAutoException.CheckConfirmInstall.CallError'">'The wsadmin call: %s %s failed. Please check the Job Output log for file %s' % (cmdStr,parmStr,outLog)</throw>			  
+		</sequence>
+		<else>
+		  <sequence>
+			  <log level="'info'">'checkConfirmInstall wsadmin call completed'</log>
+              <script>resultString = callResult</script>
+		  </sequence>
+        </else>
+        </if>
+		
+	  <!-- Interpret the results -->
+	  <if expr="resultString.count('No Step Bean') > 0">
+		  <throw exception="'MonitorAutoException.CheckConfirmInstall.NoStepBean'">'No step bean was returned from the confirmInstallComplete.jy wsadmin call'</throw>
+	  </if>
+	  <if expr="resultString.count('No Version Bean') > 0">
+		  <throw exception="'MonitorAutoException.CheckConfirmInstall.LifecycleUnavailable'">'No version bean was returned from the confirmInstallComplete.jy wsadmin call'</throw>
+	  </if>
+	  <if expr="resultString.count('LifecycleServices MBean') > 0">
+		  <throw exception="'MonitorAutoException.CheckConfirmInstall.LifecycleUnavailable'">'Unable to get Lifecycle Services MBean handle'</throw>
+	  </if>
+	  <if expr="resultString.count('has isComplete=0') > 0">
+		  <throw exception="'MonitorAutoException.CheckConfirmInstall.ValidationError'">'Model: %s Version: %s installed but is NOT complete' % (modelID,modelVersion)</throw>
+	  </if>
+	  <if expr="resultString.count('has isComplete=1') > 0">
+		  <log level='myLogLevel'>'CheckConfirmInstall - Model: %s Version: %s succeeded.' % (modelID,modelVersion)</log>
+		  <else>
+			  <throw exception="'MonitorAutoException.CheckConfirmInstall.UnknownError'">'CheckConfirmComplete Failed - unable to validate Model: %s Version: %s isComplete' % (modelID,modelVersion)</throw>
+		  </else>
+	  </if>
+	  
+	  <return/>
+				
+	</sequence>
+	  
+  </function>
+	
+  <!-- ****************************************************************** -->
+  <!--                     monCheckModelUninstall                         -->
+  <!--                                                                    -->
+  <!--                                                                    -->
+  <!-- ****************************************************************** -->
+
+  <function name="monCheckModelUninstall" scope="local">
+    <function-prolog>
+     
+    </function-prolog>
+
+    <function-epilog>
+      <![CDATA[
+<p>This function will throw an exception on error </p>
+<ul>
+	<li>MonitorAutoException.CheckModelUninstall.CopyError - unable to copy jython script to target</li>
+	<li>MonitorAutoException.CheckModelUninstall.CallError - error calling wsadmin on target machine<li>	  
+	<li>MonitorAutoException.CheckModelUninstall.LIfecycleUnavailable - LifecycleMBean not available</li>
+</ul>
+      ]]>
+    </function-epilog>
+
+    <function-list-args>
+      <function-required-arg name="target">Hostname/IP address of the target machine</function-required-arg>
+      <function-required-arg name="wasHomeDir">Location of WAS on target</function-required-arg>
+	  <function-required-arg name="profileName">WAS profile to query</function-required-arg>
+	  <function-required-arg name="modelID">Model ID to list models</function-required-arg>
+	  <!-- Might later add version if we get into installing and uninstall different versions -->
+	  <!-- <function-required-arg name="modelVersion">Model Version to check is complete</function-required-arg>  -->
+    </function-list-args>
+	  
+	<sequence>
+	
+	  <log level="'User1'">'Attempting to list models to determine uninstallation of %s' % (modelID)</log>
+	  
+	  <!-- Local Variables -->
+	  <script>lifecycleJar = 'com.ibm.wbimonitor.lifecycle.spi_6.1.0.jar'</script>
+	  <script>classPath = '%s%splugins%s%s' % (wasHomeDir,FileSeparator,FileSeparator,lifecycleJar)</script>
+	  <log level="'info'">'monCheckModelUninstall using wsadmin classpath: %s' % (classPath)</log>
+		
+	  <!-- ****** Win/Nix command substitution ******* -->
+	  <if expr="Platform == 'Windows'">
+		  <script>wsadminCmd = 'wsadmin'</script>
+		  <elseif expr="OS == ('Linux' or 'AIX' or 'SunOS')">
+			  <script>wsadminCmd = 'wsadmin.sh'</script>
+		  </elseif>
+		  <else>
+			  <throw exception="'MonitorAutoException.CheckModelUninstall.UnsupportedOS'">'CheckVersion function Error: Unsupported OS %s' % (OS)</throw>
+		  </else>
+	  </if>
+	  
+	  <!-- Copy the listVersions.jy file from LA Server to target -->
+	  <!-- variables are local path to jython files and jython script file name -->
+	  <script>jythonPath = '/usr/local/stax/prod/customLibrary/scripts/monitor/jython'</script>
+	  <script>jythonScript = 'listModels.jy'</script>
+		
+	  <call function="'cafCopyFile'">LAServer,jythonPath,jythonScript,target,AutomationTmpDir,jythonScript</call>
+	  <script>(callRC,callResult) = STAXResult</script>
+      <if expr="callRC != 0">
+        <throw exception="'MonitorAutoException.CheckModelUninstall.CopyError'">'Unable to copy %s%s%s to target machine' % (jythonPath,FileSeparator,jythonScript)</throw>
+      </if>		 
+		
+	  <!-- Call wsadmin passing listModels.jy script -->
+	  <script>cmdStr = '%s/bin/%s' % (wasHomeDir,wsadminCmd)</script>
+	  <script>parmStr = '-wsadmin_classpath %s -lang jython -f %s%s%s' % (classPath,AutomationTmpDir,FileSeparator,jythonScript)</script>
+	  <script>outLog = '%s-%s.log' % (jythonScript,modelID)</script>
+	   <call function="'cafRunCommandAdv'">[
+          target,
+		  cmdStr,
+          parmStr,
+          AutomationTmpDir,
+          '%s%s%s' % (AutomationTmpDir,FileSeparator,outLog), 
+          '2m' 
+          ]
+		</call>
+        <script>(callRC,callResult) = STAXResult</script>
+        <if expr="callRC != 0">
+		  <sequence>
+		   <call function="'cafGetFileContents'">target,'%s%s%s' % (AutomationTmpDir,FileSeparator,outLog)</call>
+            <call function="'cafWriteJobOutputLog'">target,'local',STAXResult,'ERROR: checkModelUninstall wsadmin output',outLog</call>
+            <script>(callRC) = STAXResult</script>
+            <if expr="callRC != 0">
+                <log level="'error'">'Failed to create new LA Job Output Log for checkModelUninstall wsadmin ERROR output'</log>
+            </if>  
+           <throw exception="'MonitorAutoException.CheckModelUninstall.CallError'">'The wsadmin call: %s %s failed. Please check the Job Output log for file %s' % (cmdStr,parmStr,outLog)</throw>			  
+		  </sequence>
+		  <else>
+			<sequence>
+			  <log level="'info'">'checkModelUninstall wsadmin call succeeded'</log>
+              <script>resultString = callResult</script>
+			  <!-- <log level="'error'">'DEBUG result string = %s' % (resultString)</log> -->
+			</sequence>
+          </else>
+        </if>
+	  
+	  <!-- Interpret the results -->
+	  <if expr="resultString.count('LifecycleServices MBean') > 0">
+		  <throw exception="'MonitorAutoException.CheckModelUninstall.LifecycleUnavailable'">'Unable to get Lifecycle Services MBean handle'</throw>
+	  </if>
+	  <!-- MJL FIX : add spaces to model id Check..so short name models like ct dont see conneCTed from wsadmin as indication of failure -->
+	  <script>modelIDspaces = ' %s ' % (modelID)</script>
+	  <if expr="resultString.count(modelIDspaces) > 0">
+		  <throw exception="'MonitorAutoException.CheckModelUninstall.LifecycleUnavailable'">'Found model %s. Should have been uninstalled' % (modelID)</throw>
+	  </if>
+	  <if expr="resultString.count('No models') > 0 or resultString.count(modelID) == 0">
+		  <log level='myLogLevel'>'CheckModelUninstall - Model: %s succeeded.' % (modelID)</log>
+		  <else>
+			 <throw exception="'MonitorAutoException.CheckModelUninstall.UnknownError'">'checkModelUninstall found something besides no models for %s' % (modelID)</throw> 
+		  </else>
+	  </if>
+		
+		
+	  <return/>
+				
+	</sequence>
+	  
+  </function>
+	
+</stax>

@@ -1,0 +1,1443 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "stax.dtd">
+<stax>
+
+  <!-- ****************************************************************** -->
+  <!--                          mon_62BvtTest                             -->
+  <!--                                                                    -->
+  <!--                                                                    -->
+  <!-- ****************************************************************** -->
+
+  <function name="mon_62BvtTest" scope="local">
+    <function-prolog>
+   
+    </function-prolog>
+
+    <function-epilog>
+      <![CDATA[
+      ]]>
+    </function-epilog>
+
+    <function-map-args>
+		<function-required-arg name="target">Hostname/IP address of the target machine</function-required-arg>
+		<function-required-arg name="buildPath">Build to Install or Build that exists on target if already installed</function-required-arg>
+		<function-required-arg name="installBuild">true or false selection, will attempt to install Build on target if true</function-required-arg>
+		<function-required-arg name="continueOnPartial">true or false selection, will continue with testing on partial install success</function-required-arg>
+		<function-required-arg name="runClaim">on or off selection, will run claim processing tracker if on</function-required-arg>
+		<function-required-arg name="runAuto">on or off selection, will run auto parts if on</function-required-arg>
+		<function-required-arg name="runBev">on or off selection, will run Beverage Monitor if on</function-required-arg>
+		<function-required-arg name="runOrder">on or off selection, will run Order ITem if on</function-required-arg>
+		<function-required-arg name="runPatVis">on or off selection, will run Patient Visit if on</function-required-arg>
+		<function-required-arg name="runCdg03">on or off selection, will run CDG003 if on</function-required-arg>
+		<function-required-arg name="runCdg05">on or off selection, will run CDG003 if on</function-required-arg>
+		<function-required-arg name="runCdg12">on or off selection, will run CDG003 if on</function-required-arg>
+		<function-required-arg name="runCdg15">on or off selection, will run CDG003 if on</function-required-arg>
+		<function-required-arg name="runPortalDash">on or off selection, will turn on portal dashboard test for applicable functions</function-required-arg>
+		<function-required-arg name="runBspaceDash">on or off selection, will run Business Space Dashboard Test</function-required-arg>
+		<function-required-arg name="wasHomeDirectory">Location of was directory on target</function-required-arg>
+	    <function-required-arg name="wasServerName">Name of the WAS Server monitor profile runs under</function-required-arg>
+        <function-required-arg name="profileNameInWas">monitor profile name</function-required-arg>
+		<function-required-arg name="dbName">Name of the monitor database</function-required-arg>
+	    <function-required-arg name="dbSchema">Name of the monitor database Schema</function-required-arg>
+	    <function-required-arg name="dbUser">Path to where the event file resides on the event host</function-required-arg>
+	    <function-required-arg name="dbPass">Filename of the event file. Should be *.xml</function-required-arg>
+		<function-required-arg name="sendEmail">true or false selection. Will send to entire group mailing list if true</function-required-arg>
+		<function-required-arg name="unInstallBuild">true or false selection, will attempt to uninstall Monitor at Competion of BVT</function-required-arg>
+		<function-required-arg name="tryToReimage">true or false selection Will call the reimage function</function-required-arg>
+	</function-map-args>
+	
+	<try>  
+	<sequence>
+		
+		<!-- Local variables -->	
+		<script>myLogLevel="User7"</script>
+		<script>resultTitle = '***FINAL BVT RESULTS***'</script>
+		<script>installSuccess = 'false'</script>
+		<script>resString = ''</script>
+		
+		
+		<!-- Get the InstallLibrary where the working functions are -->	
+		<script>libraryLoc="bpm/monitor/testcases/testcaseLibrary.xml"</script>
+        <log level='myLogLevel'>'MJL: Library Location is %s' % (libraryLoc)</log>
+		 
+        <call function="'cafImportCustomLibrary'"> [libraryLoc] </call>
+        <script>importRC = STAXResult</script>
+        <if expr="importRC != 0">
+		  <throw exception="'MonitorAutoException.Bvt.AutomationError'">'Failed to Import the necessary library %s for this function.' % (libraryLoc)</throw>
+	    </if>
+		
+		<!-- Get the InstallLibrary where the Monitor Install functions are -->	
+		<script>libraryLoc="bpm/monitor/installLibrary.xml"</script>
+        <log level='myLogLevel'>'MJL: Library Location is %s' % (libraryLoc)</log>
+		 
+        <call function="'cafImportCustomLibrary'"> [libraryLoc] </call>
+        <script>importRC = STAXResult</script>
+        <if expr="importRC != 0">
+		  <throw exception="'MonitorAutoException.Bvt.AutomationError'">'Failed to Import the necessary library %s for this function.' % (libraryLoc)</throw>
+	    </if>
+		
+		<!-- determine RELEASE from BuildPath -->
+		<script>split = buildPath.split('monitor_builds/')</script>
+		<script>split2 = split[-1].split('/')</script>	
+		<script>releaseLevel = split2[0]</script>
+		
+		<!-- determine Build Level from Build Path -->
+		<script>split = buildPath.split('CDMON/')</script>
+		<script>split2 = split[-1].split('.linux')</script>
+		<script>buildLevel = split2[0]</script>
+		
+		
+		<!-- Start result String with the logging header-->
+		<script>resString += '*****************FINAL BVT RESULTS*****************\n\n'</script>
+		<!-- Add target information -->
+		<script>resString += 'Target Information :\n\tTarget = %s\n\tOS = %s\n\tRelease Level = %s\n\tBuild Level = %s\n\n' % (target,OS,releaseLevel,buildLevel)</script>
+		
+		
+		<!-- If for some reason nothing to do..end the test immediately? -->
+		
+		<!-- If installBuild = true do the installation -->
+		<if expr="installBuild == 'true'">
+			<sequence>
+				<script>resString += 'Installation Results :\n'</script>
+				<log level='myLogLevel'>'BVT Installing build %s' % (buildLevel)</log>
+				
+				<!-- Windows Section of BVt Install Build -->
+				<if expr="Platform == 'Windows'">
+				  <try>
+					<sequence>
+					<call function="'mon_InstallMonitor_62_Silent_Windows'">{
+						'target'                         : target,
+						'buildPath'                      : buildPath,
+						'wbmInstallType'                 : 'basic',
+						'useExistingWAS'                 : 'false',
+						'wasInstallLocation'             : 'C:\\IBM\\WebSphere\\MonServer',
+						'profileType'                    : 'standalone',
+						'enableAdminSecurity'            : 'false',
+						'adminUserName'                  : '',
+						'adminPassword'                  : '',
+						'enableGlobalAdminSecurity'      : 'false',
+						'dbType'                         : 'DB2_Universal',
+						'dbCreateNew'                    : 'true',
+						'dbName'                         : dbName,
+						'dbSchemaName'                   : dbSchema,
+						'dbUserId'                       : dbUser,
+						'dbPassword'                     : dbPass,
+						'dbJDBCClasspath'                : 'C:\\IBM\\SQLLIB\\java',
+						'dbDriverType'                   : '4',
+						'dbHostName'                     : 'localhost',
+						'dbServerPort'                   : '50000',
+						'configureHumanTask'             : 'false',
+						'humanTaskWPSHostname'           : 'localhost',
+						'humanTaskWPSRMIPort'            : '2809',
+						'humanTaskModelEnable'           : 'false',
+						'wbmInstallMonitorServer'        : 'true',
+						'wbmInstallPortalDashboards'     : 'false',
+						'wbmInstallMonitorDatabase'      : 'true',
+						'wbmInstallInfoCenter'           : 'false',
+						'ddlScriptsInstallLocation'      : 'not4basic',
+						'wbmInfoCenterInstallLoc'        : 'not4basic',
+						'wbmInstallAbxWebViews'          : 'true',
+						'wbmInstallAbxPortalViews'       : 'true',
+						'installPortalGlobalLocation'    : 'C:\\IBM\\WebSphere',
+						'installPortalLocation'          : 'not4basic',
+						'restHostName'                   : 'localhost',
+						'restServerPort'                 : '9080',
+						'portalProfileName'              : 'wp_profile',
+						'portalProfilePath'              : 'C:\\IBM\\WebSphere\\wp_profile',
+						'was602AdminUserName'            : 'admin',
+						'was602AdminPassword'            : 'admin',
+						'portalAdminUserName'            : 'admin',
+						'portalAdminPassword'            : 'admin',
+						'traceLevel'                     : 'OFF'
+					}</call>
+					<script>resString += '\tInstall %s %s :\tPASS\n\n' % (releaseLevel,buildLevel)</script>
+					<script>installSuccess = 'true'</script>
+					</sequence>
+					<!-- Catch a PARTIAL Install error and see if we want to continue or not -->
+				    <catch exception="'MonitorAutoException.SilentInstall.PartialError'" typevar="eType" var="eInfo">
+					  <sequence>
+						<!-- If want to continue on Partial just log to BVT results on catch ELSE fail here-->
+						<if expr="continueOnPartial == 'true'">  
+			              <script>resString += '\tInstall %s %s :\tPARTIAL\t%s\n\n' % (releaseLevel,buildLevel,eInfo)</script>
+						  <else>
+							  <sequence>
+								  <script>resString += '\tInstall %s %s :\tPARTIAL\t%s\n\n' % (releaseLevel,buildLevel,eInfo)</script>
+								  <throw exception="'MonitorAutoException.Bvt.AutomationError'">'BVT ERROR (not continuing on partial): %s' % (eInfo)</throw>
+							  </sequence>
+						  </else>
+						</if>
+					  </sequence>
+		            </catch>
+					<!-- any other exceptions from Install we really want to fail -->
+					<catch exception="'...'" typevar="eType" var="eInfo">
+						<sequence>
+							<script>resString += '\tInstall %s %s :\tFAIL\t%s\t%s\n\n' % (releaseLevel,buildLevel,eType,eInfo)</script>
+							<throw exception="'MonitorAutoException.Bvt.AutomationError'">'BVT INSTALL ERROR : %s' % (eInfo)</throw>
+						</sequence>
+					</catch>
+		          </try>
+	            </if>
+				<!-- Unix Section of BVT Install Build Here -->
+			</sequence>
+		</if>
+		
+		
+		<!-- Call the First test if selected...claim proc -->
+		<!-- Testcase Header -->
+		<script>resString += 'Testcase Results :\n'</script>
+		
+		<!-- If run claim "on" run Claim proc test and update resString -->
+		<if expr="runClaim == 'on'">
+			<sequence>
+			<log level='myLogLevel'>'Running Claim Processing Tracker Test'</log>
+			<script>resString += '\tClaim Proc :'</script>
+			<try>
+			  <sequence>
+		      <call function="'mon_TestClaimProcess_All'">{
+				'target'                    : target,
+				'buildPath'                 : buildPath,
+				'wasHomeDirectory'          : wasHomeDirectory,
+				'wasServerName'             : wasServerName,
+				'profileNameInWas'          : profileNameInWas,
+				'isMonSecurity'             : 'false',
+				'runPortalDash'             : runPortalDash,
+				'runBspaceDash'             : runBspaceDash,
+				'uninstallModel'            : 'on',
+				'portalHostname'            : 'localhost',
+				'portalWASInstallLocation'  : 'C:\\IBM\\WebSphere\\AppServer',
+				'portalUser'                : 'wpsadmin',
+				'portalPass'                : 'wpsadmin',
+				'browserSelect'             : 'Mozilla Firefox'
+			  }</call>
+			  <script>resString += '\tPASS\n'</script>
+			  </sequence>
+		      <catch exception="'MonitorAutoException.ClaimProc.AutomationError'" typevar="eType" var="eInfo">
+				<sequence>
+				<script>resString += '\tFAIL\t%s\t%s\n' % (eType,eInfo)</script>	
+			    <throw exception="'MonitorAutoException.Bvt.AutomationError'">'MJL : Automation error info: %s' % (eInfo)</throw>
+				</sequence>
+		      </catch>
+			  <catch exception="'MonitorAutoException.ClaimProc'" typevar="eType" var="eInfo">
+			    <script>resString += '\tFAIL\t%s\t%s\n' % (eType,eInfo)</script>
+		      </catch>
+	        </try>
+			</sequence>
+		</if>
+		
+		<!-- If runAuto "on" run AutoParts test and update resString -->
+		<if expr="runAuto == 'on'">
+			<sequence>
+			<log level='myLogLevel'>'Running Auto Parts Test'</log>
+			<script>resString += '\tAuto Parts :'</script>
+			<try>
+			  <sequence>
+			  <call function="'mon_TestAutoParts_All'">{
+				'target'                    : target,
+				'buildPath'                 : buildPath,
+				'wasHomeDirectory'          : wasHomeDirectory,
+				'wasServerName'             : wasServerName,
+				'profileNameInWas'          : profileNameInWas,
+				'isMonSecurity'             : 'false',
+				'runPortalDash'             : runPortalDash,
+				'runBspaceDash'             : runBspaceDash,
+				'uninstallModel'            : 'on',
+				'portalHostname'            : 'localhost',
+				'portalWASInstallLocation'  : 'C:\\IBM\\WebSphere\\AppServer',
+				'portalUser'                : 'wpsadmin',
+				'portalPass'                : 'wpsadmin',
+				'browserSelect'             : 'Mozilla Firefox'
+			  }</call>
+			  <script>resString += '\tPASS\n'</script>
+			  </sequence>
+		      <catch exception="'MonitorAutoException.Autoparts.AutomationError'" typevar="eType" var="eInfo">
+			    <sequence>
+				<script>resString += '\tFAIL\t%s\t%s\n' % (eType,eInfo)</script>	
+			    <throw exception="'MonitorAutoException.Bvt.AutomationError'">'MJL : Automation error info: %s' % (eInfo)</throw>
+				</sequence>
+		      </catch>
+			  <catch exception="'MonitorAutoException.AutoParts'" typevar="eType" var="eInfo">
+			    <script>resString += '\tFAIL\t%s\t%s\n' % (eType,eInfo)</script>
+		      </catch>
+	        </try>
+			</sequence>
+		</if>
+		
+		
+		
+		<!-- If runBev "on" run BevMon and update resString -->
+		<if expr="runBev == 'on'">
+			<sequence>
+			<log level='myLogLevel'>'Beverage Monitor Test'</log>
+			<script>resString += '\tBev Mon :'</script>
+			
+			<try>
+			  <sequence>
+		      <call function="'mon_TestBeverageMonitor_All'">{
+				'target'                    : target,
+				'buildPath'                 : buildPath,
+				'wasHomeDirectory'          : wasHomeDirectory,
+				'wasServerName'             : wasServerName,
+				'profileNameInWas'          : profileNameInWas,
+				'isMonSecurity'             : 'false',
+				'runPortalDash'             : runPortalDash,
+				'runBspaceDash'             : runBspaceDash,
+				'uninstallModel'            : 'on',
+				'portalHostname'            : 'localhost',
+				'portalWASInstallLocation'  : 'C:\\IBM\\WebSphere\\AppServer',
+				'portalUser'                : 'wpsadmin',
+				'portalPass'                : 'wpsadmin',
+				'browserSelect'             : 'Mozilla Firefox'
+			  }</call>
+			  <script>resString += '\tPASS\n'</script>
+			  </sequence>
+		      <catch exception="'MonitorAutoException.Bevmon.AutomationError'" typevar="eType" var="eInfo">
+			        <sequence>
+				<script>resString += '\tFAIL\t%s\t%s\n' % (eType,eInfo)</script>	
+			    <throw exception="'MonitorAutoException.Bvt.AutomationError'">'MJL : Automation error info: %s' % (eInfo)</throw>
+				</sequence>
+		      </catch>
+			  <catch exception="'MonitorAutoException.Bevmon'" typevar="eType" var="eInfo">
+			    <script>resString += '\tFAIL\t%s\t%s\n' % (eType,eInfo)</script>
+		      </catch>
+	        </try>
+			</sequence>
+		</if>
+		
+	
+		
+		<!-- If runOrder "on" run OrderItem and update resString -->
+		<if expr="runOrder == 'on'">
+			<sequence>
+			<log level='myLogLevel'>'Running Order Item Test'</log>
+			<script>resString += '\tOrd Item1 :'</script>
+			<try>
+			  <sequence>
+		      <call function="'mon_TestOrderItem_All'">{
+				'target'                    : target,
+				'buildPath'                 : buildPath,
+				'wasHomeDirectory'          : wasHomeDirectory,
+				'wasServerName'             : wasServerName,
+				'profileNameInWas'          : profileNameInWas,
+				'isMonSecurity'             : 'false',
+				'runPortalDash'             : runPortalDash,
+				'runBspaceDash'             : runBspaceDash,
+				'uninstallModel'            : 'on',
+				'portalHostname'            : 'localhost',
+				'portalWASInstallLocation'  : 'C:\\IBM\\WebSphere\\AppServer',
+				'portalUser'                : 'wpsadmin',
+				'portalPass'                : 'wpsadmin',
+				'browserSelect'             : 'Mozilla Firefox'
+			  }</call>
+			  <script>resString += '\tPASS\n'</script>
+			  </sequence>
+		      <catch exception="'MonitorAutoException.OrderItem.AutomationError'" typevar="eType" var="eInfo">
+			    <sequence>
+				  <script>resString += '\tFAIL\t%s\t%s\n' % (eType,eInfo)</script>	
+			      <throw exception="'MonitorAutoException.Bvt.AutomationError'">'MJL : Automation error info: %s' % (eInfo)</throw>
+				</sequence>
+		      </catch>
+			  <catch exception="'MonitorAutoException.OrderItem'" typevar="eType" var="eInfo">
+			    <script>resString += '\tFAIL\t%s\t%s\n' % (eType,eInfo)</script>
+		      </catch>
+	        </try>
+			</sequence>
+		</if>
+		
+		
+		
+		<!-- If runPatVis "on" run Patient Visit test and update resString -->
+		<if expr="runPatVis == 'on'">
+			<sequence>
+			<log level='myLogLevel'>'Running Patient Visit Test'</log>
+			<script>resString += '\tPat Visit :'</script>
+			<try>
+			  <sequence>
+		      <call function="'mon_TestPatientVisit_All'">{
+				'target'                    : target,
+				'buildPath'                 : buildPath,
+				'wasHomeDirectory'          : wasHomeDirectory,
+				'wasServerName'             : wasServerName,
+				'profileNameInWas'          : profileNameInWas,
+				'isMonSecurity'             : 'false',
+				'runPortalDash'             : runPortalDash,
+				'runBspaceDash'             : runBspaceDash,
+				'uninstallModel'            : 'on',
+				'portalHostname'            : 'localhost',
+				'portalWASInstallLocation'  : 'C:\\IBM\\WebSphere\\AppServer',
+				'portalUser'                : 'wpsadmin',
+				'portalPass'                : 'wpsadmin',
+				'browserSelect'             : 'Mozilla Firefox'
+			  }</call>
+			  <script>resString += '\tPASS\n'</script>
+			  </sequence>
+		      <catch exception="'MonitorAutoException.Patvisit.AutomationError'" typevar="eType" var="eInfo">
+			    <sequence>
+				  <script>resString += '\tFAIL\t%s\t%s\n' % (eType,eInfo)</script>	
+			      <throw exception="'MonitorAutoException.Bvt.AutomationError'">'MJL : Automation error info: %s' % (eInfo)</throw>
+				</sequence>
+		      </catch>
+			  <catch exception="'MonitorAutoException.PatVisit'" typevar="eType" var="eInfo">
+			    <script>resString += '\tFAIL\t%s\t%s\n' % (eType,eInfo)</script>
+		      </catch>
+	        </try>
+			</sequence>
+		</if>
+		
+		
+		
+		<!-- If runCdg03 "on" run cdg03 test and update resString -->
+		<if expr="runCdg03 == 'on'">
+			<sequence>
+			<log level='myLogLevel'>'Running CDG003 Test'</log>
+			<!-- Testcase Header -->
+			<script>resString += '\tCDG003 :'</script>
+			<try>
+			  <sequence>
+		      <call function="'mon_TestCodegen003_All'">{
+				'target'                    : target,
+				'buildPath'                 : buildPath,
+				'wasHomeDirectory'          : wasHomeDirectory,
+				'wasServerName'             : wasServerName,
+				'profileNameInWas'          : profileNameInWas
+		  	  }</call>
+			  <script>resString += '\tPASS\n'</script>
+			  </sequence>
+		      <catch exception="'MonitorAutoException.cdg03.AutomationError'" typevar="eType" var="eInfo">
+			    <sequence>
+				  <script>resString += '\tFAIL\t%s\t%s\n' % (eType,eInfo)</script>	
+			      <throw exception="'MonitorAutoException.Bvt.AutomationError'">'MJL : Automation error info: %s' % (eInfo)</throw>
+				</sequence>
+		      </catch>
+			  <catch exception="'MonitorAutoException.cdg03'" typevar="eType" var="eInfo">
+			    <script>resString += '\tFAIL\t%s\t%s\n' % (eType,eInfo)</script>
+		      </catch>
+	        </try>
+			</sequence>
+		</if>
+		
+		
+		<!-- If runCdg05 "on" run cdg05 test and update resString -->
+		<if expr="runCdg05 == 'on'">
+			<sequence>
+			<log level='myLogLevel'>'Running CDG005 Test'</log>
+			<!-- Testcase Header -->
+			<script>resString += '\tCDG005 :'</script>
+			<try>
+			  <sequence>
+		      <call function="'mon_TestCodegen005_All'">{
+				'target'                    : target,
+				'buildPath'                 : buildPath,
+				'wasHomeDirectory'          : wasHomeDirectory,
+				'wasServerName'             : wasServerName,
+				'profileNameInWas'          : profileNameInWas
+		  	  }</call>
+			  <script>resString += '\tPASS\n'</script>
+			  </sequence>
+		      <catch exception="'MonitorAutoException.cdg05.AutomationError'" typevar="eType" var="eInfo">
+			    <sequence>
+				  <script>resString += '\tFAIL\t%s\t%s\n' % (eType,eInfo)</script>	
+			      <throw exception="'MonitorAutoException.Bvt.AutomationError'">'MJL : Automation error info: %s' % (eInfo)</throw>
+				</sequence>
+		      </catch>
+			  <catch exception="'MonitorAutoException.cdg05'" typevar="eType" var="eInfo">
+			    <script>resString += '\tFAIL\t%s\t%s\n' % (eType,eInfo)</script>
+		      </catch>
+	        </try>
+			</sequence>
+		</if>
+		
+		
+		<!-- If runCdg12 "on" run cdg12 test and update resString -->
+		<if expr="runCdg12 == 'on'">
+			<sequence>
+			<log level='myLogLevel'>'Running CDG012 Test'</log>
+			<!-- Testcase Header -->
+			<script>resString += '\tCDG012 :'</script>
+			<try>
+			  <sequence>
+		      <call function="'mon_TestCodegen012_All'">{
+				'target'                    : target,
+				'buildPath'                 : buildPath,
+				'wasHomeDirectory'          : wasHomeDirectory,
+				'wasServerName'             : wasServerName,
+				'profileNameInWas'          : profileNameInWas
+		  	  }</call>
+			  <script>resString += '\tPASS\n'</script>
+			  </sequence>
+		      <catch exception="'MonitorAutoException.cdg12.AutomationError'" typevar="eType" var="eInfo">
+			    <sequence>
+				  <script>resString += '\tFAIL\t%s\t%s\n' % (eType,eInfo)</script>	
+			      <throw exception="'MonitorAutoException.Bvt.AutomationError'">'MJL : Automation error info: %s' % (eInfo)</throw>
+				</sequence>
+		      </catch>
+			  <catch exception="'MonitorAutoException.cdg12'" typevar="eType" var="eInfo">
+			    <script>resString += '\tFAIL\t%s\t%s\n' % (eType,eInfo)</script>
+		      </catch>
+	        </try>
+			</sequence>
+		</if>
+		
+		
+		<!-- If runCdg15 "on" run cdg15 test and update resString -->
+		<if expr="runCdg15 == 'on'">
+			<sequence>
+			<log level='myLogLevel'>'Running CDG015 Test'</log>
+			<!-- Testcase Header -->
+			<script>resString += '\tCDG015 :'</script>
+			<try>
+			  <sequence>
+		      <call function="'mon_TestCodegen015_All'">{
+				'target'                    : target,
+				'buildPath'                 : buildPath,
+				'wasHomeDirectory'          : wasHomeDirectory,
+				'wasServerName'             : wasServerName,
+				'profileNameInWas'          : profileNameInWas
+		  	  }</call>
+			  <script>resString += '\tPASS\n'</script>
+			  </sequence>
+		      <catch exception="'MonitorAutoException.cdg15.AutomationError'" typevar="eType" var="eInfo">
+			    <sequence>
+				  <script>resString += '\tFAIL\t%s\t%s\n' % (eType,eInfo)</script>	
+			      <throw exception="'MonitorAutoException.Bvt.AutomationError'">'MJL : Automation error info: %s' % (eInfo)</throw>
+				</sequence>
+		      </catch>
+			  <catch exception="'MonitorAutoException.cdg15'" typevar="eType" var="eInfo">
+			    <script>resString += '\tFAIL\t%s\t%s\n' % (eType,eInfo)</script>
+		      </catch>
+	        </try>
+			</sequence>
+		</if>
+		
+		<!-- Uninstall Monitor using silent Uninstall -->
+		<if expr="unInstallBuild == 'true'">
+			<sequence>
+				<script>resString += '\nUninstallation Results :\n'</script>
+				<log level='myLogLevel'>'BVT Uninstalling build %s' % (buildLevel)</log>
+				
+				<!-- Windows Section of BVt Uninstall Build -->
+				<if expr="Platform == 'Windows'">
+				  <sequence>
+				  <!-- First try the monUninstall -->
+				  <try>
+					<sequence>
+					<call function="'mon_UninstallMonitor_62_Silent_Windows'">{
+						'target'                         : target,
+						'monitorInstallLocation'         : 'C:\\IBM\\WebSphere\\MonServer',
+						'wasServer'                      : 'server1',
+						'uninstallWAS'                   : 'true',
+						'removeProfilesOnUninstall'      : 'true',
+						'removeWBMProfilesOnUninstall'   : 'true',
+						'uninstallPortal'                : 'false',
+						'cleanupWBM'                     : 'on',
+						'cleanupPortal'                  : 'off',
+						'portalInstallLocation'          : 'C:\\IBM\\WebSphere\\PortalServer',
+						'portalProfileLocation'          : 'C:\\IBM\\WebSphere\\profiles',
+						'portalWASInstallLocation'       : 'C:\\IBM\\WebSphere\\AppServer',
+						'portalUser'                     : 'admin',
+						'portalPass'                     : 'admin'
+					}</call>
+					<script>resString += '\tUninstall %s :\tPASS\n\n' % (buildLevel)</script>
+					</sequence>
+					<!-- Catch a PARTIAL Install error  -->
+				    <catch exception="'MonitorAutoException.SilentUninstall.PartialError'" typevar="eType" var="eInfo">
+					  <sequence>
+						<script>resString += '\tUninstall %s :\t\tPARTIAL\t%s\t%s\n\n' % (buildLevel,eType,eInfo)</script>
+						<script>resString += 'NOTE: Target Machine %s may need manual cleanup after partial uninstall\n\n' % (target)</script>
+					  </sequence>	
+		            </catch>
+					<!-- any other exceptions from Uninstall we really want to fail -->
+					<catch exception="'...'" typevar="eType" var="eInfo">
+						<sequence>
+							<script>resString += '\tUninstall %s :\tFAIL\t%s\t%s\n\n' % (buildLevel,eType,eInfo)</script>
+							<script>resString += 'NOTE: Target Machine %s may need manual cleanup after failed uninstall\n\n' % (target)</script>
+						</sequence>
+					</catch>
+		          </try>
+				  <!-- Then Drop the Database too -->	  
+				  </sequence>
+	            </if>
+				<!-- Unix Section of BVT Uninstall Build Here -->
+				
+			</sequence>
+		</if>
+		
+		<!-- Possibly reimage a formal BVT machine here -->
+		
+		
+		<!-- If any failures at all during BVT end BVTTest as failure -->
+		<if expr="resString.count('FAIL') > 0">
+			<throw exception="'MonitorAutoException.Bvt.AutomationError'">'BVT Results contained at least 1 failure. Failing BVT.'</throw>
+		</if>
+		
+		<!-- end -->
+		   
+	</sequence>
+	
+	<!-- rethrow anything caught -->
+	<catch exception="'...'">
+        <rethrow/>
+      </catch>
+	
+	<finally>
+		<sequence>
+	    <!-- Add final log string -->
+		    <script>resString += '******************END BVT RESULTS******************'</script>
+			
+		<!-- Regardless of outcome put final BVT results back to LA Server -->
+			<log level='myLogLevel'>'Putting BVT results to LA...'</log>
+			<call function="'cafWriteJobOutputLog'">target,'local',resString,resultTitle,'bvtResults.log'</call>
+			<script>(callRC) = STAXResult</script>
+			<if expr="callRC != 0">
+				<log level="'error'">'Error gathering Final BVT Results to Job Output Log. Contact Administrator'</log>
+			</if>
+		<!-- If send email is true, then we need to send formal email of results -->
+			<if expr="sendEmail == 'true'">
+				<sequence>
+				  <log level='myLogLevel'>'Sending BVT email'</log>
+				  <call function="'mon_Send62BVTEmail'">target,buildLevel,releaseLevel,resString</call>
+				  <script>(callRC,callResult) = STAXResult</script>
+                  <if expr="callRC != 0">
+		            <log level="'error'">'BVT Email Sending Error : %s' % (callResult)</log> 
+		            <else>
+			          <log level='myLogLevel'>'BVT Email was sent successfully'</log>
+		            </else>
+				  </if>
+				</sequence>
+            </if>
+		<!-- Also reimage the box at this point too if this is formal BVT -->
+			<if expr="tryToReimage == 'true'">
+				<sequence>
+				  <call function="'_ReimageBVT'">target,'D:\\EXEIMAGES','wbiauto1_restoreBVTImage.exe'</call>
+				  <script>(callRC,callResult) = STAXResult</script>
+				  <if expr="callRC != 0">
+		            <log level="'error'">'BVT Reimage Failure!! Machine needs to be manually reimaged : %s' % (callResult)</log> 
+		            <else>
+			          <log level='myLogLevel'>'BVT target machine %s was reimaged successfully' % (target)</log>
+		            </else>
+                  </if>
+			    </sequence>
+			</if>
+		</sequence>
+	 </finally>	
+	
+	</try>	
+	 
+  </function>		
+  <!-- ****************************************************************** -->
+  <!--                          mon_61BvtTest                             -->
+  <!--                                                                    -->
+  <!--                                                                    -->
+  <!-- ****************************************************************** -->
+
+  <function name="mon_61BvtTest" scope="local">
+    <function-prolog>
+   
+    </function-prolog>
+
+    <function-epilog>
+      <![CDATA[
+      ]]>
+    </function-epilog>
+
+    <function-map-args>
+		<function-required-arg name="target">Hostname/IP address of the target machine</function-required-arg>
+		<function-required-arg name="buildPath">Build to Install or Build that exists on target if already installed</function-required-arg>
+		<function-required-arg name="installBuild">true or false selection, will attempt to install Build on target if true</function-required-arg>
+		<function-required-arg name="continueOnPartial">true or false selection, will continue with testing on partial install success</function-required-arg>
+		<function-required-arg name="runClaim">on or off selection, will run claim processing tracker if on</function-required-arg>
+		<function-required-arg name="runAuto">on or off selection, will run auto parts if on</function-required-arg>
+		<function-required-arg name="runBev">on or off selection, will run Beverage Monitor if on</function-required-arg>
+		<function-required-arg name="runOrder">on or off selection, will run Order ITem if on</function-required-arg>
+		<function-required-arg name="runPatVis">on or off selection, will run Patient Visit if on</function-required-arg>
+		<function-required-arg name="runCdg03">on or off selection, will run CDG003 if on</function-required-arg>
+		<function-required-arg name="runCdg05">on or off selection, will run CDG003 if on</function-required-arg>
+		<function-required-arg name="runCdg12">on or off selection, will run CDG003 if on</function-required-arg>
+		<function-required-arg name="runCdg15">on or off selection, will run CDG003 if on</function-required-arg>
+		<function-required-arg name="wasHomeDirectory">Location of was directory on target</function-required-arg>
+	    <function-required-arg name="wasServerName">Name of the WAS Server monitor profile runs under</function-required-arg>
+        <function-required-arg name="profileNameInWas">monitor profile name</function-required-arg>
+		<function-required-arg name="dbName">Name of the monitor database</function-required-arg>
+	    <function-required-arg name="dbSchema">Name of the monitor database Schema</function-required-arg>
+	    <function-required-arg name="dbUser">Path to where the event file resides on the event host</function-required-arg>
+	    <function-required-arg name="dbPass">Filename of the event file. Should be *.xml</function-required-arg>
+		<function-required-arg name="sendEmail">true or false selection. Will send to entire group mailing list if true</function-required-arg>
+		<function-required-arg name="unInstallBuild">true or false selection, will attempt to uninstall Monitor at Competion of BVT</function-required-arg>
+	</function-map-args>
+	
+	<try>  
+	<sequence>
+		
+		<!-- Local variables -->	
+		<script>myLogLevel="User7"</script>
+		<script>resultTitle = '***FINAL BVT RESULTS***'</script>
+		<script>installSuccess = 'false'</script>
+		<script>resString = ''</script>
+		
+		
+		<!-- Get the InstallLibrary where the working functions are -->	
+		<script>libraryLoc="bpm/monitor/testcases/testcaseLibrary.xml"</script>
+        <log level='myLogLevel'>'MJL: Library Location is %s' % (libraryLoc)</log>
+		 
+        <call function="'cafImportCustomLibrary'"> [libraryLoc] </call>
+        <script>importRC = STAXResult</script>
+        <if expr="importRC != 0">
+		  <throw exception="'MonitorAutoException.Bvt.AutomationError'">'Failed to Import the necessary library %s for this function.' % (libraryLoc)</throw>
+	    </if>
+		
+		<!-- Get the InstallLibrary where the Monitor Install functions are -->	
+		<script>libraryLoc="bpm/monitor/installLibrary.xml"</script>
+        <log level='myLogLevel'>'MJL: Library Location is %s' % (libraryLoc)</log>
+		 
+        <call function="'cafImportCustomLibrary'"> [libraryLoc] </call>
+        <script>importRC = STAXResult</script>
+        <if expr="importRC != 0">
+		  <throw exception="'MonitorAutoException.Bvt.AutomationError'">'Failed to Import the necessary library %s for this function.' % (libraryLoc)</throw>
+	    </if>
+		
+		<!-- determine RELEASE from BuildPath -->
+		<script>split = buildPath.split('monitor_builds/')</script>
+		<script>split2 = split[-1].split('/')</script>	
+		<script>releaseLevel = split2[0]</script>
+		
+		<!-- determine Build Level from Build Path -->
+		<script>split = buildPath.split('CDMON/')</script>
+		<script>split2 = split[-1].split('.linux')</script>
+		<script>buildLevel = split2[0]</script>
+		
+		
+		<!-- Start result String with the logging header-->
+		<script>resString += '*****************FINAL BVT RESULTS*****************\n\n'</script>
+		<!-- Add target information -->
+		<script>resString += 'Target Information :\n\tTarget = %s\n\tOS = %s\n\tRelease Level = %s\n\tBuild Level = %s\n\n' % (target,OS,releaseLevel,buildLevel)</script>
+		
+		
+		<!-- If for some reason nothing to do..end the test immediately? -->
+		
+		<!-- If installBuild = true do the installation -->
+		<if expr="installBuild == 'true'">
+			<sequence>
+				<script>resString += 'Installation Results :\n'</script>
+				<log level='myLogLevel'>'BVT Installing build %s' % (buildLevel)</log>
+				
+				<!-- Windows Section of BVt Install Build -->
+				<if expr="Platform == 'Windows'">
+				  <try>
+					<sequence>
+					<call function="'mon_InstallMonitor_61_Silent_Windows'">target,buildPath,'basic','false','C:\\IBM\\WebSphere\\MonServer','standalone',\
+						'false','none','none','false','DB2_Universal','true',dbName,dbSchema,\
+						dbUser,dbPass,'C:\\SQLLIB\\java','4','localhost','50000','false','localhost',\
+						'2809','false','true','false','true','false','not4basic',\
+						'not4basic','true','true','C:\\IBM\\WebSphere','not4basic',\
+						'localhost','9080','wp_profile','C:\IBM\WebSphere\wp_profile','admin','admin','admin',\
+						'admin','OFF'</call>
+					<script>resString += '\tInstall %s %s :\tPASS\n\n' % (releaseLevel,buildLevel)</script>
+					<script>installSuccess = 'true'</script>
+					</sequence>
+					<!-- Catch a PARTIAL Install error and see if we want to continue or not -->
+				    <catch exception="'MonitorAutoException.SilentInstall.PartialError'" typevar="eType" var="eInfo">
+					  <sequence>
+						<!-- If want to continue on Partial just log to BVT results on catch ELSE fail here-->
+						<if expr="continueOnPartial == 'true'">  
+			              <script>resString += '\tInstall %s %s :\tPARTIAL\t%s\n\n' % (releaseLevel,buildLevel,eInfo)</script>
+						  <else>
+							  <sequence>
+								  <script>resString += '\tInstall %s %s :\tPARTIAL\t%s\n\n' % (releaseLevel,buildLevel,eInfo)</script>
+								  <throw exception="'MonitorAutoException.Bvt.AutomationError'">'BVT ERROR (not continuing on partial): %s' % (eInfo)</throw>
+							  </sequence>
+						  </else>
+						</if>
+					  </sequence>
+		            </catch>
+					<!-- any other exceptions from Install we really want to fail -->
+					<catch exception="'...'" typevar="eType" var="eInfo">
+						<sequence>
+							<script>resString += '\tInstall %s %s :\tFAIL\t%s\t%s\n\n' % (releaseLevel,buildLevel,eType,eInfo)</script>
+							<throw exception="'MonitorAutoException.Bvt.AutomationError'">'BVT INSTALL ERROR : %s' % (eInfo)</throw>
+						</sequence>
+					</catch>
+		          </try>
+	            </if>
+				<!-- Unix Section of BVT Install Build Here -->
+			</sequence>
+		</if>
+		
+		
+		<!-- Call the First test if selected...claim proc -->
+		<!-- Testcase Header -->
+		<script>resString += 'Testcase Results :\n'</script>
+		
+		<!-- If run claim "on" run Claim proc test and update resString -->
+		<if expr="runClaim == 'on'">
+			<sequence>
+			<log level='myLogLevel'>'Running Claim Processing Tracker Test'</log>
+			<script>resString += '\tClaim Processing :'</script>
+			<try>
+			  <sequence>
+		      <call function="'mon_TestClaimProcess_All'">{
+				'target'                    : target,
+				'buildPath'                 : buildPath,
+				'wasHomeDirectory'          : wasHomeDirectory,
+				'wasServerName'             : wasServerName,
+				'profileNameInWas'          : profileNameInWas,
+				'isMonSecurity'             : 'false',
+				'runPortalDash'             : 'off',
+				'runBspaceDash'             : 'off',
+				'uninstallModel'            : 'on',
+			  }</call>
+			  <script>resString += '\tPASS\n'</script>
+			  </sequence>
+		      <catch exception="'MonitorAutoException.ClaimProc.AutomationError'" typevar="eType" var="eInfo">
+				<sequence>
+				<script>resString += '\tFAIL\t%s\t%s\n' % (eType,eInfo)</script>	
+			    <throw exception="'MonitorAutoException.Bvt.AutomationError'">'MJL : Automation error info: %s' % (eInfo)</throw>
+				</sequence>
+		      </catch>
+			  <catch exception="'MonitorAutoException.ClaimProc'" typevar="eType" var="eInfo">
+			    <script>resString += '\tFAIL\t%s\t%s\n' % (eType,eInfo)</script>
+		      </catch>
+	        </try>
+			</sequence>
+		</if>
+		
+		
+		
+		<!-- If runAuto "on" run AutoParts test and update resString -->
+		<if expr="runAuto == 'on'">
+			<sequence>
+			<log level='myLogLevel'>'Running Auto Parts Test'</log>
+			<script>resString += '\tAuto Parts :'</script>
+			<try>
+			  <sequence>
+			  <call function="'mon_TestAutoParts_All'">{
+				'target'                    : target,
+				'buildPath'                 : buildPath,
+				'wasHomeDirectory'          : wasHomeDirectory,
+				'wasServerName'             : wasServerName,
+				'profileNameInWas'          : profileNameInWas,
+				'isMonSecurity'             : 'false',
+				'runPortalDash'             : 'off',
+				'runBspaceDash'             : 'off',
+				'uninstallModel'            : 'on',
+			  }</call>
+			  <script>resString += '\tPASS\n'</script>
+			  </sequence>
+		      <catch exception="'MonitorAutoException.Autoparts.AutomationError'" typevar="eType" var="eInfo">
+			    <sequence>
+				<script>resString += '\tFAIL\t%s\t%s\n' % (eType,eInfo)</script>	
+			    <throw exception="'MonitorAutoException.Bvt.AutomationError'">'MJL : Automation error info: %s' % (eInfo)</throw>
+				</sequence>
+		      </catch>
+			  <catch exception="'MonitorAutoException.AutoParts'" typevar="eType" var="eInfo">
+			    <script>resString += '\tFAIL\t%s\t%s\n' % (eType,eInfo)</script>
+		      </catch>
+	        </try>
+			</sequence>
+		</if>
+		
+		
+		
+		<!-- If runBev "on" run BevMon and update resString -->
+		<if expr="runBev == 'on'">
+			<sequence>
+			<log level='myLogLevel'>'Beverage Monitor Test'</log>
+			<script>resString += '\tBeverage Monitor :'</script>
+			
+			<try>
+			  <sequence>
+		      <call function="'mon_TestBeverageMonitor_All'">{
+				'target'                    : target,
+				'buildPath'                 : buildPath,
+				'wasHomeDirectory'          : wasHomeDirectory,
+				'wasServerName'             : wasServerName,
+				'profileNameInWas'          : profileNameInWas,
+				'isMonSecurity'             : 'false',
+				'runPortalDash'             : 'off',
+				'runBspaceDash'             : 'off',
+				'uninstallModel'            : 'on',
+			  }</call>
+			  <script>resString += '\tPASS\n'</script>
+			  </sequence>
+		      <catch exception="'MonitorAutoException.Bevmon.AutomationError'" typevar="eType" var="eInfo">
+			        <sequence>
+				<script>resString += '\tFAIL\t%s\t%s\n' % (eType,eInfo)</script>	
+			    <throw exception="'MonitorAutoException.Bvt.AutomationError'">'MJL : Automation error info: %s' % (eInfo)</throw>
+				</sequence>
+		      </catch>
+			  <catch exception="'MonitorAutoException.Bevmon'" typevar="eType" var="eInfo">
+			    <script>resString += '\tFAIL\t%s\t%s\n' % (eType,eInfo)</script>
+		      </catch>
+	        </try>
+			</sequence>
+		</if>
+		
+	
+		
+		<!-- If runOrder "on" run OrderItem and update resString -->
+		<if expr="runOrder == 'on'">
+			<sequence>
+			<log level='myLogLevel'>'Running Order Item Test'</log>
+			<script>resString += '\tOrder Item :'</script>
+			<try>
+			  <sequence>
+		      <call function="'mon_TestOrderItem_All'">{
+				'target'                    : target,
+				'buildPath'                 : buildPath,
+				'wasHomeDirectory'          : wasHomeDirectory,
+				'wasServerName'             : wasServerName,
+				'profileNameInWas'          : profileNameInWas,
+				'isMonSecurity'             : 'false',
+				'runPortalDash'             : 'off',
+				'runBspaceDash'             : 'off',
+				'uninstallModel'            : 'on',
+			  }</call>
+			  <script>resString += '\tPASS\n'</script>
+			  </sequence>
+		      <catch exception="'MonitorAutoException.OrderItem.AutomationError'" typevar="eType" var="eInfo">
+			    <sequence>
+				  <script>resString += '\tFAIL\t%s\t%s\n' % (eType,eInfo)</script>	
+			      <throw exception="'MonitorAutoException.Bvt.AutomationError'">'MJL : Automation error info: %s' % (eInfo)</throw>
+				</sequence>
+		      </catch>
+			  <catch exception="'MonitorAutoException.OrderItem'" typevar="eType" var="eInfo">
+			    <script>resString += '\tFAIL\t%s\t%s\n' % (eType,eInfo)</script>
+		      </catch>
+	        </try>
+			</sequence>
+		</if>
+		
+		
+		
+		<!-- If runPatVis "on" run Patient Visit test and update resString -->
+		<if expr="runPatVis == 'on'">
+			<sequence>
+			<log level='myLogLevel'>'Running Patient Visit Test'</log>
+			<script>resString += '\tPatient Visit :'</script>
+			<try>
+			  <sequence>
+		      <call function="'mon_TestPatientVisit_All'">{
+				'target'                    : target,
+				'buildPath'                 : buildPath,
+				'wasHomeDirectory'          : wasHomeDirectory,
+				'wasServerName'             : wasServerName,
+				'profileNameInWas'          : profileNameInWas,
+				'isMonSecurity'             : 'false',
+				'runPortalDash'             : 'off',
+				'runBspaceDash'             : 'off',
+				'uninstallModel'            : 'on',
+			  }</call>
+			  <script>resString += '\tPASS\n'</script>
+			  </sequence>
+		      <catch exception="'MonitorAutoException.Patvisit.AutomationError'" typevar="eType" var="eInfo">
+			    <sequence>
+				  <script>resString += '\tFAIL\t%s\t%s\n' % (eType,eInfo)</script>	
+			      <throw exception="'MonitorAutoException.Bvt.AutomationError'">'MJL : Automation error info: %s' % (eInfo)</throw>
+				</sequence>
+		      </catch>
+			  <catch exception="'MonitorAutoException.PatVisit'" typevar="eType" var="eInfo">
+			    <script>resString += '\tFAIL\t%s\t%s\n' % (eType,eInfo)</script>
+		      </catch>
+	        </try>
+			</sequence>
+		</if>
+		
+		
+		
+		<!-- If runCdg03 "on" run cdg03 test and update resString -->
+		<if expr="runCdg03 == 'on'">
+			<sequence>
+			<log level='myLogLevel'>'Running CDG003 Test'</log>
+			<!-- Testcase Header -->
+			<script>resString += '\tCDG003 :'</script>
+			<try>
+			  <sequence>
+		      <call function="'mon_TestCodegen003_All'">{
+				'target'                    : target,
+				'buildPath'                 : buildPath,
+				'wasHomeDirectory'          : wasHomeDirectory,
+				'wasServerName'             : wasServerName,
+				'profileNameInWas'          : profileNameInWas
+		  	  }</call>
+			  <script>resString += '\tPASS\n'</script>
+			  </sequence>
+		      <catch exception="'MonitorAutoException.cdg03.AutomationError'" typevar="eType" var="eInfo">
+			    <sequence>
+				  <script>resString += '\tFAIL\t%s\t%s\n' % (eType,eInfo)</script>	
+			      <throw exception="'MonitorAutoException.Bvt.AutomationError'">'MJL : Automation error info: %s' % (eInfo)</throw>
+				</sequence>
+		      </catch>
+			  <catch exception="'MonitorAutoException.cdg03'" typevar="eType" var="eInfo">
+			    <script>resString += '\tFAIL\t%s\t%s\n' % (eType,eInfo)</script>
+		      </catch>
+	        </try>
+			</sequence>
+		</if>
+		
+		
+		<!-- If runCdg05 "on" run cdg05 test and update resString -->
+		<if expr="runCdg05 == 'on'">
+			<sequence>
+			<log level='myLogLevel'>'Running CDG005 Test'</log>
+			<!-- Testcase Header -->
+			<script>resString += '\tCDG005 :'</script>
+			<try>
+			  <sequence>
+		      <call function="'mon_TestCodegen005_All'">{
+				'target'                    : target,
+				'buildPath'                 : buildPath,
+				'wasHomeDirectory'          : wasHomeDirectory,
+				'wasServerName'             : wasServerName,
+				'profileNameInWas'          : profileNameInWas
+		  	  }</call>
+			  <script>resString += '\tPASS\n'</script>
+			  </sequence>
+		      <catch exception="'MonitorAutoException.cdg05.AutomationError'" typevar="eType" var="eInfo">
+			    <sequence>
+				  <script>resString += '\tFAIL\t%s\t%s\n' % (eType,eInfo)</script>	
+			      <throw exception="'MonitorAutoException.Bvt.AutomationError'">'MJL : Automation error info: %s' % (eInfo)</throw>
+				</sequence>
+		      </catch>
+			  <catch exception="'MonitorAutoException.cdg05'" typevar="eType" var="eInfo">
+			    <script>resString += '\tFAIL\t%s\t%s\n' % (eType,eInfo)</script>
+		      </catch>
+	        </try>
+			</sequence>
+		</if>
+		
+		
+		<!-- If runCdg12 "on" run cdg12 test and update resString -->
+		<if expr="runCdg12 == 'on'">
+			<sequence>
+			<log level='myLogLevel'>'Running CDG012 Test'</log>
+			<!-- Testcase Header -->
+			<script>resString += '\tCDG012 :'</script>
+			<try>
+			  <sequence>
+		      <call function="'mon_TestCodegen012_All'">{
+				'target'                    : target,
+				'buildPath'                 : buildPath,
+				'wasHomeDirectory'          : wasHomeDirectory,
+				'wasServerName'             : wasServerName,
+				'profileNameInWas'          : profileNameInWas
+		  	  }</call>
+			  <script>resString += '\tPASS\n'</script>
+			  </sequence>
+		      <catch exception="'MonitorAutoException.cdg12.AutomationError'" typevar="eType" var="eInfo">
+			    <sequence>
+				  <script>resString += '\tFAIL\t%s\t%s\n' % (eType,eInfo)</script>	
+			      <throw exception="'MonitorAutoException.Bvt.AutomationError'">'MJL : Automation error info: %s' % (eInfo)</throw>
+				</sequence>
+		      </catch>
+			  <catch exception="'MonitorAutoException.cdg12'" typevar="eType" var="eInfo">
+			    <script>resString += '\tFAIL\t%s\t%s\n' % (eType,eInfo)</script>
+		      </catch>
+	        </try>
+			</sequence>
+		</if>
+		
+		
+		<!-- If runCdg15 "on" run cdg15 test and update resString -->
+		<if expr="runCdg15 == 'on'">
+			<sequence>
+			<log level='myLogLevel'>'Running CDG015 Test'</log>
+			<!-- Testcase Header -->
+			<script>resString += '\tCDG015 :'</script>
+			<try>
+			  <sequence>
+		      <call function="'mon_TestCodegen015_All'">{
+				'target'                    : target,
+				'buildPath'                 : buildPath,
+				'wasHomeDirectory'          : wasHomeDirectory,
+				'wasServerName'             : wasServerName,
+				'profileNameInWas'          : profileNameInWas
+		  	  }</call>
+			  <script>resString += '\tPASS\n'</script>
+			  </sequence>
+		      <catch exception="'MonitorAutoException.cdg15.AutomationError'" typevar="eType" var="eInfo">
+			    <sequence>
+				  <script>resString += '\tFAIL\t%s\t%s\n' % (eType,eInfo)</script>	
+			      <throw exception="'MonitorAutoException.Bvt.AutomationError'">'MJL : Automation error info: %s' % (eInfo)</throw>
+				</sequence>
+		      </catch>
+			  <catch exception="'MonitorAutoException.cdg15'" typevar="eType" var="eInfo">
+			    <script>resString += '\tFAIL\t%s\t%s\n' % (eType,eInfo)</script>
+		      </catch>
+	        </try>
+			</sequence>
+		</if>
+		
+		<!-- Uninstall Monitor using silent Uninstall -->
+		<if expr="unInstallBuild == 'true'">
+			<sequence>
+				<script>resString += '\nUninstallation Results :\n'</script>
+				<log level='myLogLevel'>'BVT Uninstalling build %s' % (buildLevel)</log>
+				
+				<!-- Windows Section of BVt Uninstall Build -->
+				<if expr="Platform == 'Windows'">
+				  <sequence>
+				  <!-- First try the monUninstall -->
+				  <try>
+					<sequence>
+					<call function="'mon_UninstallMonitor_61_Silent_Windows'">target,'C:\\IBM\\WebSphere\\MonServer','server1','true','true',\
+						'true','false','on','off','C:\\IBM\\WebSphere\\PortalServer','C:\\IBM\\WebSphere\\profiles','C:\\IBM\\WebSphere\\AppServer',\
+					    'admin','admin'</call>
+					<script>resString += '\tUninstall %s :\tPASS\n\n' % (buildLevel)</script>
+					</sequence>
+					<!-- Catch a PARTIAL Install error  -->
+				    <catch exception="'MonitorAutoException.SilentUninstall.PartialError'" typevar="eType" var="eInfo">
+					  <sequence>
+						<script>resString += '\tUninstall %s :\t\tPARTIAL\t%s\t%s\n\n' % (buildLevel,eType,eInfo)</script>
+						<script>resString += 'NOTE: Target Machine %s may need manual cleanup after partial uninstall\n\n' % (target)</script>
+					  </sequence>	
+		            </catch>
+					<!-- any other exceptions from Uninstall we really want to fail -->
+					<catch exception="'...'" typevar="eType" var="eInfo">
+						<sequence>
+							<script>resString += '\tUninstall %s :\t\tFAIL\t%s\t%s\n\n' % (buildLevel,eType,eInfo)</script>
+							<script>resString += 'NOTE: Target Machine %s may need manual cleanup after failed uninstall\n\n' % (target)</script>
+						</sequence>
+					</catch>
+		          </try>
+				  <!-- Then Drop the Database too -->	  
+				  </sequence>
+	            </if>
+				<!-- Unix Section of BVT Uninstall Build Here -->
+				
+			</sequence>
+		</if>
+		
+		<!-- Possibly reimage a formal BVT machine here -->
+		
+		
+		<!-- If any failures at all during BVT end BVTTest as failure -->
+		<if expr="resString.count('FAIL') > 0">
+			<throw exception="'MonitorAutoException.Bvt.AutomationError'">'BVT Results contained at least 1 failure. Failing BVT.'</throw>
+		</if>
+		
+		<!-- end -->
+		   
+	</sequence>
+	
+	<!-- rethrow anything caught -->
+	<catch exception="'...'">
+        <rethrow/>
+      </catch>
+	
+	<finally>
+		<sequence>
+	    <!-- Add final log string -->
+		    <script>resString += '******************END BVT RESULTS******************'</script>
+			
+		<!-- Regardless of outcome put final BVT results back to LA Server -->
+			<log level='myLogLevel'>'Putting BVT results to LA...'</log>
+			<call function="'cafWriteJobOutputLog'">target,'local',resString,resultTitle,'bvtResults.log'</call>
+			<script>(callRC) = STAXResult</script>
+			<if expr="callRC != 0">
+				<log level="'error'">'Error gathering Final BVT Results to Job Output Log. Contact Administrator'</log>
+			</if>
+		<!-- If send email is true, then we need to send formal email of results -->
+			<if expr="sendEmail == 'true'">
+				<sequence>
+				<log level='myLogLevel'>'Sending BVT email'</log>
+				<call function="'mon_SendBVTEmail'">target,buildLevel,releaseLevel,resString</call>
+				<script>(callRC,callResult) = STAXResult</script>
+                <if expr="callRC != 0">
+		          <log level="'error'">'BVT Email Sending Error : %s' % (callResult)</log> 
+		          <else>
+			        <log level='myLogLevel'>'BVT Email was sent successfully'</log>
+		          </else>
+                </if>
+		<!-- Also reimage the box at this point too if this is formal BVT -->
+				<call function="'_ReimageBVT'">target,'D:\\EXEIMAGES','restore_BVTImage.exe'</call>
+				<script>(callRC,callResult) = STAXResult</script>
+				<if expr="callRC != 0">
+		          <log level="'error'">'BVT Reimage Failure!! Machine needs to be manually reimaged : %s' % (callResult)</log> 
+		          <else>
+			        <log level='myLogLevel'>'BVT target machine %s was reimaged successfully' % (target)</log>
+		          </else>
+                </if>
+			    </sequence>
+			</if>
+		</sequence>
+	 </finally>	
+	
+	</try>	
+	 
+  </function>
+	
+  <!-- ****************************************************************** -->
+  <!--                         mon_SendBVTEmail                           -->
+  <!--                                                                    -->
+  <!--                                                                    -->
+  <!-- ****************************************************************** -->
+
+  <function name="mon_SendBVTEmail" scope="local">
+    <function-prolog>
+    </function-prolog>
+
+    <function-epilog>
+      <![CDATA[
+      ]]>
+    </function-epilog>
+
+    <function-list-args>
+      <function-required-arg name="target">Hostname/IP address of the target machine</function-required-arg>
+	  <function-required-arg name="buildLevel">Build Level under test</function-required-arg>
+	  <function-required-arg name="releaseLevel">Release Level under test</function-required-arg>
+      <function-required-arg name="emailBody">Body of the Email from BVT</function-required-arg>
+    </function-list-args>
+	  
+	<sequence>
+		
+	  <!-- Local Variables -->
+	  <script>myLogLevel = "User7"</script>
+	  <script>subjectLine = ''</script>
+	  <script>emailMediaSrcDir = '/bpmmedia/monitor_builds'</script>
+	  <script>emailMediaSrcName = 'bvtEmailList.txt'</script>
+	  <script>emailFullPath = '%s/%s' % (emailMediaSrcDir,emailMediaSrcName)</script>
+	  <script>releaseLevel = releaseLevel.lower()</script>
+		
+	  <!-- ***** BVT EMAIL LIST - EDIT HERE ***** -->
+	  <script>
+		  bvtEmailList = ['mlishok@us.ibm.com','friopat@us.ibm.com']
+	  </script>
+		
+      <!-- Log Start -->	
+	  <log level='myLogLevel'>'Attempting to send the BVT email'</log>
+		
+	  <!-- resolve the media Server variable -->
+	  <call function="'cafResolveLAVar'">'Config/mediaServer'</call>
+      <script>mediaServer = STAXResult</script> 
+	  	
+	  <!-- Determine BVT Status for email -->
+	  <if expr="emailBody.count('PARTIAL') > 0">
+		  <script>bvtStatus = 'PARTIAL'</script>
+		  <elseif expr="emailBody.count('FAIL') > 0">
+			  <script>bvtStatus = 'FAILED'</script>
+		  </elseif>
+		  <else>
+			  <script>bvtStatus = 'SUCCESS'</script>
+		  </else>
+	  </if>
+			
+	  <!-- Send email using cafSendEmail Fucntion -->
+      <script>subjectLine = '%s %s BVT Reports [%s]' % (releaseLevel,buildLevel,bvtStatus)</script>	
+	  <call function="'cafSendEmail'">bvtEmailList,subjectLine,emailBody</call>
+		<script>(callRC,callResult) = STAXResult</script>
+        <if expr="callRC != 0">
+		  <sequence>
+          <log level="'error'">'Failed to send email.  Error:  %s' % (callResult)</log>
+		  <return>(1,'Failed to send email. Error: %s' % (callResult))</return>
+		  </sequence>
+		  <else>
+			  <return>(0,'BVT Email sent successfully')</return>
+		  </else>
+        </if>
+		
+	</sequence>
+	  
+  </function>
+	
+  <!-- ****************************************************************** -->
+  <!--                         mon_Send62BVTEmail                         -->
+  <!--                                                                    -->
+  <!--                                                                    -->
+  <!-- ****************************************************************** -->
+
+  <function name="mon_Send62BVTEmail" scope="local">
+    <function-prolog>
+    </function-prolog>
+
+    <function-epilog>
+      <![CDATA[
+      ]]>
+    </function-epilog>
+
+    <function-list-args>
+      <function-required-arg name="target">Hostname/IP address of the target machine</function-required-arg>
+	  <function-required-arg name="buildLevel">Build Level under test</function-required-arg>
+	  <function-required-arg name="releaseLevel">Release Level under test</function-required-arg>
+      <function-required-arg name="emailBody">Body of the Email from BVT</function-required-arg>
+    </function-list-args>
+	  
+	<sequence>
+		
+	  <!-- Local Variables -->
+	  <script>myLogLevel = "User7"</script>
+	  <script>subjectLine = ''</script>
+	  <script>emailMediaSrcDir = '/bpmmedia/monitor_builds'</script>
+	  <script>emailMediaSrcName = 'bvtEmailList.txt'</script>
+	  <script>emailFullPath = '%s/%s' % (emailMediaSrcDir,emailMediaSrcName)</script>
+	  <script>releaseLevel = releaseLevel.lower()</script>
+		
+	  <!-- ***** BVT EMAIL LIST - EDIT HERE ***** -->
+	  <script>
+		  bvtEmailList = ['mlishok@us.ibm.com','friopat@us.ibm.com']
+	  </script>
+		
+      <!-- Log Start -->	
+	  <log level='myLogLevel'>'Attempting to send the BVT email'</log>
+		
+	  <!-- resolve the media Server variable -->
+	  <call function="'cafResolveLAVar'">'Config/mediaServer'</call>
+      <script>mediaServer = STAXResult</script> 
+	  	
+	  <!-- Determine BVT Status for email -->
+	  <if expr="emailBody.count('PARTIAL') > 0">
+		  <script>bvtStatus = 'PARTIAL'</script>
+		  <elseif expr="emailBody.count('FAIL') > 0">
+			  <script>bvtStatus = 'FAILED'</script>
+		  </elseif>
+		  <else>
+			  <script>bvtStatus = 'SUCCESS'</script>
+		  </else>
+	  </if>
+			
+	  <!-- Send email using cafSendEmail Fucntion -->
+      <script>subjectLine = '%s %s BVT Reports [%s]' % (releaseLevel,buildLevel,bvtStatus)</script>	
+	  <call function="'cafSendEmail'">bvtEmailList,subjectLine,emailBody</call>
+		<script>(callRC,callResult) = STAXResult</script>
+        <if expr="callRC != 0">
+		  <sequence>
+          <log level="'error'">'Failed to send email.  Error:  %s' % (callResult)</log>
+		  <return>(1,'Failed to send email. Error: %s' % (callResult))</return>
+		  </sequence>
+		  <else>
+			  <return>(0,'BVT Email sent successfully')</return>
+		  </else>
+        </if>
+		
+	</sequence>
+	  
+  </function>	
+	
+  <!-- ****************************************************************** -->
+  <!--                         _ReimageBVT                                -->
+  <!--                                                                    -->
+  <!--                                                                    -->
+  <!-- ****************************************************************** -->
+
+  <function name="_ReimageBVT" scope="local">
+    <function-prolog>
+		Windows ONLY, no reimage functionality for unix
+		
+		Uses Powerquest exe image
+		
+    </function-prolog>
+
+    <function-epilog>
+      <![CDATA[
+      ]]>
+    </function-epilog>
+
+    <function-list-args>
+      <function-required-arg name="target">Hostname/IP address of the target machine</function-required-arg>
+	  <function-required-arg name="imageDir">drive and image location</function-required-arg>
+	  <function-required-arg name="imageFile">Filename of the image</function-required-arg>
+    </function-list-args>
+	  
+	<sequence>
+		
+	  <!-- Local Variables -->
+	  <script>myLogLevel = "User7"</script>
+		
+	  <log level='myLogLevel'>'Entering Reimage a BVT machine'</log>
+		
+	  <script>fullLoc = '%s\%s' % (imageDir,imageFile)</script>
+	  <log level="'info'">'Full Image location = %s' % (fullLoc)</log>
+		
+	  <!-- Query the auto login registry value -->
+
+	  <!-- Query the filename to make sure exists -->
+	  <call function="'cafQueryFSEntry'">target,fullLoc</call>
+	  <script>(callRC,callResult) = STAXResult</script>
+      <if expr="callRC != 0">		
+		  <return>(1,'Did not find image file %s on target machine' % (fullLoc))</return>	
+		<else>
+		  <log level="'info'">'Image File %s exists on target' % (imageFile)</log>
+		</else>
+	  </if>
+		
+	  <!-- Query current STAF start time -->
+	  <call function="'cafResolveSTAFVar'">target,'STAF/Config/StartupTime'</call>
+	  <script>startTime1 = STAXResult</script>
+	  <log level="'info'">'STAF Starttime before reimage = %s' % (startTime1)</log>
+				
+	  <!-- Timer loop..call the exe -->
+	  <call function="'cafRunCommand'">target,fullLoc</call>
+      <script>(callRC,callResult) = STAXResult</script>
+	  <if expr="callRC != 0">		
+		  <return>(1,'ERROR calling restore Image %s EXE' %(imageFile))</return>	
+	     <else>
+		  <log level="'info'">'Successful call to %s' % (fullLoc)</log>
+		</else>
+	  </if>
+	  
+	  <!-- Delay for 90 seconds after executing the reboot -->
+      <log level="'info'">'%s  %s:  Delaying 90 seconds for target to start reimage' % (STAXCurrentTestcase, STAXCurrentFunction)</log>
+	  <call function="'cafDelay'">90000</call>
+		
+	  <!-- Make sure its really started rebooting 
+	  <call function="'cafSTAFPingHost'">target</call>
+	  <script>pingCheck = STAXResult[0]</script>
+	  <if expr="pingCheck == 0">
+		  <sequence>
+			  <log level="'error'">'MJL machine should be reimaging right now...it didnt take, will need manual REIMAGE'</log>
+			  <return>1,'Target did not reimage even though called the reimage EXE'</return>
+		  </sequence>
+		  <else>
+			  <log level='myLogLevel'>'Looks like machine reimaging...unsuccessful ping'</log>
+		  </else>
+	  </if> -->
+		
+	  <!-- Give the target 25 minutes to come back -->
+      <log level="'info'">'%s  %s:  Waiting for target to return' % (STAXCurrentTestcase, STAXCurrentFunction)</log>
+	  <timer duration="'25m'">
+	    <sequence>
+	      <script>pingRC = 1</script>	<!-- Had to initialize the until variable for some reason -->
+			<loop until="pingRC == 0">
+	        <sequence>
+		    <!-- Need to check the startup time here and make sure it differs, to ensure the target really rebooted -->
+	        <call function="'cafSTAFPingHost'">target</call>
+	        <script>pingRC = STAXResult[0]</script>
+	        <if expr="pingRC == 0">
+		      <sequence>
+        	    <call function="'cafResolveSTAFVar'">target,'STAF/Config/StartupTime'</call>
+        	    <script>startTime2 = STAXResult</script>
+				<log level="'info'">'STAF Start time as target becomes visible = %s' % (startTime2)</log>
+		        <if expr="startTime1 == startTime2">
+		          <sequence>
+					<!-- DEBUG -->
+					<log level="'info'">'Start times equivalent, machines hasnt started to reboot yet'</log>
+		            <script>pingRC = 1</script>
+	                <call function="'cafDelay'">60000</call>
+		          </sequence>
+		        </if>
+		      </sequence>
+	        <elseif expr="pingRC != 0">
+	            <call function="'cafDelay'">60000</call>
+		    </elseif>
+	        </if>
+	        </sequence>
+            </loop>
+
+	      <!-- If I got out of the loop, it means the target is pingable.  Return -->
+	      <return>(0,'')</return>
+	    </sequence>
+	  </timer>
+
+	<!-- If the target did not ping within the given amount of time -->
+	<if expr="RC != 0">
+	  <sequence>
+            <log level="'error'">'%s  %s:  Target did not return in the specified amount of time (20 minutes).  Please check the target for further details' % (STAXCurrentTestcase, STAXCurrentFunction)</log>
+	    <return>(1,'Target did not return from reiamge in the specified amount of time (20 minutes)')</return>	
+	   </sequence>
+	 </if>
+
+
+	<return>(0,'')</return>	
+		
+	</sequence>
+	  
+  </function>
+
+</stax>

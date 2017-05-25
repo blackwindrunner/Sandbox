@@ -1,0 +1,105 @@
+<!-- Ant build script for BTTCHAEAR -->
+<project name="BTTCHAEAR" default="build_all" basedir=".">
+
+    <!-- The following property defines the package base path -->
+    <property name="base.package" value="com/ibm/btt"/>
+
+    <!-- The following properties files
+        1. set local build machine requirements for implementation in
+        2. general and custom variable definitions for all drivers -->
+    <property file="C:/LocalSettings.properties"/>
+    <property file="${repository.drive}/wsbc/${CMVCRelease}/ant.properties"/>
+
+    <!-- The base.path should be the same for all EJB related projects -->
+    <path id="base.path">
+        <pathelement location="${core.jar}"/>
+        <pathelement location="${was.appserver.lib}/j2ee.jar"/>
+    </path>
+
+    <target name="build">
+        <javac srcdir="${nonejb.src}" destdir="${dest}" debug="on" debuglevel="${debugarg}">
+            <classpath>
+                <path refid="base.path"/>
+                <!-- Here is where the project specific dependencies go into the classpath -->
+                <!-- These are defined in the ant.properties file -->
+            </classpath>
+        </javac>
+        <copy todir="${dest}">
+            <fileset dir="${nonejb.src}" excludes="${base.package}/**/*.java"/>
+        </copy>
+    </target>
+
+    <target name="source_jar" depends="build">
+        <jar jarfile="${ant.project.name}Source.jar">
+            <fileset dir="${src}" includes="**/*"/>
+        </jar>
+    </target>
+
+    <target name="common_jar" depends="build">
+        <jar jarfile="${ant.project.name}Common.jar">
+            <fileset dir="${dest}"
+                includes="${base.package}/**/*.class,${base.package}/resources/*.properties"
+                excludes="${base.package}**/_*.class,${base.package}**/EJS*.class"/>
+        </jar>
+    </target>
+
+    <target name="zip_file" depends="build">
+        <zip destfile="${ant.project.name}.zip" basedir="${basedir}" excludes="steps/**, bin/**, logs/**, forbuildonly/**, **/*.jar, **/*.zip, **/*.class, .vcm_meta, rose/**"/>
+    </target>
+    
+    <target name="deliverable_ear">
+        <mkdir dir="deliverables"/>
+        <ear earfile="deliverables/BTTCHAEAR.ear" appxml="META-INF/application.xml">
+            <fileset dir="." includes="META-INF/**" excludes="META-INF/application.xml"/>
+            <fileset dir="../BTTBase/deliverables" includes="bttbase.jar"/>
+            <fileset dir="../BTTCHA/deliverables" includes="bttchaejb.jar"/>
+            <fileset dir="../BTTOpStepAdaptor/deliverables" includes="bttopstepadaptor.jar"/>
+            <fileset dir="." includes=".project,.compatibility,.j2ee ,.runtime,TIVREADY/**"/>
+        </ear>
+    </target>
+    
+    <target name="deliverable_zip">
+        <mkdir dir="deliverables"/>
+        <zip zipfile="deliverables/${ant.project.name}.zip">
+            <fileset dir="${nonejb.src}" includes="**"/>
+        </zip>
+    </target>
+    
+    <target name="remove_jars">
+        <delete>
+            <fileset dir="${basedir}" includes="**/*.jar"/>
+        </delete>
+    </target>
+
+    <target name="remove_zips">
+        <delete>
+            <fileset dir="${basedir}" includes="**/*.zip"/>
+        </delete>
+    </target>
+
+    <target name="remove_classes">
+        <delete>
+            <fileset dir="${dest}" includes="**/*.class"/>
+        </delete>
+    </target>
+    
+    <target name="remove_ear">
+        <delete>
+            <fileset dir="${basedir}" includes="**/*.ear"/>
+        </delete>
+    </target>
+
+    <target name="clean" depends="remove_classes,remove_jars,remove_zips,remove_ear"/>
+
+    <target name="rebuild" depends="clean, build"/>
+
+    <target name="remove_backup_files">
+        <delete>
+            <fileset dir="${src}" includes="**/*.$$??"/>
+        </delete>
+    </target>
+                                   
+    <target name="build_all" depends="clean,
+                                      deliverable_ear"/>
+
+</project>

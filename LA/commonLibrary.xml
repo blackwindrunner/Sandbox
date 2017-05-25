@@ -1,0 +1,1504 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "stax.dtd">
+<stax>
+	
+  <!-- ****************************************************************** -->
+  <!--                         wasInstallEar_All                          -->
+  <!--                                                                    -->
+  <!--                                                                    -->
+  <!-- ****************************************************************** -->
+
+  <function name="wasInstallEar_All" scope="local">
+    <function-prolog>
+      This function will Install an Monitor EAR file to Websphere application Server
+    </function-prolog>
+
+    <function-epilog>
+      <![CDATA[
+<p>This is Install EAR function</p>
+<p>This function will install an application in EAR form onto installation on WAS </p>
+<p>It will do the following:</p>
+<ul>
+	<li>Install EAR description</li>
+</ul>
+<p>this is another paragraph...</p>
+      ]]>
+    </function-epilog>
+
+    <function-list-args>
+      <function-required-arg name="target">Hostname/IP address of the target machine</function-required-arg>
+      <function-required-arg name="wasHomeDir">Location of WAS on target</function-required-arg>
+	  <function-required-arg name="wasServer">Server name the Monitor Profile is under</function-required-arg>
+      <function-required-arg name="profileName">profile name to install EAR to</function-required-arg>
+	  <function-required-arg name="pathToEar">path on target where EAR file resides</function-required-arg>
+	  <function-required-arg name="earToInstall">Ear filename to install</function-required-arg>
+	  <function-required-arg name="earApplName">The name of the application the EAR represents</function-required-arg>
+	  <function-required-arg name="deleteSchema">Delete schema on uninstall (yes or no)</function-required-arg>
+	  <function-required-arg name="modelID">Model ID of the model to verify installation</function-required-arg>
+	  <function-required-arg name="modelVersion">Model Version to check is complete</function-required-arg>
+	  <function-required-arg name="threadSetting">SerialST or SerialMT are valid values must know this for model</function-required-arg>			
+    </function-list-args>
+	
+	<sequence>
+	  <!-- Local variables -->
+      <script>myLogLevel="User7"</script>
+	  <script>wasStatCmd = None</script>
+	  <script>wsadminCmd = None</script>
+		
+	  <!-- ****** Win/Nix command substitution ******* -->
+	  <if expr="Platform == 'Windows'">
+		  <script>
+			  wasStatCmd = 'serverStatus.bat'
+			  wsadminCmd = 'wsadmin'
+		  </script>
+		  <elseif expr="OS == 'Linux' or OS == 'AIX' or OS == 'SunOS'">
+			  <script>
+				  wasStatCmd = 'serverStatus.sh'
+				  wsadminCmd = 'wsadmin.sh'
+			  </script>
+		  </elseif>
+		  <else>
+			  <throw exception="'MonitorAutoException.InstallEar.UnsupportedOS'">'Install EAR function Error: Unsupported OS %s' % (OS)</throw>
+		  </else>
+	  </if>
+		
+	  <!-- Resolve the hostname of the media server -->
+      <call function="'cafResolveLAVar'">'Config/mediaServer'</call>
+      <script>mediaServer = STAXResult</script>
+	  
+		
+	  <!-- Import the CUSTOM helper library -->
+	  <script>libraryLoc="BTT_Sandbox/wasHelperLibrary.xml"</script> 
+      <call function="'cafImportCustomLibrary'"> [libraryLoc] </call>
+      <script>importRC = STAXResult</script>
+      <if expr="importRC != 0">
+		  <throw exception="'MonitorAutoException.InstallEar.ImportFailed'">'Failed to Import the necessary library %s needed for this function' % (libraryLoc)</throw>
+	  </if>
+		
+	  <!-- Import the CAF wasFunctions.xml -->
+	  <script>libraryLoc="softwareFunctions/wasFunctions.xml"</script> 
+      <call function="'cafImportCAFLibrary'"> [libraryLoc] </call>
+      <script>importRC = STAXResult</script>
+      <if expr="importRC != 0">
+		  <throw exception="'MonitorAutoException.InstallEar.ImportFailed'">'Failed to Import the necessary library %s needed for this function' % (libraryLoc)</throw>
+	  </if>
+	  
+	  <!-- Is Target's WAS server running? If not, start it -->
+	  <call function="'cafRunCommand'">target,'"%s%sbin%s%s"' % (wasHomeDir,FileSeparator,FileSeparator,wasStatCmd),wasServer</call>     
+      <script>(callRC,callResult) = STAXResult</script>
+      <if expr="callRC != 0">
+          <throw exception="'MonitorAutoException.InstallEar.RunError'">'Unable to determine WAS Server %s status.' % (wasServer)</throw>
+		  <elseif expr="callResult.count('ADMU0508I') > 0">
+			  <log level="'info'">'WAS server %s appears to be started' % (wasServer)</log>
+		  </elseif>
+		  <else>
+			  <sequence>
+				 <try>
+				   <call function="'startServer'">target,wasServer,wasHomeDir</call> 
+				   <catch exception="'...'" var="eInfo">
+					  <throw exception="'MonitorAutoException.InstallEar.StartWASFailure'">eInfo</throw>
+					</catch>	 
+				 </try>
+			  </sequence>
+		  </else>
+      </if>
+	  
+	  <!-- Create the Jython install file to pass to wsadmin -->
+	  <!-- text of the Jython file -->
+	  <script>installJyText = 'AdminApp.install(\'%s\', \'[-server %s -appname %s  -LifecycleClientDatabaseTask [[yes no %s %s no no]]]\')\nAdminConfig.save()' % (earToInstall,wasServer,earApplName,deleteSchema,threadSetting)</script>
+	  <!-- <log level="'error'">'Jython text = %s' % (installJyText)</log> -->
+	  <!-- name to call .jy file -->
+	  <script>installJyName = 'Inst_%s.jy' % (earApplName)</script> 
+	  <call function="'cafWriteTargetFile'">target,AutomationTmpDir,installJyName,installJyText</call>
+      <script>callRC = STAXResult</script>
+      <if expr="callRC != 0">
+		  <throw exception="'MonitorAutoException.InstallEar.JythonError'">'Failed to write/create %s script' % (installJyName)</throw>
+      </if>
+		
+	  <!-- Query the SOAP port of the WAS installation -->
+	  <!-- call get WAS SOAP Port function -->
+	  <call function="'wasGetPort'">target,wasHomeDir,profileName,'SOAP_CONNECTOR_ADDRESS'</call>
+	  <script>(callRC,callResult) = STAXResult</script>
+	  <if expr="callRC != 0">
+          <throw exception="'MonitorAutoException.InstallEar.PortError'">'%s' % (callResult)</throw>
+		  <else>
+			  <script>soapPort = callResult</script>
+		  </else>
+       </if>
+		
+	  <!-- Install the EAR using the wsadmin command -->
+	  <!-- Windows or linux determination here, right now..cmd and parm strings are windows only...would need some OS logic here -->
+	  <script>cmdStr = '%s/bin/%s' % (wasHomeDir,wsadminCmd)</script>
+	  <script>parmStr = '-lang jython -conntype SOAP -port %s -f %s%s%s' % (soapPort,AutomationTmpDir,FileSeparator,installJyName)</script>
+	  <script>earLog = 'Inst_%s.log' % (earApplName)</script>
+	   <call function="'cafRunCommandAdv'">[
+          target,
+		  cmdStr,
+          parmStr,
+          AutomationTmpDir,
+          '%s%s%s' % (AutomationTmpDir,FileSeparator,earLog), 
+          '8m' 
+          ]
+		</call>
+        <script>(callRC,callResult) = STAXResult</script>
+        <if expr="callRC != 0">
+          <!-- grab partial log file here if there is error before throwing exception -->
+		  <sequence>
+			<call function="'cafGetFileContents'">target,'%s%s%s' % (AutomationTmpDir,FileSeparator,earLog)</call>
+            <call function="'cafWriteJobOutputLog'">target,'local',STAXResult,'%s-Install EAR Results Log' % (modelID),earLog</call>
+            <script>(callRC) = STAXResult</script>
+            <if expr="callRC != 0">
+                <log level="'error'">'Failed to create new LA Job Output Log for Install Ear Function'</log>
+            </if>  
+            <throw exception="'MonitorAutoException.InstallEar.InstallEarError'">'The installation of EAR file %s failed. See Job Output Log for more details' % (earToInstall)</throw>
+		  </sequence>
+          <else>
+            <log level='myLogLevel'>'The installation of EAR file %s succeeded' % (earToInstall)</log>
+          </else>
+        </if>
+		 
+	  <!-- Put Install EAR log file generated to the LA Job Output Log -->
+	  <call function="'cafGetFileContents'">target,'%s%s%s' % (AutomationTmpDir,FileSeparator,earLog)</call>
+      <call function="'cafWriteJobOutputLog'">target,'local',STAXResult,'%s-Install EAR Results Log' % (modelID),earLog</call>
+        <script>(callRC) = STAXResult</script>
+        <if expr="callRC != 0">
+          <log level="'error'">'Failed to create new LA Job Output Log for Install Ear Function'</log>
+        </if>
+		
+	  <!-- Stop WAS -->
+	  <try>
+	    <call function="'stopServer'">target,wasServer,wasHomeDir</call>	
+	  	<catch exception="'...'" var="eInfo">
+			<log level="'error'">'%s' % (eInfo)</log>  
+		</catch>  
+	  </try>
+		
+	  <!-- Start WAS -->
+	  <try>
+	    <call function="'startServer'">target,wasServer,wasHomeDir</call>	
+	  	<catch exception="'...'" var="eInfo">
+			<log level="'error'">'%s' % (eInfo)</log>  
+		</catch>  
+	  </try>	
+		
+	  <!-- ***Validate the EAR was successfully installed*** -->
+	  <!-- check autoparts version we expect is installed -->
+	  <try>
+		<call function="'monCheckVersion'">target,wasHomeDir,profileName,modelID,modelVersion</call>  
+		<catch exception="'...'" var="eInfo">
+			<throw exception="'MonitorAutoException.InstallEar.InstallEarError'">'Version validation after Install EAR failed. Error: %s' % (eInfo)</throw>  
+		</catch>    
+	  </try>
+	  <!-- check that confirmInstall is complete -->
+	  <try>
+		<call function="'monCheckConfirmInstall'">target,wasHomeDir,profileName,modelID,modelVersion</call>  
+		<catch exception="'...'" var="eInfo">
+			<throw exception="'MonitorAutoException.InstallEar.InstallEarError'">'isComplete validation after Install EAR failed. Error: %s' % (eInfo)</throw>  
+		</catch>    
+	  </try>
+		
+	  <log level='myLogLevel'>'Install EAR function succeeded!'</log>
+	  
+		  
+	<return/>    
+	  
+	</sequence>  
+  </function>
+	
+  
+	
+  <!-- ****************************************************************** -->
+  <!--                         wasUninstallEar_All                        -->
+  <!--                                                                    -->
+  <!--                                                                    -->
+  <!-- ****************************************************************** -->
+
+  <function name="wasUninstallEar_All" scope="local">
+    <function-prolog>
+      This function will Uninstall a Monitor EAR file from Websphere application Server
+    </function-prolog>
+
+    <function-epilog>
+      <![CDATA[
+<p>This is Uninstall EAR function</p>
+<p>This function will uninstall an application in EAR from installation of WAS </p>
+<p>It will do the following:</p>
+<ul>
+	<li>Uninstall EAR description</li>
+</ul>
+<p>this is another paragraph...</p>
+      ]]>
+    </function-epilog>
+
+    <function-list-args>
+      <function-required-arg name="target">Hostname/IP address of the target machine</function-required-arg>
+      <function-required-arg name="wasHomeDir">Location of WAS on target</function-required-arg>
+	  <function-required-arg name="wasServer">Server name the Monitor Profile is under</function-required-arg>
+      <function-required-arg name="profileName">profile name to install EAR to</function-required-arg>
+	  <function-required-arg name="earApplName">The name of the application the EAR represents</function-required-arg>
+	  <function-required-arg name="modelID">Model ID of the model to verify uninstallation</function-required-arg>
+	  <function-required-arg name="modelVersion">Model Version to check is complete</function-required-arg>			
+    </function-list-args>
+	
+	<sequence>
+	  <!-- Local variables -->
+      <script>myLogLevel="User7"</script>
+	  <script>wasStatCmd = None</script>
+	  <script>wsadminCmd = None</script>
+		
+	  <!-- ****** Win/Nix command substitution ******* -->
+	  <if expr="Platform == 'Windows'">
+		  <script>
+			  wasStatCmd = 'serverStatus.bat'
+			  wsadminCmd = 'wsadmin'
+		  </script>
+		  <elseif expr="OS == 'Linux' or OS == 'AIX' or OS == 'SunOS'">
+			  <script>
+				  wasStatCmd = 'serverStatus.sh'
+				  wsadminCmd = 'wsadmin.sh'
+			  </script>
+		  </elseif>
+		  <else>
+			  <throw exception="'MonitorAutoException.UninstallEar.UnsupportedOS'">'Uninstall EAR function Error: Unsupported OS %s' % (OS)</throw>
+		  </else>
+	  </if>
+		
+	  <!-- Resolve the hostname of the media server -->
+      <call function="'cafResolveLAVar'">'Config/mediaServer'</call>
+      <script>mediaServer = STAXResult</script>
+	  
+		
+	  <!-- Import the CUSTOM helper library -->
+	  <!-- <script>libraryLoc="BTT_Sandbox/wasHelperLibrary.xml"</script> -->
+	  <script>libraryLoc="BTT_Sandbox/wasHelperLibrary.xml"</script> 
+      <call function="'cafImportCustomLibrary'"> [libraryLoc] </call>
+      <script>importRC = STAXResult</script>
+      <if expr="importRC != 0">
+		  <throw exception="'MonitorAutoException.UninstallEar.ImportFailed'">'Failed to Import the necessary library %s needed for this function' % (libraryLoc)</throw>
+	  </if>
+		
+	  <!-- Import the CAF wasFunctions.xml -->
+	  <script>libraryLoc="softwareFunctions/wasFunctions.xml"</script> 
+      <call function="'cafImportCAFLibrary'"> [libraryLoc] </call>
+      <script>importRC = STAXResult</script>
+      <if expr="importRC != 0">
+		  <throw exception="'MonitorAutoException.UninstallEar.ImportFailed'">'Failed to Import the necessary library %s needed for this function' % (libraryLoc)</throw>
+	  </if>
+		
+	  <!-- Is Target's WAS server running? If not, start it -->
+	  <call function="'cafRunCommand'">target,'"%s%sbin%s%s"' % (wasHomeDir,FileSeparator,FileSeparator,wasStatCmd),wasServer</call>     
+      <script>(callRC,callResult) = STAXResult</script>
+      <if expr="callRC != 0">
+          <log level="'error'">'Unable to determine WAS Server %s status' % (wasServer)</log>
+		  <elseif expr="callResult.lower().count('is started') > 0">
+			  <log level="'info'">'WAS server %s appears to be started' % (wasServer)</log>
+		  </elseif>
+		  <else>
+			  <sequence>
+				 <try>
+				   <call function="'startServer'">target,wasServer,wasHomeDir</call> 
+				   <catch exception="'...'" var="eInfo">
+					  <throw exception="'MonitorAutoException.UninstallEar.StartWASFailure'">eInfo</throw>
+					</catch>	 
+				 </try>
+			  </sequence>
+		  </else>
+      </if>
+	
+	  <!-- Create the Jython uninstall file to pass to wsadmin -->
+	  <!-- text of the Jython file -->
+	  <script>uninstallJyText = 'AdminApp.uninstall(\'%s\', \'[-server %s]\')\nAdminConfig.save()' % (earApplName,wasServer)</script>
+	  <!-- <log level="'error'">'Jython text = %s' % (installJyText)</log> -->
+	  <!-- name to call .jy file -->
+	  <script>uninstallJyName = 'Uninst_%s.jy' % (earApplName)</script> 
+	  <call function="'cafWriteTargetFile'">target,AutomationTmpDir,uninstallJyName,uninstallJyText</call>
+      <script>callRC = STAXResult</script>
+      <if expr="callRC != 0">
+		  <throw exception="'MonitorAutoException.UninstallEar.JythonError'">'Failed to write/create %s script' % (uninstallJyName)</throw>
+      </if>
+		
+	  <!-- Query the SOAP port of the WAS installation -->
+	  <!-- call get WAS SOAP Port function -->
+	  <call function="'wasGetPort'">target,wasHomeDir,profileName,'SOAP_CONNECTOR_ADDRESS'</call>
+	  <script>(callRC,callResult) = STAXResult</script>
+	  <if expr="callRC != 0">
+          <throw exception="'MonitorAutoException.UninstallEar.PortError'">'%s' % (callResult)</throw>
+		  <else>
+			  <script>soapPort = callResult</script>
+		  </else>
+       </if>
+		
+	  <!-- UnInstall the EAR using the wsadmin command -->
+	  <!-- Windows or linux determination here, right now..cmd and parm strings are windows only...would need some OS logic here -->
+	  <script>cmdStr = '%s/bin/%s' % (wasHomeDir,wsadminCmd)</script>
+	  <script>parmStr = '-lang jython -conntype SOAP -port %s -f %s%s%s' % (soapPort,AutomationTmpDir,FileSeparator,uninstallJyName)</script>
+	  <script>uninstLog = 'Uninst_%s.log' % (earApplName)</script>
+	   <call function="'cafRunCommandAdv'">[
+          target,
+		  cmdStr,
+          parmStr,
+          AutomationTmpDir,
+          '%s%s%s' % (AutomationTmpDir,FileSeparator,uninstLog), 
+          '5m' 
+          ]
+		</call>
+        <script>(callRC,callResult) = STAXResult</script>
+        <if expr="callRC != 0">
+          <!-- grab partial log file here if there is error before throwing exception -->
+		  <sequence>
+			<call function="'cafGetFileContents'">target,'%s%s%s' % (AutomationTmpDir,FileSeparator,uninstLog)</call>
+            <call function="'cafWriteJobOutputLog'">target,'local',STAXResult,'Uninstall EAR Results Log',uninstLog</call>
+            <script>(callRC) = STAXResult</script>
+            <if expr="callRC != 0">
+                <log level="'error'">'Failed to create new LA Job Output Log for Uninstall Ear Function'</log>
+            </if>  
+            <throw exception="'MonitorAutoException.UninstallEar.UninstallError'">'The uninstallation of %s failed. May need to manually remove EAR. See Job Output Log for more details' % (earApplName)</throw>
+		  </sequence>
+          <else>
+            <log level='myLogLevel'>'The uninstallation of application %s succeeded' % (earApplName)</log>
+          </else>
+        </if>
+		
+	  <!-- Validate the model is completely removed -->
+	  <try>
+		<call function="'monCheckModelUninstall'">target,wasHomeDir,profileName,modelID</call>  
+		<catch exception="'...'" var="eInfo">
+			<throw exception="'MonitorAutoException.UninstallEar.UninstallError'">'Uninstall failed. May need to manually remove EAR. Error: %s' % (eInfo)</throw>  
+		</catch>    
+	  </try>
+		
+	  <log level='myLogLevel'>'Uninstall EAR function succeeded!'</log>	
+		
+	<return/>    
+	  
+	</sequence>
+	    
+  </function>
+	
+	
+  <!-- ****************************************************************** -->
+  <!--                         mon_GenerateEar_Linux                      -->
+  <!--                                                                    -->
+  <!--                                                                    -->
+  <!-- ****************************************************************** -->
+
+  <function name="mon_GenerateEar_Linux" scope="local">
+    <function-prolog>
+      This function will Generate an EAR file based on a certain build level.
+	  A dedicated Linux based EAR Building machine (in resource pool) is needed to call this function.
+	  Pass the build path (where mme.zip resides), the Project Interchange file, testcase name
+	  of the test to generate the EAR for, and it will build the EAR file
+	  necessary and return it to the media server. 
+		
+		Throws:
+		
+		MonitorAutoException.GenerateEar.GenEarError - failure generating the EAR
+		MonitorAutoException.GenerateEar.mmeUnzipFailure - failure unzipping the mme.zip (possible corruption?)
+		MonitorAutoException.GenerateEar.unabletoInitialize - unable to intialize the EAR builder machine or setup for Ear Generation
+		MonitorAutoException.GenerateEar.CopyError - unable to copy a necessary file from one location to another
+    </function-prolog>
+
+    <function-epilog>
+      <![CDATA[
+      <p>This is a Generate EAR function that will generate EAR based on provided build number and loc.</p>
+      <p>This function will generate EAR using a dedicated linux based EAR Building machine</p>
+      <p>It will do the following:</p>
+      <ul>
+	      <li>Use the EAR building machine to generate EAR based on specific build name and testcase by:</li>
+      </ul>
+      <p>Comments on Generate EAR</p>
+      ]]>
+    </function-epilog>
+
+    <function-list-args>
+      <function-required-arg name="target">Hostname/IP address of the target machine</function-required-arg>
+	  <function-required-arg name="buildPath">Path build level to generate EAR for on media Server (should match build on target)</function-required-arg>
+	  <function-required-arg name="piFileName">Name of the pi file to generate EAR for</function-required-arg>
+	  <function-required-arg name="testcase">Testcase that generating the EAR for</function-required-arg>	      
+    </function-list-args>
+  	   
+    <try>
+		
+      <sequence>
+        
+        <!-- Local variables -->
+        <script>myLogLevel="User7"</script>
+        <script>mmeFileName = 'mme.zip'</script>
+        <script>runtimeFileName = 'com.ibm.wbimonitor.runtime_6.1.0.jar'</script>
+        <script>radBaseDir = '/radbase'</script>
+        <script>radHome = '%s/SDP70' % (radBaseDir)</script>
+        <script>genEarHome = '%s/genEarHome' % (radBaseDir)</script>
+        <script>mmeHome = '%s/mme' % (genEarHome)</script>
+        <script>mmeEclipseHome = '%s/eclipse' % (mmeHome)</script>
+        <script>mmePluginHome = '%s/plugins' % (mmeEclipseHome)</script>
+        <script>workDir = '%s/work' % (genEarHome)</script>
+        <script>workspaceDir = '%s/workspace' % (genEarHome)</script>
+        <!-- EAR File name will be testcaseEAR.ear -->
+        <script>earFileName='%sEAR.ear' % (testcase)</script>
+        <script>genEarLogFile = '%s-Gen.log' % (earFileName)</script>
+        <script>linksHome = '%s/links' % (radHome)</script>
+        <script>eclipseString = 'org.eclipse.core.launcher.Main'</script>
+        <script>monitorString = 'com.ibm.wbimonitor.deploy.mmdeploy.MonitoringModelDeploy'</script>
+        <script>mmeLoc = '%s' % (buildPath)</script>
+        
+        <!-- extract Build Selected from Path -->
+        <script> 
+			split = buildPath.split('CDMON/')
+			buildSelected = split[-1] 
+		</script>
+		  
+        <log level='myLogLevel'>'The Build to generate EAR for is %s' % (buildSelected)</log>
+        
+		<!-- EAR location on media server -->
+        <script>earMediaDest='/bpmmedia/monitor_tests/%s/ears/%s' % (testcase,buildSelected)</script>
+        <!-- Path to PI file since we know testcase name -->
+        <script>piFilePath='/bpmmedia/monitor_tests/%s/model' % (testcase)</script>
+        
+        
+  	    <!-- request a machine from the EAR Building resource pool and set to earBuilder -->
+        <log level='myLogLevel'>'Checking out EAR Builder from resource pool...'</log>
+        <call function="'cafRespoolRequest'">'local','EAR Builders','1800000'</call>
+        <script>(callRC,earBuilder) = STAXResult</script>
+        <if expr="callRC != 0">
+          <throw exception="'MonitorAutoException.GenerateEar.UnabletoInitialize'">'Failed to receive a machine from the EAR Builders resource pool. \
+  		                        Please contact your automation administrator for further assistance'</throw>
+        </if>
+        
+        <log level='myLogLevel'>'The Ear Building machine resource is  %s' % (earBuilder)</log>
+        
+        <!-- Lets make sure our variables (on the EAR Building machine) are correct by Initializing this target (EARBuilder) -->
+        <call function="'cafInitializeTarget'">earBuilder</call>
+        <script>(callRC,callResult) = STAXResult</script>
+        <if expr="callRC != 0">
+          <throw exception="'MonitorAutoException.GenerateEar.UnabletoInitialize'">'Failed to initialize server for ear generation.  Error: %s' % (callResult)</throw>
+        </if>
+        
+        <!-- Resolve the hostname of the media server -->
+        <call function="'cafResolveLAVar'">'Config/mediaServer'</call>
+        <script>mediaServer = STAXResult</script>
+        
+        <!-- Remove genEar working dir folder from previous run if it was left due to exception? -->
+        <call function="'cafQueryFSEntry'">earBuilder,genEarHome</call>
+		<script>(callRC,callResult) = STAXResult</script>
+		<if expr="callRC != 0">
+		  <log level='myLogLevel'>'GenEar working directory location is clear'</log>
+          <else>
+            <sequence>
+              <log level='myLogLevel'>'Deleting %s on ear building resource machine...' % (genEarHome)</log>
+              <call function="'cafDeleteEntry'">earBuilder,genEarHome,'1'</call>
+              <script>(callRC,callResult) = STAXResult</script>
+              <if expr="callRC != 0">
+                <throw exception="'MonitorAutoException.GenerateEar.UnabletoInitialize'">'Unable to clear a generate working dir on %s' % (target)</throw>
+              </if>
+            </sequence>
+          </else>
+        </if>
+        
+        <!-- Create this functions working directory-->
+        <call function="'cafCreateDir'">earBuilder,genEarHome</call>
+        <script>(callRC,callResult) = STAXResult</script>
+        <if expr="callRC != 0">
+          <log level="'error'">'Failed to create generate Ear working dir on EAR building machine. Error: %s' % (callResult)</log>
+          <else>
+            <log level="'info'">'Created generate Ear working dir %s on Ear Builder successfully' % (genEarHome)</log>
+          </else>
+        </if>
+        
+        <!-- Create mme home directory on the EAR Builder machine -->
+        <call function="'cafCreateDir'">earBuilder,mmeHome</call>
+        <script>(callRC,callResult) = STAXResult</script>
+        <if expr="callRC != 0">
+          <log level="'error'">'Failed to create mme home directory %s on Ear Builder. Error: %s' % (mmeHome,callResult)</log>
+          <else>
+            <log level="'info'">'Created mme home directory %s on target successfully' % (mmeHome)</log>
+          </else>
+        </if>
+        
+        <!-- Make sure mme.zip for the build we want exists on media server -->
+        <call function="'cafQueryFSEntry'">mediaServer,mmeLoc,mmeFileName</call>
+        <script>(callRC,callResult) = STAXResult</script>
+        <if expr="callRC != 0">
+          <log level="'error'">'Cannot find file %s in path %s on %s. Error: %s' % (mmeFileName,buildPath,mediaServer,callResult)</log>
+        </if>
+        
+        <!-- Copy mme.zip of the desired build from Media to EAR Builder -->
+        <script>mediaPath = buildPath.replace('/bpmmedia','')</script>
+        <call function="'cafGetMediaFromRepository'">earBuilder,mediaPath,mmeFileName,'STAF','no','',mmeHome,'/bpmmedia'</call>
+        <script>(callRC) = STAXResult</script>
+        <if expr="callRC != 0">
+          <log level="'error'">'Failed to copy %s from %s to %s. Error: %s' % (mmeFileName,mediaServer,target,callResult)</log>
+        </if>
+        
+        <!-- Need to unzip the mme.zip onto the RAD EAR generation location in EAR Builder -->
+        <call function="'cafSTAF'">earBuilder,'ZIP','UNZIP ZIPFILE %s%s%s TODIRECTORY %s' % (mmeHome,FileSeparator,mmeFileName,mmeHome)</call>
+        <script>(callRC,callResult) = STAXResult</script>
+        <if expr="callRC != 0">
+          <throw exception="'MonitorAutoException.GenerateEar.mmeUnzipFailure'">'Failed to Unzip the mme.zip from build for EAR generation'</throw>
+        </if>
+        
+        <!-- Copy the Runtime JAR plugin from Media to EAR Builder mme RAD plugin dir -->
+        <!-- Runtime JAR holds all the mme plugins for the specific build to generate and EAR on RAD or WID -->
+        <call function="'cafGetMediaFromRepository'">earBuilder,mediaPath,runtimeFileName,'STAF','no','',mmePluginHome,'/bpmmedia'</call>
+        <script>(callRC) = STAXResult</script>
+        <if expr="callRC != 0">
+          <log level="'error'">'Failed to copy file. Error: %s' % (callResult)</log>
+        </if>
+        
+        <!-- Create the .eclipseextension file for MME runtime -->
+        <!-- This just allows the RAD environment to pickup MME extension at calling time -->
+        <call function="'cafWriteTargetFile'">earBuilder,mmeEclipseHome,'.eclipseextension',''</call>
+        <script>callRC = STAXResult</script>
+        <if expr="callRC != 0">
+          <log level="'error'">'Failed to create .eclipseextension file. Error: %s' % (callResult)</log>
+        </if>
+        
+        <!-- create the mme link file with correct contents -->
+        <!-- makes sure the mme extension is again linked to RAD environment -->
+        <call function="'cafWriteTargetFile'">earBuilder,linksHome,'mme.link','path=%s' % (mmeHome)</call>
+        <script>callRC = STAXResult</script>
+        <if expr="callRC != 0">
+          <log level="'error'">'Failed to create the mme.link file. Error: %s' % (callResult)</log>
+        </if>
+        
+        <!-- Change the permissions on the link dir, makes sure license and unzipped mme linked to RAD -->
+        <!-- We unzipped mme to its own area...need to make sure RAD can see the link -->
+        <call function="'cafRunCommand'">earBuilder,'chmod','-R 777 %s' % (linksHome)</call>
+        <script>(callRC,callResult) = STAXResult</script>
+        <if expr="callRC != 0">
+          <log level="'error'">'Failed to change permissions of links directory..Possible deploy will not run. Error: %s' % (callResult)</log>
+        </if>
+        
+        <!-- chmod on all of MME RAD home so we can run RAD -->
+        <call function="'cafRunCommand'">earBuilder,'chmod','-R 777 %s' % (mmeHome)</call>
+        <script>(callRC,callResult) = STAXResult</script>
+        <if expr="callRC != 0">
+          <log level="'error'">'Failed to change permissions of mme... May encounter Generate EAR issues. Error: %s' % (callResult)</log>
+        </if>
+        
+        <!-- Copy PI file from media server to a local working area -->
+        <script>piFilePathStrip = piFilePath.replace('/bpmmedia','')</script>
+        <call function="'cafGetMediaFromRepository'">earBuilder,piFilePathStrip,piFileName,'STAF','no','',genEarHome,'/bpmmedia'</call>
+        <script>(callRC) = STAXResult</script>
+        <if expr="callRC != 0">
+          <log level="'error'">'Failed to copy the PI file from media Server to working dir. Error: %s' % (callResult)</log>
+        </if>
+        
+        <!-- Change permissions on local working copy -->
+        <call function="'cafRunCommand'">earBuilder,'chmod','-R 777 %s' % (genEarHome)</call>
+        <script>(callRC,callResult) = STAXResult</script>
+        <if expr="callRC != 0">
+          <log level="'error'">'Failed to change permissions of mme... May encounter Generate EAR issues. Error: %s' % (callResult)</log>
+        </if>
+        
+        <!-- Make work dir for the RAD environment -->
+        <!-- needed for when you call java command that runs the mmdeploy -->
+        <call function="'cafCreateDir'">earBuilder,workDir</call>
+        <script>(callRC,callResult) = STAXResult</script>
+        <if expr="callRC != 0">
+          <log level="'error'">'Failed to create dir. Error: %s' % (callResult)</log>
+          <else>
+            <log level="'info'">'Created dir %s on %s successfully' % (workDir,earBuilder)</log>
+          </else>
+        </if>
+        
+        <!-- Make workspace dir -->
+        <!-- same as work dir -->
+        <call function="'cafCreateDir'">earBuilder,workspaceDir</call>
+        <script>(callRC,callResult) = STAXResult</script>
+        <if expr="callRC != 0">
+          <log level="'error'">'Failed to create dir. Error: %s' % (callResult)</log>
+          <else>
+            <log level="'info'">'Created dir %s on %s successfully' % (workspaceDir,earBuilder)</log>
+          </else>
+        </if>
+        
+        <!-- Execute MMdeploy for the model file -->
+        <!-- The guts of the function...basically calling RAD from the command line..and asking it to headlessly create the EAR file we need -->
+        <!-- throw exception here on error -->
+        <call function="'cafRunCommandAdv'">[
+          earBuilder,
+		  './jdk/jre/bin/java',
+          '-cp %s/startup.jar %s -application %s -data %s -w %s -pi %s/%s -ear %s/%s -db DB2V82 -novalidation -noejbdeploy -clean' % (radHome,eclipseString,monitorString,workspaceDir,workDir,genEarHome,piFileName,genEarHome,earFileName),
+          '%s' % (radHome),
+          '%s%s%s' % (genEarHome,FileSeparator,genEarLogFile), 
+          '10m' 
+          ]
+		</call>
+        <script>(callRC,callResult) = STAXResult</script>
+        <if expr="callRC != 0">
+          <!-- TODO Possibly grab partial log file here if there is error before throwing exception -->
+          <throw exception="'MonitorAutoException.GenerateEar.GenEarError'">'The generation of the EAR failed.'</throw>
+          <else>
+            <log level="'User7'">'The generation of the EAR file succeeded!'</log>
+          </else>
+        </if>
+        
+        <!-- output of mmdeploy to a LA Output job log -->
+        <!-- grabs the RAW output of the generate EAR and puts into the Lotus Automator tab for Job Output Log..raw output -->
+        <call function="'cafGetFileContents'">earBuilder,'%s%s%s' % (genEarHome,FileSeparator,genEarLogFile)</call>
+        <call function="'cafWriteJobOutputLog'">earBuilder,'local',STAXResult,'%s-Generate EAR Results Log' % (testcase),genEarLogFile</call>
+        <script>(callRC) = STAXResult</script>
+        <if expr="callRC != 0">
+          <log level="'error'">'Failed to create new LA Job Output Log for Generate Ear'</log>
+        </if>
+        
+        <!-- Copy generated EAR from /genEarHome to EarMediaDest location on media Server, for future use-->
+        <!-- double hop copy first from Ear builder to LA Server..then LA Server to media Server to get around trust issues. -->
+		  		  
+        <log level='myLogLevel'>'EAR destination on media server is %s' % (earMediaDest)</log>
+		<!-- Mutex created to ensure multiple same build/same test tasks dont step on ear other during copy -->
+		<log level="'info'">'Requesting mutex on LA Server for copy'</log>
+		<call function="'cafRequestMutex'">STAXServer,'%s_%s_gen_ear' % (testcase,buildSelected)</call>
+		<!-- 1st hop -->  
+        <call function="'cafCopyFile'">earBuilder,genEarHome,earFileName,STAXServer,'{STAF/DataDir}/tmp','%s_%s' % (STAXJobID,earFileName)</call>
+		<script>(callRC,callResult) = STAXResult</script>
+        <if expr="callRC != 0">
+          <log level="'error'">'Failed to copy the generated EAR file back to LA Server, 1st Hop. Error: %s' % (callResult)</log>
+        </if>
+		<!-- Create the directory on the media Server first, then second hop -->
+		<call function="'cafCreateDir'">mediaServer,earMediaDest</call>
+        <script>(callRC,callResult) = STAXResult</script>
+        <if expr="callRC != 0">
+          <log level="'error'">'Failed to create dir %s on media Server. Error: %s' % (earMediaDest,callResult)</log>
+		</if>
+		<!-- 2nd Hop -->
+        <call function="'cafCopyFile'">STAXServer,'{STAF/DataDir}/tmp','%s_%s' % (STAXJobID,earFileName),mediaServer,earMediaDest,earFileName</call>
+		<script>(callRC,callResult) = STAXResult</script>
+        <if expr="callRC != 0">
+          <log level="'error'">'Failed to copy the generated EAR file back to LA Server, 2nd Hop. Error: %s' % (callResult)</log>
+        </if>  
+		<!-- release mutex -->
+		<log level="'info'">'Releasing mutex on LA Server for copy'</log>
+        <call function="'cafReleaseMutex'">STAXServer,'%s_%s_gen_ear' % (testcase,buildSelected)</call>  
+		 
+        <!-- Remove the genEar working directory after use, just cleanup so the EARBuilder has no links back to any specific build-->
+        <call function="'cafDeleteEntry'">earBuilder,genEarHome,'1'</call>
+        <script>(callRC,callResult) = STAXResult</script>
+        <if expr="callRC != 0">
+          <log level="'error'">'Failed to delete the generateEar working directory %s from %s. Error: %s' % (genEarHome,earBuilder,callResult)</log>
+        </if>
+        
+        <!-- no need to return an actual value from function..as exceptions are thrown for any generate ear related issues -->
+        <return/>
+        
+      </sequence>
+        
+      <catch exception="'...'">
+        <rethrow/>
+      </catch>
+      
+      		<finally>
+				<sequence>
+				  <!-- Return used resource machine to resource pool -->
+				  <log level='myLogLevel'>'Check back in the EAR Builder from resource pool...'</log>
+				  <if expr="locals().has_key('earBuilder')">
+					<sequence>
+						<call function="'cafRespoolRelease'">'local','EAR Builders',earBuilder</call>
+						<script>(callRC,callResult) = STAXResult</script>
+						<if expr="callRC != 0">
+							<log level="'error'">'Failed to return %s to resource pool.  Error:  %s' % (earBuilder,callResult)</log>
+						</if>
+					</sequence>
+				  </if>    
+				</sequence>
+			  </finally>
+      
+    </try>
+           
+  </function>
+	
+  <!-- ****************************************************************** -->
+  <!--                         monEmitEvents                              -->
+  <!--                                                                    -->
+  <!--                                                                    -->
+  <!-- ****************************************************************** -->
+
+  <function name="monEmitEvents" scope="local">
+    <function-prolog>
+      This function will use the monitor emitter application to emit events to an installed monitor application. 
+	  It can emit single event.xml file a specificed number of times..or a single XML file with batched events inside.
+	  Note: Security not implemented yet. 
+	   
+	    See below for calling specifics.
+		Throws : MonitorAutoException.EmitEvents.CopyError - Unable to copy a needed file
+			     MonitorAutoException.EmitEvents.FileError - Unable to find retrieve a necessary file
+		         
+    </function-prolog>
+
+    <function-epilog>
+      <![CDATA[
+<p>This functions uses the monitor event emitter.</p>
+<p>Returns exception on error.</p>
+<ul>
+	<li></li>
+	<li></li>
+</ul>
+      ]]>
+    </function-epilog>
+
+    <function-list-args>
+      <function-required-arg name="target">Hostname/IP address of the target machine</function-required-arg>
+	  <function-required-arg name="wasHomeDir">Location of WAS on target</function-required-arg>
+	  <function-required-arg name="profileName">WAS profile to query</function-required-arg>
+      <function-required-arg name="eventHost">Location of where the events reside can be "media" or "target"</function-required-arg>
+	  <function-required-arg name="eventPath">Path to where the event file resides on the event host</function-required-arg>
+	  <function-required-arg name="eventFile">Filename of the event file. Should be *.xml</function-required-arg>
+	  <function-required-arg name="batchFlag">Selects whether event file is a batch or single. Values are "batch" or "single"</function-required-arg>
+	  <function-required-arg name="eventNumber">Number of events to send if "single" or Number of events in batch if "batch"</function-required-arg>
+	  <!-- optional Security arguments here when add security -->
+    </function-list-args>
+	  
+	<sequence>
+	
+	  <log level="'User1'">'monEmitEvents entry'</log>
+		
+	  <!-- Local variables -->
+	  <script>myLogLevel = "User7"</script>
+	  <script>emitMediaPath = '/usr/local/stax/prod/customLibrary/scripts/monitor/emitter'</script>
+	  <script>emitTargPath = '%s%semitter' % (AutomationTmpDir,FileSeparator)</script>
+	  <script>emitFile = 'monitor.batch.emitter.app.ear'</script>
+	  <script>eventTargDir = '%s%sevents' % (emitTargPath,FileSeparator)</script>
+		
+	  <!-- ****** Win/Nix command substitution ******* -->
+	  <if expr="Platform == 'Windows'">
+		  <script>launchCmd = 'launchClient'</script>
+		  <elseif expr="OS == 'Linux' or OS == 'AIX' or OS == 'SunOS'">
+			  <script>launchCmd = 'launchClient.sh'</script>
+		  </elseif>
+		  <else>
+			  <throw exception="'MonitorAutoException.EmitEvents.UnsupportedOS'">'CheckVersion function Error: Unsupported OS %s' % (OS)</throw>
+		  </else>
+	  </if>
+	
+	  <!-- copy emitter application to target -->	 
+	  <!-- Need to create emitter Dir First on target -->
+	  <call function="'cafCreateDir'">target,emitTargPath</call>
+	  <script>(callRC,callResult) = STAXResult</script>
+      <if expr="callRC != 0">
+		<throw exception="'MonitorAutoException.EmitEvents.CopyError'">'Unable to create dir %s on target machine' % (emitTargPath)</throw>
+      </if>
+	  <!-- then copy file there -->
+	  <call function="'cafCopyFile'">LAServer,emitMediaPath,emitFile,target,emitTargPath,emitFile</call>
+	  <script>(callRC,callResult) = STAXResult</script>
+	  <if expr="callRC != 0">
+		<throw exception="'MonitorAutoException.EmitEvents.CopyError'">'Unable to copy %s/%s to target machine' % (emitMediaPath,emitFile)</throw>
+	  </if>
+		  
+		  
+	  <!-- If eventHost = "media", create events dir under /emitter and move event files to target -->
+	  <if expr="eventHost == 'media'">
+		  <sequence>
+			  <log level='myLogLevel'>'Event File resides on media Server'</log>
+			  <!-- Create an events directory under emitter Target path -->
+			  <call function="'cafCreateDir'">target,eventTargDir</call>
+              <script>(callRC,callResult) = STAXResult</script>
+              <if expr="callRC != 0">
+                <throw exception="'MonitorAutoException.EmitEvents.CopyError'">'Unable to create %s dir on target machine' % (eventTargDir)</throw>
+			  </if>
+			  <!-- copy Events file on media Server (from testcase) to events directory on target -->
+			  <script>eventPathStrip = eventPath.replace('/bpmmedia','')</script>
+			  <call function="'cafGetMediaFromRepository'">target,eventPathStrip,eventFile,'STAF','no','',eventTargDir,'/bpmmedia'</call>
+              <script>(callRC) = STAXResult</script>
+              <if expr="callRC != 0">
+                <throw exception="'MonitorAutoException.EmitEvents.CopyError'">'Unable to copy %s file from %s to target machine' % (eventFile,eventPathStrip)</throw> 
+              </if>
+		  </sequence>
+	  </if>
+	  
+	  <!-- If eventHost = "target", event File should already exist on target in event Path..if not throw exception -->
+	  <if expr="eventHost == 'target'">
+		  <sequence>
+			   <!-- make sure file is on target where we expect it -->
+			   <call function="'cafQueryFSEntry'">target,eventPath,eventFile</call>
+               <script>(callRC,callResult) = STAXResult</script>
+               <if expr="callRC != 0">
+				   <throw exception="'MonitorAutoException.EmitEvents.FileError'">'Unable to find %s%s%s on target machine' % (eventPath,FileSeparator,eventFile)</throw>
+			   </if>
+			   <!-- set parm string -->
+			   
+		  </sequence>
+		  <else>
+			 <log level="'info'">'Event File resides on target Server where expected'</log> 
+		  </else>
+      </if>
+		
+	  <!-- Get the Bootstrap port for emitting events to -->
+	  <call function="'wasGetPort'">target,wasHomeDir,profileName,'BOOTSTRAP_ADDRESS'</call>
+	  <script>(callRC,callResult) = STAXResult</script>
+	  <if expr="callRC != 0">
+          <throw exception="'MonitorAutoException.EmitEvents.PortError'">'%s' % (callResult)</throw>
+		  <else>
+			  <script>bootstrapPort = callResult</script>
+		  </else>
+      </if>
+		
+	  <!-- ***************** call the emitter ********************* -->
+	  <!-- First determine send number -->
+	  <if expr="batchFlag == 'batch'">
+		  <script>sendCount = 1</script>
+	  </if>
+	  <if expr="batchFlag == 'single'">
+		  <script>sendCount = eventNumber</script>
+	  </if>
+	  <!-- Call the command itself -->
+	  <!-- MJL when add security here cmdStr and parmStr will change dependign on value -->	
+	  <script>cmdStr = '%s%sbin%s%s' % (wasHomeDir,FileSeparator,FileSeparator,launchCmd)</script>
+	  <if expr="eventHost == 'media'">
+	    <script>parmStr = '%s -CCBootstrapPort=%s %s%s%s %s' % (emitFile,bootstrapPort,eventTargDir,FileSeparator,eventFile,sendCount)</script>
+	  </if>
+	  <if expr="eventHost == 'target'">
+		 <script>parmStr = '%s -CCBootstrapPort=%s %s%s%s %s' % (emitFile,bootstrapPort,eventPath,FileSeparator,eventFile,sendCount)</script>
+	  </if>  
+	  <script>emitLog = '%s.log' % (eventFile)</script>
+	    <call function="'cafRunCommandAdv'">[
+          target,
+		  cmdStr,
+          parmStr,
+          emitTargPath,
+          '%s%s%s' % (AutomationTmpDir,FileSeparator,emitLog)
+          ]
+		</call>
+        <script>(callRC,callResult) = STAXResult</script>
+        <if expr="callRC != 0">
+          <!-- grab partial log file here if there is error before throwing exception -->
+		  <sequence>
+			<call function="'cafGetFileContents'">target,'%s%s%s' % (AutomationTmpDir,FileSeparator,emitLog)</call>
+            <call function="'cafWriteJobOutputLog'">target,'local',STAXResult,'ERROR: Emit Event File %s Log' % (eventFile),emitLog</call>
+            <script>(callRC) = STAXResult</script>
+            <if expr="callRC != 0">
+                <log level="'error'">'Failed to create new LA Job Output Error Log for emitEvents function'</log>
+            </if>  
+            <throw exception="'MonitorAutoException.EmitEvents.EmitError'">'The call to emitting application %s failed, check Job Output Log for more details' % (emitFile)</throw>
+		  </sequence>
+          <else>
+            <log level='myLogLevel'>'The emit events call with event file %s succeeded' % (eventFile)</log>
+          </else>
+        </if>
+		
+	  <!-- validate the emitter function sent the events correctly -->
+	  <script>validString = '%s events sent' % (eventNumber)</script>
+	  <call function="'cafGetFileContents'">target,'%s%s%s' % (AutomationTmpDir,FileSeparator,emitLog)</call>
+	  <script>(callResult) = STAXResult</script>
+	  <if expr="callResult == ''">
+		<throw exception="'MonitorAutoException.EmitEvents.EmitError'">'Unable to read in %s for success determination' % (emitLog)</throw>
+	  </if>
+	  <if expr="callResult.count(validString) > 0">
+		<log level='myLogLevel'>'%s Found! emitEvents for event file: %s succeeded' % (validString,eventFile)</log>
+		<else>
+		  <sequence>
+			<call function="'cafGetFileContents'">target,'%s%s%s' % (AutomationTmpDir,FileSeparator,emitLog)</call>
+            <call function="'cafWriteJobOutputLog'">target,'local',STAXResult,'ERROR: Emit Event File %s Log' % (eventFile),emitLog</call>
+            <script>(callRC) = STAXResult</script>
+            <if expr="callRC != 0">
+                <log level="'error'">'Failed to create new LA Job Output Error Log for emitEvents function'</log>
+            </if>    
+			<throw exception="'MonitorAutoException.EmitEvents.EmitError'">'Success determination string not found for emitEvents with event file %s' % (eventFile)</throw>
+		  </sequence>
+		</else>
+	  </if>		
+		
+	</sequence>
+	  
+  </function>
+	
+  <!-- ****************************************************************** -->
+  <!--                       monValidateJunitClass                        -->
+  <!--                                                                    -->
+  <!--                                                                    -->
+  <!-- ****************************************************************** -->
+
+  <function name="monValidateJunitClass" scope="local">
+    <function-prolog>
+      This function will use execute a Junit class file (containing Junit tests) against a monitor installation. 
+	  It will report on the success or failure of that Junit class.
+		
+	  This function will not be exposed as a task within lotus automator as the Junit files will need to reside on 
+	  automator media server. 
+	   
+	    See below for calling specifics.
+		Throws : MonitorAutoException.ValidateJunit.CopyError - Unable to copy a needed file
+			     MonitorAutoException.ValidateJunit.FileError - Unable to find retrieve a necessary file
+		         
+    </function-prolog>
+
+    <function-epilog>
+      <![CDATA[
+<p>This functions calls a Junit class file and reports on success.</p>
+<p>Returns exception on error.</p>
+<ul>
+	<li></li>
+	<li></li>
+</ul>
+      ]]>
+    </function-epilog>
+
+    <function-list-args>
+      <function-required-arg name="target">Hostname/IP address of the target machine</function-required-arg>
+	  <function-required-arg name="wasHomeDir">Location of WAS on target</function-required-arg>
+	  <function-required-arg name="profileName">WAS profile to query port from</function-required-arg>
+	  <function-required-arg name="junitMediaPath">Path to Junit class file on media server</function-required-arg>
+	  <function-required-arg name="junitFile">Junit Filename</function-required-arg>
+	  <function-required-arg name="modelVersion">version number of the model to be tested</function-required-arg>
+    </function-list-args>
+	  
+	<sequence>
+	
+	  <log level="'info'">'monValidateJunitClass Entry'</log> 
+	  
+	  <!-- Local Variables -->	
+	  <script>myLogLevel = "User7"</script>
+	  <script>jarsLADir = '/usr/local/stax/prod/customLibrary/scripts/monitor/jars'</script>
+	  <script>junitJarFile = 'junit-4.4.jar'</script>
+	  <script>junitJarTargLoc = '%s%s%s' % (AutomationTmpDir,FileSeparator,junitJarFile)</script>
+	  <script>jsonJarFile = 'IBMJSONTools.jar'</script>
+	  <script>jsonJarTargLoc = '%s%s%s' % (AutomationTmpDir,FileSeparator,jsonJarFile)</script>
+		
+      <!-- Resolve the hostname of the media server -->
+      <call function="'cafResolveLAVar'">'Config/mediaServer'</call>
+      <script>mediaServer = STAXResult</script>
+	  
+	  <!-- Import the CUSTOM helper library -->
+	  <script>libraryLoc="BTT_Sandbox/wasHelperLibrary.xml"</script> 
+      <call function="'cafImportCustomLibrary'"> [libraryLoc] </call>
+      <script>importRC = STAXResult</script>
+      <if expr="importRC != 0">
+		  <throw exception="'MonitorAutoException.ValidateJunit.ImportFailed'">'Failed to Import the necessary library %s needed for this function' % (libraryLoc)</throw>
+	  </if>
+		
+	  <!-- Check to see if junit.jar already in Automation Tmp on target..if not get it from LA -->
+	  <call function="'cafQueryFSEntry'">target,junitJarTargLoc</call>
+		<script>(callRC,callResult) = STAXResult</script>
+		<if expr="callRC != 0">
+		  <sequence>
+			  <log level="'info'">'Junit Jar file %s not present on target machine' % (junitJarTargLoc)</log>
+			  <call function="'cafCopyFile'">LAServer,jarsLADir,junitJarFile,target,AutomationTmpDir,junitJarFile</call>
+	          <script>(callRC,callResult) = STAXResult</script>
+	          <if expr="callRC != 0">
+				  <throw exception="'MonitorAutoException.ValidateJunit.CopyError'">'Unable to copy %s to target machine' % (junitJarFile)</throw>
+	          </if>
+			  <!-- Change permissions if this is UNIX system too -->
+			  <if expr="OS == 'Linux' or OS == 'SunOS' or OS == 'AIX'">
+				  <sequence>
+					  <call function="'cafRunCommand'">target,'chmod','777 %s%s%s' % (AutomationTmpDir,FileSeparator,junitJarFile)</call>
+					  <script>(callRC,callResult) = STAXResult</script>
+					  <if expr="callRC != 0">
+						  <throw exception="'MonitorAutoException.ValidateJunit.PermError'">'Unable to set permissions on %s' % (junitJarFile)</throw>
+					  </if>
+				  </sequence>
+			  </if>
+		  </sequence>
+          <else>
+            <log level="'info'">'Junit Jar file %s already present on target machine' % (junitJarTargLoc)</log>
+          </else>
+        </if>
+		
+	  <!-- Check to see if json.jar already in Automation Tmp on target..if not get it from LA -->
+	  <call function="'cafQueryFSEntry'">target,jsonJarTargLoc</call>
+		<script>(callRC,callResult) = STAXResult</script>
+		<if expr="callRC != 0">
+		  <sequence>
+			  <log level="'info'">'Json Jar file %s not present on target machine' % (junitJarTargLoc)</log>
+			  <call function="'cafCopyFile'">LAServer,jarsLADir,jsonJarFile,target,AutomationTmpDir,jsonJarFile</call>
+	          <script>(callRC,callResult) = STAXResult</script>
+	          <if expr="callRC != 0">
+				  <throw exception="'MonitorAutoException.ValidateJunit.CopyError'">'Unable to copy %s to target machine' % (jsonJarFile)</throw>
+	          </if>
+			  <!-- Change permissions if this is UNIX system too -->
+			  <if expr="OS == 'Linux' or OS == 'SunOS' or OS == 'AIX'">
+				  <sequence>
+					  <call function="'cafRunCommand'">target,'chmod','777 %s%s%s' % (AutomationTmpDir,FileSeparator,jsonJarFile)</call>
+					  <script>(callRC,callResult) = STAXResult</script>
+					  <if expr="callRC != 0">
+						  <throw exception="'MonitorAutoException.ValidateJunit.PermError'">'Unable to set permissions on %s' % (jsonJarFile)</throw>
+					  </if>
+				  </sequence>
+			  </if>
+		  </sequence>
+          <else>
+            <log level="'info'">'Junit Jar file %s already present on target machine' % (jsonJarTargLoc)</log>
+          </else>
+        </if>
+		
+	  <!-- Copy the Junit class file to be executed from mediaServer to target -->
+	  <script>junitMediaPathStrip = junitMediaPath.replace('/bpmmedia','')</script>
+	  <call function="'cafGetMediaFromRepository'">target,junitMediaPathStrip,junitFile,'STAF','no','',AutomationTmpDir,'/bpmmedia'</call>
+      <script>(callRC) = STAXResult</script>
+      <if expr="callRC != 0">
+		  <throw exception="'MonitorAutoException.ValidateJunit.CopyError'">'Unable to copy %s file from %s to target machine' % (junitFile,junitMediaPath)</throw> 
+      </if>
+		
+	  <!-- Determine the wasprops WC_defaulthost port -->
+	  <call function="'wasGetPort'">target,wasHomeDir,profileName,'WC_defaulthost'</call>
+	  <script>(callRC,callResult) = STAXResult</script>
+	  <if expr="callRC != 0">
+          <throw exception="'MonitorAutoException.ValidateJunit.PortError'">'%s' % (callResult)</throw>
+		  <else>
+			  <script>hostPort = callResult</script>
+		  </else>
+      </if>
+			
+	  <!-- Generate the kpitest.props file for the test and write to target -->
+	  <script>kpiFileString = "VERSION=%s\nSERVER=localhost\nPORT=%s" % (modelVersion,hostPort)</script>
+	  <script>kpiPropName = 'kpitest.props'</script> 
+	  <call function="'cafWriteTargetFile'">target,AutomationTmpDir,kpiPropName,kpiFileString</call>
+      <script>callRC = STAXResult</script>
+      <if expr="callRC != 0">
+		  <throw exception="'MonitorAutoException.ValidateJunit.CopyError'">'Failed to create %s script in %s on target' % (kpiPropName,AutomationTmpDir)</throw>
+      </if>
+		
+	  <!-- DEBUG ONLY REMOVE THIS	
+	  <call function="'cafGetFileContents'">target,'%s%s%s' % (AutomationTmpDir,FileSeparator,kpiPropName)</call>
+      <call function="'cafWriteJobOutputLog'">target,'local',STAXResult,'DEBUG : KPI Prop File %s' % (kpiPropName),kpiPropName</call> -->
+		
+	  <!-- execute the Junit class file -->
+	  <!-- setup Class Path for the call -->
+	  <script>fullCp = '%s%s%s%s%s' % (AutomationTmpDir,PathSeparator,junitJarTargLoc,PathSeparator,jsonJarTargLoc)</script>
+	  <!-- the junitName needs to call the class file without the .class -->
+	  <script>split = junitFile.split('.class')</script>
+	  <script>junitName = split[0]</script>
+	  <!-- setup cmd and parm strings -->
+	  <!-- CMD string points to the java in the WEbsphere Monserver directory -->
+	  <script>cmdStr = '%s%sjava%sbin%sjava' % (wasHomeDir,FileSeparator,FileSeparator,FileSeparator)</script>
+	  <script>parmStr = '-cp %s -D%s=%s%s%s org.junit.runner.JUnitCore %s' % (fullCp,kpiPropName,AutomationTmpDir,FileSeparator,kpiPropName,junitName)</script>
+	  <script>testLog = '%s.log' % (junitName)</script>
+	   <call function="'cafRunCommandAdv'">[
+          target,
+		  cmdStr,
+          parmStr,
+          AutomationTmpDir,
+          '%s%s%s' % (AutomationTmpDir,FileSeparator,testLog), 
+          '5m' 
+          ]
+		</call>
+        <script>(callRC,callResult) = STAXResult</script>
+        <if expr="callRC != 0">
+          <!-- grab partial log file here if there is error before throwing exception -->
+		  <sequence>
+			<call function="'cafGetFileContents'">target,'%s%s%s' % (AutomationTmpDir,FileSeparator,testLog)</call>
+            <call function="'cafWriteJobOutputLog'">target,'local',STAXResult,'ERROR: Validation of Junit File %s' % (junitFile),testLog</call>
+            <script>(callRC) = STAXResult</script>
+            <if expr="callRC != 0">
+                <log level="'error'">'Failed to create new LA Job Output Log for Validate Junit File %s' % (junitFile)</log>
+            </if>  
+            <throw exception="'MonitorAutoException.ValidateJunit.ValidationError'">'Validation java call for %s failed. See Job Output Log for more details' % (junitFile)</throw>
+		  </sequence>
+          <else>
+		    <sequence>
+              <log level='myLogLevel'>'Validation java call for %s succeeded' % (junitFile)</log>
+			  <call function="'cafGetFileContents'">target,'%s%s%s' % (AutomationTmpDir,FileSeparator,testLog)</call>
+              <call function="'cafWriteJobOutputLog'">target,'local',STAXResult,'Validation of Junit File %s' % (junitFile),testLog</call>
+              <script>(callRC) = STAXResult</script>
+              <if expr="callRC != 0">
+                <log level="'error'">'Failed to create new LA Job Output Log for Validate Junit File %s' % (junitFile)</log>
+              </if>		
+			</sequence>
+          </else>
+        </if>
+		
+	  <!-- Interpret the results -->
+	  <!-- For Junit Tests "Failures!!" or "OK (0 tests)" fail if just "OK" then good -->
+	  <call function="'cafGetFileContents'">target,'%s%s%s' % (AutomationTmpDir,FileSeparator,testLog)</call>
+	  <script>(callResult) = STAXResult</script>
+	  <if expr="callResult == ''">
+		<throw exception="'MonitorAutoException.ValidateJunit.ValidationError'">'Unable to read in %s for success determination' % (testLog)</throw>
+	  </if>
+	  <if expr="callResult.count('Failures!!') > 0">
+		  <throw exception="'MonitorAutoException.ValidateJunit.ValidationError'">'Failures!! found in Junit Class results. See Job Output Log %s for more details' % (testLog)</throw>
+	  </if>
+	  <if expr="callResult.count('0 tests') > 0">
+		  <throw exception="'MonitorAutoException.ValidateJunit.ValidationError'">'0 tests run found in Junit Class results. See Job Output Log %s for more details' % (testLog)</throw>
+	  </if>
+	  <if expr="callResult.count('OK') > 0">
+		  <log level='myLogLevel'>'Junit Class file %s run successfully' % (junitFile)</log>
+		  <else>
+			 <throw exception="'MonitorAutoException.ValidateJunit.ValidationError'">'OK string not found in results. Unknown Error. See Job Output Log %s for more details' % (testLog)</throw> 
+		  </else>
+	  </if>		
+	 
+	  
+	</sequence>
+	  
+  </function>
+	
+  <!-- ****************************************************************** -->
+  <!--                       monValidateRest                              -->
+  <!--                                                                    -->
+  <!--                                                                    -->
+  <!-- ****************************************************************** -->
+
+  <function name="monValidateRest" scope="local">
+    <function-prolog>
+      This function will use execute a Rest class file (containing Java code) against a monitor installation. 
+	  It will report on the success or failure of that Java class.
+		
+	  This function will not be exposed as a task within lotus automator as the Rest Java files will need to reside on 
+	  automator media server. 
+	   
+	    See below for calling specifics.
+		Throws : MonitorAutoException.ValidateRest.CopyError - Unable to copy a needed file
+			     MonitorAutoException.ValidateRest.FileError - Unable to find retrieve a necessary file
+		         
+    </function-prolog>
+
+    <function-epilog>
+      <![CDATA[
+<p>This functions calls a Java Rest class file and reports on success.</p>
+<p>Returns exception on error.</p>
+<ul>
+	<li></li>
+	<li></li>
+</ul>
+      ]]>
+    </function-epilog>
+
+    <function-list-args>
+      <function-required-arg name="target">Hostname/IP address of the target machine</function-required-arg>
+	  <function-required-arg name="wasHomeDir">Location of WAS on target</function-required-arg>
+	  <function-required-arg name="profileName">WAS profile to query port from</function-required-arg>
+	  <function-required-arg name="restFuncName">Java function Name to run</function-required-arg>
+	  <function-required-arg name="modelVersion">version number of the model to be tested</function-required-arg>
+    </function-list-args>
+	  
+	<sequence>
+	
+	  <log level="'info'">'monValidateRest Entry'</log> 
+	  
+	  <!-- Local Variables -->	
+	  <script>myLogLevel = "User7"</script>
+	  <script>jarsLADir = '/usr/local/stax/prod/customLibrary/scripts/monitor/jars'</script>
+	  <script>autoJarFile = 'Automator.jar'</script>
+	  <script>autoJarTargLoc = '%s%s%s' % (AutomationTmpDir,FileSeparator,autoJarFile)</script>
+	  <script>jsonJarFile = 'IBMJSONTools.jar'</script>
+	  <script>jsonJarTargLoc = '%s%s%s' % (AutomationTmpDir,FileSeparator,jsonJarFile)</script>
+		
+      <!-- Resolve the hostname of the media server -->
+      <call function="'cafResolveLAVar'">'Config/mediaServer'</call>
+      <script>mediaServer = STAXResult</script>
+	  
+		
+	  <!-- Import the CUSTOM helper library -->
+	  <script>libraryLoc="BTT_Sandbox/wasHelperLibrary.xml"</script> 
+      <call function="'cafImportCustomLibrary'"> [libraryLoc] </call>
+      <script>importRC = STAXResult</script>
+      <if expr="importRC != 0">
+		  <throw exception="'MonitorAutoException.ValidateRest.ImportFailed'">'Failed to Import the necessary library %s needed for this function' % (libraryLoc)</throw>
+	  </if>
+		
+		
+	  <!-- Check to see if automator.jar already in Automation Tmp on target..if not get it from LA -->
+	  <call function="'cafQueryFSEntry'">target,autoJarTargLoc</call>
+		<script>(callRC,callResult) = STAXResult</script>
+		<if expr="callRC != 0">
+		  <sequence>
+			  <log level="'info'">'Automator Jar file %s not present on target machine' % (autoJarTargLoc)</log>
+			  <call function="'cafCopyFile'">LAServer,jarsLADir,autoJarFile,target,AutomationTmpDir,autoJarFile</call>
+	          <script>(callRC,callResult) = STAXResult</script>
+	          <if expr="callRC != 0">
+				  <throw exception="'MonitorAutoException.ValidateRest.CopyError'">'Unable to copy %s to target machine' % (autoJarFile)</throw>
+	          </if>
+			  <!-- Change permissions if this is UNIX system too -->
+			  <if expr="OS == 'Linux' or OS == 'SunOS' or OS == 'AIX'">
+				  <sequence>
+					  <call function="'cafRunCommand'">target,'chmod','777 %s%s%s' % (AutomationTmpDir,FileSeparator,autoJarFile)</call>
+					  <script>(callRC,callResult) = STAXResult</script>
+					  <if expr="callRC != 0">
+						  <throw exception="'MonitorAutoException.ValidateJunit.PermError'">'Unable to set permissions on %s' % (autoJarFile)</throw>
+					  </if>
+				  </sequence>
+			  </if>
+		  </sequence>
+          <else>
+            <log level="'info'">'Automator Jar file %s already present on target machine' % (autoJarTargLoc)</log>
+          </else>
+        </if>
+		
+	  <!-- Check to see if json.jar already in Automation Tmp on target..if not get it from LA -->
+	  <call function="'cafQueryFSEntry'">target,jsonJarTargLoc</call>
+		<script>(callRC,callResult) = STAXResult</script>
+		<if expr="callRC != 0">
+		  <sequence>
+			  <log level="'info'">'Json Jar file %s not present on target machine' % (jsonJarTargLoc)</log>
+			  <call function="'cafCopyFile'">LAServer,jarsLADir,jsonJarFile,target,AutomationTmpDir,jsonJarFile</call>
+	          <script>(callRC,callResult) = STAXResult</script>
+	          <if expr="callRC != 0">
+				  <throw exception="'MonitorAutoException.ValidateRest.CopyError'">'Unable to copy %s to target machine' % (jsonJarFile)</throw>
+	          </if>
+			  <!-- Change permissions if this is UNIX system too -->
+			  <if expr="OS == 'Linux' or OS == 'SunOS' or OS == 'AIX'">
+				  <sequence>
+					  <call function="'cafRunCommand'">target,'chmod','777 %s%s%s' % (AutomationTmpDir,FileSeparator,jsonJarFile)</call>
+					  <script>(callRC,callResult) = STAXResult</script>
+					  <if expr="callRC != 0">
+						  <throw exception="'MonitorAutoException.ValidateJunit.PermError'">'Unable to set permissions on %s' % (jsonJarFile)</throw>
+					  </if>
+				  </sequence>
+			  </if>
+		  </sequence>
+          <else>
+            <log level="'info'">'Json Jar file %s already present on target machine' % (jsonJarTargLoc)</log>
+          </else>
+        </if>
+		
+		
+	  <!-- Determine the wasprops WC_defaulthost port -->
+	  <call function="'wasGetPort'">target,wasHomeDir,profileName,'WC_defaulthost'</call>
+	  <script>(callRC,callResult) = STAXResult</script>
+	  <if expr="callRC != 0">
+          <throw exception="'MonitorAutoException.ValidateRest.PortError'">'%s' % (callResult)</throw>
+		  <else>
+			  <script>hostPort = callResult</script>
+		  </else>
+      </if>
+			
+	  <!-- Generate the rest.props file for the test and write to target -->
+	  <script>propFileString = "VERSION=%s\nSERVER=%s\nPORT=%s\nCOOKIE=%s\n" % (modelVersion,target,hostPort,'notusedyet')</script>
+	  <script>propFileName = '%s.props' % (restFuncName)</script> 
+	  <call function="'cafWriteTargetFile'">target,AutomationTmpDir,propFileName,propFileString</call>
+      <script>callRC = STAXResult</script>
+      <if expr="callRC != 0">
+		  <throw exception="'MonitorAutoException.ValidateRest.CopyError'">'Failed to create %s file in %s on target' % (propFileName,AutomationTmpDir)</throw>
+      </if>
+		
+	  <!-- DEBUG ONLY REMOVE THIS	
+	  <call function="'cafGetFileContents'">target,'%s%s%s' % (AutomationTmpDir,FileSeparator,kpiPropName)</call>
+      <call function="'cafWriteJobOutputLog'">target,'local',STAXResult,'DEBUG : KPI Prop File %s' % (kpiPropName),kpiPropName</call> -->
+		
+	  <!-- execute the java code specific to class file -->
+	  <!-- setup Class Path for the call -->
+	  <script>fullCp = '%s' % (AutomationTmpDir)</script>
+	  <!-- setup cmd and parm strings -->
+	  <!-- CMD string points to the java in the WEbsphere Monserver directory -->
+	  <script>cmdStr = '%s%sjava%sbin%sjava' % (wasHomeDir,FileSeparator,FileSeparator,FileSeparator)</script>
+	  <script>parmStr = '-Djava.ext.dirs=%s com.ibm.wbimonitor.la.automation.%s %s%s%s' % (fullCp,restFuncName,AutomationTmpDir,FileSeparator,propFileName)</script>
+	  <script>restLog = '%s.log' % (restFuncName)</script>
+	   <call function="'cafRunCommandAdv'">[
+          target,
+		  cmdStr,
+          parmStr,
+          AutomationTmpDir,
+          '%s%s%s' % (AutomationTmpDir,FileSeparator,restLog), 
+          '5m' 
+          ]
+		</call>
+        <script>(callRC,callResult) = STAXResult</script>
+        <if expr="callRC != 0">
+          <!-- grab partial log file here if there is error before throwing exception -->
+		  <sequence>
+            <call function="'cafWriteJobOutputLog'">target,'local',callResult,'ERROR: %s output' % (restFuncName),restLog</call>
+            <script>(callRC) = STAXResult</script>
+            <if expr="callRC != 0">
+                <log level="'error'">'Failed to create new LA Job Output Log for Validate Function %s' % (restFuncName)</log>
+            </if>  
+            <throw exception="'MonitorAutoException.ValidateRest.ValidationError'">'Validation java call for %s failed. See Job Output Log for more details' % (restFuncName)</throw>
+		  </sequence>
+          <else>
+		    <sequence>
+              <log level='myLogLevel'>'Validation java call for %s succeeded' % (restFuncName)</log>
+			  <call function="'cafGetFileContents'">target,'%s%s%s' % (AutomationTmpDir,FileSeparator,restLog)</call>
+              <call function="'cafWriteJobOutputLog'">target,'local',STAXResult,'%s Output' % (restFuncName),restLog</call>
+              <script>(callRC) = STAXResult</script>
+              <if expr="callRC != 0">
+                <log level="'error'">'Failed to create new LA Job Output Log for Validate Function %s' % (restFuncName)</log>
+              </if>		
+			</sequence>
+          </else>
+        </if>
+	  
+	</sequence>
+	  
+  </function>
+	
+  <!-- ****************************************************************** -->
+  <!--                       monValidateMetric                            -->
+  <!--                                                                    -->
+  <!--                                                                    -->
+  <!-- ****************************************************************** -->
+
+  <function name="monValidateMetric" scope="local">
+    <function-prolog>
+      This function will use execute a Rest class file (containing Java code) against a monitor installation. 
+	  It will report on the success or failure of query for a single metric.
+		
+	  This function will not be exposed as a task within lotus automator as the Rest Java files will need to reside on 
+	  automator media server. 
+	   
+	    See below for calling specifics.
+		Throws : MonitorAutoException.ValidateRest.CopyError - Unable to copy a needed file
+			     MonitorAutoException.ValidateRest.FileError - Unable to find retrieve a necessary file
+		         
+    </function-prolog>
+
+    <function-epilog>
+      <![CDATA[
+<p>This functions calls a Java Rest class file and reports on success.</p>
+<p>Returns exception on error.</p>
+<ul>
+	<li></li>
+	<li></li>
+</ul>
+      ]]>
+    </function-epilog>
+
+    <function-list-args>
+      <function-required-arg name="target">Hostname/IP address of the target machine</function-required-arg>
+	  <function-required-arg name="wasHomeDir">Location of WAS on target</function-required-arg>
+	  <function-required-arg name="profileName">WAS profile to query port from</function-required-arg>
+	  <function-required-arg name="modelName">The name of the model to access REST Services</function-required-arg>
+	  <function-required-arg name="modelVersion">version number of the model to be tested</function-required-arg>
+	  <function-required-arg name="metricName">Name of the metric to query</function-required-arg>
+	  <function-required-arg name="metricValue">The expected value of the metric</function-required-arg>
+	  <function-required-arg name="uniqueLogName">Name for file in Job Output Log</function-required-arg>
+    </function-list-args>
+	  
+	<sequence>
+	
+	  <log level="'info'">'monValidateMetric Entry'</log> 
+	  
+	  <!-- Local Variables -->	
+	  <script>myLogLevel = "User7"</script>
+	  <script>jarsLADir = '/usr/local/stax/prod/customLibrary/scripts/monitor/jars'</script>
+	  <script>autoJarFile = 'Automator.jar'</script>
+	  <script>autoJarTargLoc = '%s%s%s' % (AutomationTmpDir,FileSeparator,autoJarFile)</script>
+	  <script>jsonJarFile = 'IBMJSONTools.jar'</script>
+	  <script>jsonJarTargLoc = '%s%s%s' % (AutomationTmpDir,FileSeparator,jsonJarFile)</script>
+		
+      <!-- Resolve the hostname of the media server -->
+      <call function="'cafResolveLAVar'">'Config/mediaServer'</call>
+      <script>mediaServer = STAXResult</script>
+	  
+		
+	  <!-- Import the CUSTOM helper library -->
+	  <script>libraryLoc="BTT_Sandbox/wasHelperLibrary.xml"</script> 
+      <call function="'cafImportCustomLibrary'"> [libraryLoc] </call>
+      <script>importRC = STAXResult</script>
+      <if expr="importRC != 0">
+		  <throw exception="'MonitorAutoException.ValidateMetric.ImportFailed'">'Failed to Import the necessary library %s needed for this function' % (libraryLoc)</throw>
+	  </if>
+		
+		
+	  <!-- Check to see if automator.jar already in Automation Tmp on target..if not get it from LA -->
+	  <call function="'cafQueryFSEntry'">target,autoJarTargLoc</call>
+		<script>(callRC,callResult) = STAXResult</script>
+		<if expr="callRC != 0">
+		  <sequence>
+			  <log level="'info'">'Automator Jar file %s not present on target machine' % (autoJarTargLoc)</log>
+			  <call function="'cafCopyFile'">LAServer,jarsLADir,autoJarFile,target,AutomationTmpDir,autoJarFile</call>
+	          <script>(callRC,callResult) = STAXResult</script>
+	          <if expr="callRC != 0">
+				  <throw exception="'MonitorAutoException.ValidateMetric.CopyError'">'Unable to copy %s to target machine' % (autoJarFile)</throw>
+	          </if>
+			  <!-- Change permissions if this is UNIX system too -->
+			  <if expr="OS == 'Linux' or OS == 'SunOS' or OS == 'AIX'">
+				  <sequence>
+					  <call function="'cafRunCommand'">target,'chmod','777 %s%s%s' % (AutomationTmpDir,FileSeparator,autoJarFile)</call>
+					  <script>(callRC,callResult) = STAXResult</script>
+					  <if expr="callRC != 0">
+						  <throw exception="'MonitorAutoException.ValidateJunit.PermError'">'Unable to set permissions on %s' % (autoJarFile)</throw>
+					  </if>
+				  </sequence>
+			  </if>
+		  </sequence>
+          <else>
+            <log level="'info'">'Automator Jar file %s already present on target machine' % (autoJarTargLoc)</log>
+          </else>
+        </if>
+		
+	  <!-- Check to see if json.jar already in Automation Tmp on target..if not get it from LA -->
+	  <call function="'cafQueryFSEntry'">target,jsonJarTargLoc</call>
+		<script>(callRC,callResult) = STAXResult</script>
+		<if expr="callRC != 0">
+		  <sequence>
+			  <log level="'info'">'Json Jar file %s not present on target machine' % (jsonJarTargLoc)</log>
+			  <call function="'cafCopyFile'">LAServer,jarsLADir,jsonJarFile,target,AutomationTmpDir,jsonJarFile</call>
+	          <script>(callRC,callResult) = STAXResult</script>
+	          <if expr="callRC != 0">
+				  <throw exception="'MonitorAutoException.ValidateMetric.CopyError'">'Unable to copy %s to target machine' % (jsonJarFile)</throw>
+	          </if>
+			  <!-- Change permissions if this is UNIX system too -->
+			  <if expr="OS == 'Linux' or OS == 'SunOS' or OS == 'AIX'">
+				  <sequence>
+					  <call function="'cafRunCommand'">target,'chmod','777 %s%s%s' % (AutomationTmpDir,FileSeparator,jsonJarFile)</call>
+					  <script>(callRC,callResult) = STAXResult</script>
+					  <if expr="callRC != 0">
+						  <throw exception="'MonitorAutoException.ValidateJunit.PermError'">'Unable to set permissions on %s' % (jsonJarFile)</throw>
+					  </if>
+				  </sequence>
+			  </if>
+		  </sequence>
+          <else>
+            <log level="'info'">'Json Jar file %s already present on target machine' % (jsonJarTargLoc)</log>
+          </else>
+        </if>
+		
+		
+	  <!-- Determine the wasprops WC_defaulthost port -->
+	  <call function="'wasGetPort'">target,wasHomeDir,profileName,'WC_defaulthost'</call>
+	  <script>(callRC,callResult) = STAXResult</script>
+	  <if expr="callRC != 0">
+          <throw exception="'MonitorAutoException.ValidateMetric.PortError'">'%s' % (callResult)</throw>
+		  <else>
+			  <script>hostPort = callResult</script>
+		  </else>
+      </if>
+			
+	  <!-- Generate the rest.props file for the test and write to target -->
+	  <script>propFileString = "VERSION=%s\nSERVER=%s\nPORT=%s\nCOOKIE=%s\n" % (modelVersion,target,hostPort,'notusedyet')</script>
+	  <script>propFileName = '%s.props' % (uniqueLogName)</script> 
+	  <call function="'cafWriteTargetFile'">target,AutomationTmpDir,propFileName,propFileString</call>
+      <script>callRC = STAXResult</script>
+      <if expr="callRC != 0">
+		  <throw exception="'MonitorAutoException.ValidateMetric.CopyError'">'Failed to create %s file in %s on target' % (propFileName,AutomationTmpDir)</throw>
+      </if>
+		
+	  <!-- DEBUG ONLY REMOVE THIS	
+	  <call function="'cafGetFileContents'">target,'%s%s%s' % (AutomationTmpDir,FileSeparator,kpiPropName)</call>
+      <call function="'cafWriteJobOutputLog'">target,'local',STAXResult,'DEBUG : KPI Prop File %s' % (kpiPropName),kpiPropName</call>
+	  -->
+		
+	  <!-- execute the java code specific to class file -->
+	  <!-- setup Class Path for the call -->
+	  <script>fullCp = '%s' % (AutomationTmpDir)</script>
+	  <script>fullFuncName = 'com.ibm.wbimonitor.la.automation.ValidateSingleMetric'</script>
+	  <!-- setup cmd and parm strings -->
+	  <!-- CMD string points to the java in the WEbsphere Monserver directory -->
+	  <script>cmdStr = '%s%sjava%sbin%sjava' % (wasHomeDir,FileSeparator,FileSeparator,FileSeparator)</script>
+	  <script>parmStr = '-Djava.ext.dirs=%s %s %s%s%s %s %s %s' % (fullCp,fullFuncName,AutomationTmpDir,FileSeparator,propFileName,modelName,metricName,metricValue)</script>
+	  <script>restLog = '%s.log' % (uniqueLogName)</script>
+	   <call function="'cafRunCommandAdv'">[
+          target,
+		  cmdStr,
+          parmStr,
+          AutomationTmpDir,
+          '%s%s%s' % (AutomationTmpDir,FileSeparator,restLog), 
+          '5m' 
+          ]
+		</call>
+        <script>(callRC,callResult) = STAXResult</script>
+        <if expr="callRC != 0">
+          <!-- grab partial log file here if there is error before throwing exception -->
+		  <sequence>
+            <call function="'cafWriteJobOutputLog'">target,'local',callResult,'ERROR: %s output' % (uniqueLogName),restLog</call>
+            <script>(callRC) = STAXResult</script>
+            <if expr="callRC != 0">
+                <log level="'error'">'Failed to create new LA Job Output Log for %s validation' % (uniqueLogName)</log>
+            </if>  
+            <throw exception="'MonitorAutoException.ValidateMetric.ValidationError'">'Validation java call for %s failed. See Job Output Log for more details' % (uniqueLogName)</throw>
+		  </sequence>
+          <else>
+		    <sequence>
+              <log level='myLogLevel'>'Validation java call for %s succeeded' % (metricName)</log>
+			  <call function="'cafGetFileContents'">target,'%s%s%s' % (AutomationTmpDir,FileSeparator,restLog)</call>
+              <call function="'cafWriteJobOutputLog'">target,'local',STAXResult,'%s Output' % (uniqueLogName),restLog</call>
+              <script>(callRC) = STAXResult</script>
+              <if expr="callRC != 0">
+                <log level="'error'">'Failed to create new LA Job Output Log for %s test' % (uniqueLogName)</log>
+              </if>		
+			</sequence>
+          </else>
+        </if>
+	  
+	</sequence>
+	  
+  </function>
+	
+</stax>

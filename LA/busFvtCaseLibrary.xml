@@ -1,0 +1,392 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "stax.dtd">
+<stax>
+		
+  <!-- ****************************************************************** -->
+  <!--                        bussinessSpace_FVT_OrderItemInst                      -->
+  <!--                                                                    -->
+  <!--                                                                    -->
+  <!-- ****************************************************************** -->
+
+  <function name="busFvt_OrderItemInst" scope="local">
+    <function-prolog>
+      This function will run the businessSpace instance model test, it will:
+		generate an EAR for the build thats passed (the build thats on the target)
+		sends some pre bactched events and then the run businessSpace fvt test cases
+		
+		
+		Throws :
+		
+		MonitorAutoException.OrderItem.AutomationError
+		MonitorAutoException.OrderItem.InstallEarError
+		MonitorAutoException.OrderItem.GenerateEarError
+		MonitorAutoException.OrderItem.SendEventError
+    </function-prolog>
+
+    <function-epilog>
+      <![CDATA[
+<p>This is the OrderItem test function</p>
+<p>This function will run the OrderItem automation test </p>
+<p>It will do the following:</p>
+<ul>
+	<li>install an EAR to a monitor installation</li>
+	<li>send pre-made batched events</li>
+	<li>validate the events were processed and correct values in metric through Junit Java Call<li>	  
+</ul>
+<p>this is another paragraph...</p>
+      ]]>
+    </function-epilog>
+
+    <function-map-args>
+      <function-required-arg name="target">Hostname/IP address of the target machine</function-required-arg>
+	  <function-required-arg name="buildPath">build level to generate EAR for (build that resides on target)</function-required-arg>
+      <function-required-arg name="wasHomeDirectory">Location of was directory on target</function-required-arg>
+	  <function-required-arg name="wasServerName">Name of the WAS Server monitor profile runs under</function-required-arg>
+      <function-required-arg name="profileNameInWas">monitor profile name</function-required-arg>
+	  <function-required-arg name="runPortalDash">on or off selection, will run Portal Dashboard test</function-required-arg>
+	  <function-required-arg name="runBspaceDash">on or off selection, will run Business Space Dashboard Test</function-required-arg>
+	  <function-required-arg name="uninstallModel">Will Uninstall Model at the completion of test</function-required-arg>
+	  <function-optional-arg name="portalHostname">hostname/ip of the Portal machine</function-optional-arg>
+	  <function-optional-arg name="portalWASInstallLocation">Where the WAS running Portal is installed</function-optional-arg>
+	  <function-optional-arg name="portalUser">username for Portal user</function-optional-arg>
+	  <function-optional-arg name="portalPass">password for Portal user</function-optional-arg>
+	  <function-optional-arg name="monUser">monitor user for security</function-optional-arg>
+	  <function-optional-arg name="monPass">monitor pasword for security</function-optional-arg>
+	  <function-optional-arg name="browserSelect">valid values are "Mozilla Firefox" or "Internet Explorer"</function-optional-arg>					
+    </function-map-args>
+	
+    <try>
+		
+	  <sequence>	  
+	  <!-- Local Variables -->	  
+      <script>myLogLevel="User7"</script>
+	  <script>testFail = 'false'</script>
+	  <!-- ************************************************************************* -->
+	  <!-- ****************** Model Specific Variables ***************************** -->
+	  <!-- ************************************************************************* -->	  
+	  <!-- STAX Testcase name i.e direcotry we store it under -->
+	  <script>myName="fvt_orderitem"</script>
+	  <script>myPIFile="OrderItem_24July2008V1_PI.zip"</script>
+	  <script>myApplName='OrderItemApplication'</script>
+	  <script>myModelName='OrderItem'</script>
+	  <script>myThreadSetting='SerialST'</script>
+	  <script>myVersion='20060803000000'</script>
+	  <script>fvtEventPath = '/bpmmedia/monitor_tests/%s/events' % (myName)</script>
+	  <script>com_OrdBook5_MC_EventFile = 'COMPLETE_OrderBooK5_MC.xml'</script>
+	  <script>com_OrdBook5_MC_Count = 5</script>
+	  <script>com_OrdMovie4_MC_EventFile = 'COMPLETE_OrderMovie4_MC.xml'</script>
+	  <script>com_OrdMovie4_MC_Count = 5</script>
+	  <script>ter_MC1_2OrdBook_2Mu_2Mo_MC2_EventFile = 'TERMINATE_MC1_2OrderBook-2Music-2Movie_MC2.xml'</script>
+	  <script>ter_MC1_2OrdBook_2Mu_2Mo_MC2_Count = 17</script>
+	  <script>ter_MC1_OrdBook_Mu_Mo_EventFile = 'TERMINATE_MC1_OrderBook-Music-Movie.xml'</script>
+	  <script>ter_MC1_OrdBook_Mu_Mo_Count = 10</script>
+	  <script>ter_MC1_OrdBook_Mu_Mo_MC2_EventFile = 'TERMINATE_MC1_OrderBook-Music-Movie_MC2.xml'</script>
+	  <script>ter_MC1_OrdBook_Mu_Mo_MC2_Count = 14</script>
+	  <script>ter_OrdBook3_MC_EventFile = 'TERMINATE_OrderBook3_MC.xml'</script>
+	  <script>ter_OrdBook3_MC_EventFile_Count = 12</script>	
+	  <script>ter_OrdBook_MC1and2_EventFile = 'TERMINATE_OrderBook_MC1and2.xml'</script>
+	  <script>ter_OrdBook_MC1and2_EventFile_Count = 7</script>
+	  <script>ter_OrdBook_MC2_EventFile = 'TERMINATE_OrderBook_MC2.xml'</script>
+	  <script>ter_OrdBook_MC2_EventFile_Count = 7</script>	 
+	  <script>ter_OrdBook_MC_EventFile = 'TERMINATE_OrderBook_MC.xml'</script>
+	  <script>ter_OrdBook_MC_EventFile_Count = 6</script>	 
+	  <script>ter_OrdBook_Mo_MC_EventFile = 'TERMINATE_OrderMovie_MC.xml'</script>
+	  <script>ter_OrdBook_Mo_MC_EventFile_Count = 6</script>	 
+	  <script>ter_OrdBook_Mu_MC_EventFile = 'TERMINATE_OrderMusic_MC.xml'</script>
+	  <script>ter_OrdBook_Mu_MC_EventFile_Count = 6</script>	 	  	  	 	    	  
+	  <!-- ************************************************************************* -->
+	  <!-- ************************************************************************* -->
+	  <!-- ************************************************************************* -->
+	  <script>earGotInstalled = 'false'</script>
+		  	  
+	  <!-- Remove the /mnt from the buildPath before using it -->
+	  <script>buildPath = buildPath.replace('/mnt','')</script>
+	  <log level='myLogLevel'>'The media repository location of build is : %s' % (buildPath)</log>
+	
+	  <!-- extract Build Selected from Path -->
+      <script> 
+		split = buildPath.split('CDMON/')
+		buildSelected = split[-1] 
+	  </script>
+	  <!-- determine RELEASE from BuildPath -->
+	  <script>split = buildPath.split('monitor_builds/')</script>
+	  <script>split2 = split[-1].split('/')</script>	
+	  <script>releaseLevel = split2[0]</script>
+		  
+	  <!-- Determine the correct Portal script -->
+	  <if expr="releaseLevel == 'MON61.CDMON'">
+	 	<script>portalScript = 'scripts.fvt.portal.instance.AllFvtCase'</script>
+	  </if>
+	  <if expr="releaseLevel == 'MON62.CDMON'">
+	 	 <script>portalScript = 'scripts.fvt.portal.instance.AllFvtCase'</script>
+	  </if>
+		  
+	  <!-- Determine the correct BSpace Script -->
+	  <!-- dont know the name for 62 BusSpace script yet, this is MON61.CDMON -->
+	  <if expr="releaseLevel == 'MON61.CDMON'">
+		  <script>busScript = 'scripts.fvt.busspace.instance.AllFvtCase'</script>
+	  </if>
+	  <if expr="releaseLevel == 'MON62.CDMON'">
+		  <script>busScript = 'scripts.fvt.busspace.instance.AllFvtCase'</script>
+	  </if>
+		    
+      <!-- Starting the important part -->
+      <log level='myLogLevel'>'Starting the %s test' % (myName)</log>		
+				 
+      <!-- Import the commonLibrary -->		
+      <script>libraryLoc="BTT_Sandbox/commonLibrary.xml"</script>
+      <log level='myLogLevel'>'MJL: Library Location is %s' % (libraryLoc)</log> 
+      <call function="'cafImportCustomLibrary'"> [libraryLoc] </call>
+      <script>importRC = STAXResult</script>
+      <if expr="importRC != 0">
+		  <throw exception="'MonitorAutoException.Fvt.AutomationError'">'Failed to Import the necessary library %s for this test.' % (libraryLoc)</throw>
+	  </if>
+		  
+	  <!-- Import rftHelperLibrary.xml --> 
+	  <script>libraryLoc="BTT_Sandbox/rftHelperLibrary.xml"</script>
+      <log level='myLogLevel'>'MJL: Library Location is %s' % (libraryLoc)</log>
+      <call function="'cafImportCustomLibrary'"> [libraryLoc] </call>
+      <script>importRC = STAXResult</script>
+      <if expr="importRC != 0">
+		  <throw exception="'MonitorAutoException.Fvt.AutomationError'">'Failed to Import the necessary library %s for this test.' % (libraryLoc)</throw>
+	  </if>
+		  
+	  <!-- Load the miscHelperLibarary.xml -->
+	  <script>libraryLoc="bpm/monitor/miscHelperLibrary.xml"</script>
+      <log level='myLogLevel'>'MJL: Library Location is %s' % (libraryLoc)</log> 
+      <call function="'cafImportCustomLibrary'"> [libraryLoc] </call>
+      <script>importRC = STAXResult</script>
+      <if expr="importRC != 0">
+		<throw exception="'MonitorAutoException.Fvt.AutomationError'">'Failed to Import the necessary library %s for this function.' % (libraryLoc)</throw>
+	  </if>
+		  
+	  <!-- Import the CUSTOM helper library -->
+	  <script>libraryLoc="BTT_Sandbox/wasHelperLibrary.xml"</script> 
+      <call function="'cafImportCustomLibrary'"> [libraryLoc] </call>
+      <script>importRC = STAXResult</script>
+      <if expr="importRC != 0">
+		  <throw exception="'MonitorAutoException.OrderItem.AutomationError'">'Failed to Import the necessary library %s needed for this function' % (libraryLoc)</throw>
+	  </if>
+		  
+	  <!-- Determine the wasprops WC_defaulthost port -->
+	  <call function="'wasGetPort'">target,wasHomeDirectory,profileNameInWas,'WC_defaulthost'</call>
+	  <script>(callRC,callResult) = STAXResult</script>
+	  <if expr="callRC != 0">
+          <throw exception="'MonitorAutoException.OrderItem.PortError'">'%s' % (callResult)</throw>
+		  <else>
+			  <script>hostPort = callResult</script>
+		  </else>
+      </if>
+		  
+	  <!-- Resolve the hostname of the media server -->
+      <call function="'cafResolveLAVar'">'Config/mediaServer'</call>
+      <script>mediaServer = STAXResult</script>
+		  
+	  <!--******************** Generate EAR Section ****************************** -->
+		  
+	  <!-- Directory on media Server to check for existing ear -->
+	  <script>earCheckDir = '/bpmmedia/monitor_tests/%s/ears/%s' % (myName,buildSelected)</script>
+	  <script>earFile = '%sEAR.ear' % (myName)</script>
+	  <script>earCheckFull = '%s/%s' % (earCheckDir,earFile)</script>
+		   	     
+	  <!-- check to see if we have the EAR we need already...if not call generate EAR -->
+	  <call function="'cafQueryFSEntry'">mediaServer,earCheckFull</call>
+        <script>(callRC,callResult) = STAXResult</script>
+        <if expr="callRC != 0">
+		  <sequence>
+			  <log level='myLogLevel'>'EAR file is needed..calling generate function'</log>
+			  <!-- Calling Generate EAR -->
+			  <try>	  
+				<call function="'mon_GenerateEar_Linux'">target,buildPath,myPIFile,myName</call>
+				<catch exception="'...'" var="eInfo">
+					<throw exception="'MonitorAutoException.OrderItem.GenerateEarError'">eInfo</throw>
+				</catch>
+			  </try>
+		  </sequence>
+		  <else>
+			  <log level='myLogLevel'>'EAR file %s for build %s already exists media server' % (earFile,buildSelected)</log>
+		  </else>
+		</if>
+								  
+	  <!-- Copy EAR file to the target machine Automation temp dir?-->
+	  <script>earCheckDirStrip = earCheckDir.replace('/bpmmedia','')</script>
+      <call function="'cafGetMediaFromRepository'">target,earCheckDirStrip,earFile,'STAF','no','','','/bpmmedia'</call>
+      <script>(callRC) = STAXResult</script>
+      <if expr="callRC != 0">
+		  <log level="'error'">'Failed to copy the %s file from media Server to Automation Temp Dir on target. Error: %s' % (earFile,callResult)</log>
+      </if>
+		  
+	 
+	  <!--******************** Install EAR Section ****************************** -->
+	  <try>
+		<call function="'wasInstallEar_All'">target,wasHomeDirectory,wasServerName,profileNameInWas,AutomationTmpDir,\
+			earFile,myApplName,'yes',myModelName,myVersion,myThreadSetting</call>
+		<catch exception="'...'" var="eInfo">
+			<throw exception="'MonitorAutoException.OrderItem.InstallEarError'">eInfo</throw>
+		</catch>
+	  </try>	 
+	  
+	  <!-- Mark EAR installed so we can uninstall in case of any other error -->
+	  <script>earGotInstalled = 'true'</script>
+		  
+	  <!--******************** Send busspace instance fvt case Events ******************************** -->
+	  
+	  <!-- send events COMPLETE_OrderBooK5_MC.xml -->
+	  <log level='myLogLevel'>'send events file is %s' % (com_OrdBook5_MC_EventFile)</log> 
+	  <try>
+	    <call function="'monEmitEvents'">target,wasHomeDirectory,profileNameInWas,'media',fvtEventPath,com_OrdBook5_MC_EventFile,'batch',com_OrdBook5_MC_Count</call>
+	    <catch exception="'...'" var="eInfo">
+		    <throw exception="'MonitorAutoException.fvt.SendEventError'">eInfo</throw>
+	    </catch>  
+	  </try>
+	   <!-- send events COMPLETE_OrderMovie4_MC.xml -->
+	  <log level='myLogLevel'>'send events file is %s' % (com_OrdMovie4_MC_EventFile)</log> 
+	  <try>
+	    <call function="'monEmitEvents'">target,wasHomeDirectory,profileNameInWas,'media',fvtEventPath,com_OrdMovie4_MC_EventFile,'batch',com_OrdMovie4_MC_Count</call>
+	    <catch exception="'...'" var="eInfo">
+		    <throw exception="'MonitorAutoException.fvt.SendEventError'">eInfo</throw>
+	    </catch>  
+	  </try>
+	   <!-- send events TERMINATE_MC1_2OrderBook-2Music-2Movie_MC2.xml -->
+	  <log level='myLogLevel'>'send events file is %s' % (ter_MC1_2OrdBook_2Mu_2Mo_MC2_EventFile)</log> 
+	  <try>
+	    <call function="'monEmitEvents'">target,wasHomeDirectory,profileNameInWas,'media',fvtEventPath,ter_MC1_2OrdBook_2Mu_2Mo_MC2_EventFile,'batch',ter_MC1_2OrdBook_2Mu_2Mo_MC2_Count</call>
+	    <catch exception="'...'" var="eInfo">
+		    <throw exception="'MonitorAutoException.fvt.SendEventError'">eInfo</throw>
+	    </catch>  
+	  </try>
+	   <!-- send events TERMINATE_MC1_OrderBook-Music-Movie.xml -->
+	  <log level='myLogLevel'>'send events file is %s' % (ter_MC1_OrdBook_Mu_Mo_EventFile)</log> 
+	  <try>
+	    <call function="'monEmitEvents'">target,wasHomeDirectory,profileNameInWas,'media',fvtEventPath,ter_MC1_OrdBook_Mu_Mo_EventFile,'batch',ter_MC1_OrdBook_Mu_Mo_Count</call>
+	    <catch exception="'...'" var="eInfo">
+		    <throw exception="'MonitorAutoException.fvt.SendEventError'">eInfo</throw>
+	    </catch>  
+	  </try>
+	   <!-- send events TERMINATE_MC1_OrderBook-Music-Movie_MC2.xml -->
+	  <log level='myLogLevel'>'send events file is %s' % (ter_MC1_OrdBook_Mu_Mo_MC2_EventFile)</log> 
+	  <try>
+	    <call function="'monEmitEvents'">target,wasHomeDirectory,profileNameInWas,'media',fvtEventPath,ter_MC1_OrdBook_Mu_Mo_MC2_EventFile,'batch',ter_MC1_OrdBook_Mu_Mo_MC2_Count</call>
+	    <catch exception="'...'" var="eInfo">
+		    <throw exception="'MonitorAutoException.fvt.SendEventError'">eInfo</throw>
+	    </catch>  
+	  </try>
+	   <!-- send events TERMINATE_OrderBook3_MC.xml -->
+	  <log level='myLogLevel'>'send events file is %s' % (ter_OrdBook3_MC_EventFile)</log> 
+	  <try>
+	    <call function="'monEmitEvents'">target,wasHomeDirectory,profileNameInWas,'media',fvtEventPath,ter_OrdBook3_MC_EventFile,'batch',ter_OrdBook3_MC_EventFile_Count</call>
+	    <catch exception="'...'" var="eInfo">
+		    <throw exception="'MonitorAutoException.fvt.SendEventError'">eInfo</throw>
+	    </catch>  
+	  </try>
+	   <!-- send events TERMINATE_OrderBook_MC1and2.xml -->
+	  <log level='myLogLevel'>'send events file is %s' % (ter_OrdBook_MC1and2_EventFile)</log> 
+	  <try>
+	    <call function="'monEmitEvents'">target,wasHomeDirectory,profileNameInWas,'media',fvtEventPath,ter_OrdBook_MC1and2_EventFile,'batch',ter_OrdBook_MC1and2_EventFile_Count</call>
+	    <catch exception="'...'" var="eInfo">
+		    <throw exception="'MonitorAutoException.fvt.SendEventError'">eInfo</throw>
+	    </catch>  
+	  </try>
+	   <!-- send events TERMINATE_OrderBook_MC2.xml -->
+	  <log level='myLogLevel'>'send events file is %s' % (ter_OrdBook_MC2_EventFile)</log> 
+	  <try>
+	    <call function="'monEmitEvents'">target,wasHomeDirectory,profileNameInWas,'media',fvtEventPath,ter_OrdBook_MC2_EventFile,'batch',ter_OrdBook_MC2_EventFile_Count</call>
+	    <catch exception="'...'" var="eInfo">
+		    <throw exception="'MonitorAutoException.fvt.SendEventError'">eInfo</throw>
+	    </catch>  
+	  </try>
+	   <!-- send events TERMINATE_OrderBook_MC.xml -->
+	  <log level='myLogLevel'>'send events file is %s' % (ter_OrdBook_MC_EventFile)</log> 
+	  <try>
+	    <call function="'monEmitEvents'">target,wasHomeDirectory,profileNameInWas,'media',fvtEventPath,ter_OrdBook_MC_EventFile,'batch',ter_OrdBook_MC_EventFile_Count</call>
+	    <catch exception="'...'" var="eInfo">
+		    <throw exception="'MonitorAutoException.fvt.SendEventError'">eInfo</throw>
+	    </catch>  
+	  </try>
+	   <!-- send events TERMINATE_OrderMovie_MC.xml -->
+	  <log level='myLogLevel'>'send events file is %s' % (ter_OrdBook_Mo_MC_EventFile)</log> 
+	  <try>
+	    <call function="'monEmitEvents'">target,wasHomeDirectory,profileNameInWas,'media',fvtEventPath,ter_OrdBook_Mo_MC_EventFile,'batch',ter_OrdBook_Mo_MC_EventFile_Count</call>
+	    <catch exception="'...'" var="eInfo">
+		    <throw exception="'MonitorAutoException.fvt.SendEventError'">eInfo</throw>
+	    </catch>  
+	  </try>
+	   <!-- send events TERMINATE_OrderMusic_MC.xml -->
+	  <log level='myLogLevel'>'send events file is %s' % (ter_OrdBook_Mu_MC_EventFile)</log> 
+	  <try>
+	    <call function="'monEmitEvents'">target,wasHomeDirectory,profileNameInWas,'media',fvtEventPath,ter_OrdBook_Mu_MC_EventFile,'batch',ter_OrdBook_Mu_MC_EventFile_Count</call>
+	    <catch exception="'...'" var="eInfo">
+		    <throw exception="'MonitorAutoException.fvt.SendEventError'">eInfo</throw>
+	    </catch>  
+	  </try>
+	  <!-- Allow processing time -->
+	  <call function="'cafDelay'">60000</call>
+      <script>(callRC) = STAXResult</script>
+      <if expr="callRC != 0">
+        <log level="'error'">'Failed to delay for 60 seconds'</log>
+      </if>
+	  <!-- *********************Run RFT Validation********************************************* -->
+	  <!-- If runPortalDash = on call mon_runPortalRFTTest -->
+	  <if expr="runPortalDash == 'on'">
+		 <try>
+	       <call function="'mon_callPortalRFT_All'">target,portalHostname,portalWASInstallLocation,releaseLevel,portalUser,portalPass,browserSelect,portalScript</call>
+	       <catch exception="'...'" var="eInfo">
+		     <throw exception="'MonitorAutoException.OrderItem.PortalDashError'">eInfo</throw>
+	       </catch>  
+	     </try>  
+	  </if>
+	  <!-- If runBspaceDash = on call mon_runBusinessRFTTest -->	  
+	  <if expr="runBspaceDash == 'on'">
+		  <try>
+			  <call function="'mon_callBusinessRFT_All'">target,wasHomeDirectory,releaseLevel,'false',hostPort,browserSelect,busScript,monUser,monPass</call>
+			  <catch exception="'...'" var="eInfo">
+				  <throw exception="'MonitorAutoException.OrderItem.BSpaceDashError'">eInfo</throw>
+			  </catch>
+		  </try>
+	  </if>
+		  
+	  <!-- Ideally top level call would like to return nothing...exceptions catch rest -->
+			
+	  <return>0</return>
+	  	
+	  </sequence>
+		
+	  <!-- ################################### Begin exception handlers ###################################################### -->
+
+      <catch exception="'...'" var="eInfo">
+		<sequence>
+			<script>testFail = 'true'</script>
+			<rethrow/>
+		</sequence>
+      </catch>
+
+      <!-- ################################### End exception handlers ######################################################### -->
+	  <!-- Uninstall EAR, IF it got installed in finally block -->
+	  <finally>
+	    <sequence>
+		  <!-- make sure it was installed -->
+		  <if expr="earGotInstalled == 'true' and uninstallModel == 'on'">
+			 <sequence>
+			 <!-- If target is Windows -->
+			 
+			     <try>
+				   <call function="'wasUninstallEar_All'">target,wasHomeDirectory,wasServerName,profileNameInWas,myApplName,myModelName,myVersion</call>
+				   <catch exception="'...'" var="eInfo">
+					  <log level="'error'">'Error uninstalling EAR. May have to manually clean before running another test. Error Info: %s' % (eInfo)</log>
+				   </catch>
+			     </try>	
+		     
+			</sequence>  
+		  </if>
+		  <if expr="testFail == 'true'">
+			  <!-- Collect was Runtime logs on Failure -->
+			  <call function="'mon_gatherWASRuntimeLogs'">target,wasHomeDirectory,profileNameInWas,'%s_FAIL' % (myName)</call>
+		  </if>
+        <log level='myLogLevel'>'Ending the %s test' % (myName)</log>  
+		</sequence>		  
+	  </finally>	
+			
+    </try>
+	  
+  </function>
+</stax>

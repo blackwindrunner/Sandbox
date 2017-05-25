@@ -1,0 +1,126 @@
+<project name="put_web" default="build_all" basedir=".">
+
+
+    <!-- The following properties files
+        1. set local build machine requirements for implementation in
+        2. general and custom variable definitions for all drivers -->
+    		
+    <property file="C:/LocalSettings.properties"/>
+    <property name="build.type" value="_was7"/> 
+ 
+    <!-- Copy build result to BTT Build WebSite -->
+    
+
+    <target name="copy_build">
+        <mkdir dir="X:/composer8210/SerialBuild/${level}${build.type}"/>
+       
+			  <zip zipfile="D:/composer8210/BTTInstallPackaging/InstallPackaging.zip" basedir="D:/composer8210/BTTInstallPackaging" includes="properties/**,javadoc/**,lib/**,plugins/**,asset/**,samples/**,reference/**,rcptools/**,source/BTTCore.zip,source/BTTChannels.zip,template/**,migration/**,testsuit/**,extplugins/**"/>
+			  <zip zipfile="D:/composer8210/BTTInstallPackaging/Tooling_Libs.zip" basedir="D:/composer8210/BTTInstallPackaging" includes="lib/bttcore.jar,lib/bttchannels.jar,lib/bttinvoker.jar,lib/bttwssvc.jar,lib/BTTMobileJSLib.zip,lib/jssource/**,plugins/tooling/**,source/BTTCore.zip,source/BTTChannels.zip,source/bttwssvcsrc.zip,source/BTTInvoker.zip,source/bttxuieditor2src.zip,source/BTTMobileJSLib_src.zip,testsuit/**"/>
+        <copy todir="X:/composer8210/SerialBuild/${level}${build.type}">
+				   <!--fileset dir=".." excludes="BTTAutomation/**,BTTBuild/**,SandBox**/**, DSE**/**,Composer**/**, temp/**, **/*.log, **/*.bak, *.zip"/-->
+           <!--fileset dir="D:/composer8210/BTTInstallPackaging" excludes="**/*.log, **/*.bak, logs/**,build.xml"/-->
+            <fileset dir="D:/composer8210/BTTInstallPackaging" includes="InstallPackaging.zip,Tooling_Libs.zip"/>
+			<!-- copy installer to daily build set-->
+			
+		 </copy> 
+ 
+    </target>
+
+    <!-- Copy SandBox to BTT Build WebSite-->
+    
+    <target name="copy_sandbox">		  
+			  <mkdir dir="X:/composer8210/SandBox/${level}${build.type}"/>
+        <copy todir="X:/composer8210/SandBox/${level}${build.type}">
+				   <fileset dir="../BTTBuild" excludes="logs/**,build.xml"/>
+				   <!--fileset dir="D:/CodeScan" includes="composer8210_codescan.zip"/-->
+				   <fileset dir="D:/composer8210/SandBox/AllBuildLogs" includes="CheckJavadoc_composer8210.log"/>
+				   <fileset dir="D:/composer8210/SandBox/AllBuildLogs" includes="CheckCopyright_new_composer8210.log"/>
+				   <!--fileset dir="D:/composer8210/SandBox/AllBuildLogs" includes="composer612_composer8210_NONCommonFiles.log"/-->
+			  </copy>            
+    </target>
+
+    <!-- Copy BVT Result to BTT Build WebStie-->
+    
+    <target name="copy_bvt">
+        <mkdir dir="X:/composer8210/BVTTestResult/${level}${build.type}"/>
+        <copy todir="X:/composer8210/BVTTestResult/${level}${build.type}">
+				   <fileset dir="../BTTAutomation/build/report/bvt" includes="**"/>
+			  </copy>
+    </target>
+    
+    <!-- Copy Installers to BTT Build WebStie-->
+    
+    <target name="copy_installer">
+        <mkdir dir="X:/composer8210/Installation/${level}${build.type}"/>
+        <copy todir="X:/composer8210/Installation/${level}${build.type}">
+			<fileset dir="E:/BTT_Installer/8210/BTT8210_Enterprise_Win/Btt8210_enterprise_Build_Output/Default_Configuration/Web_Installers/InstData/Windows/VM" includes="setup_8210_enterprise.exe"/>
+			<fileset dir="E:/BTT_Installer/8210/BTT8210_Enterprise_Linux/Btt8210_enterprise_Build_Output/Default_Configuration/Web_Installers/InstData/Linux/VM" includes="setup_8210_enterprise.bin"/>
+			<fileset dir="E:/BTT_Installer/8210/BTT8210_Workgroup/Btt8210_workgroup_Build_Output/Default_Configuration/Web_Installers/InstData/Linux/VM" includes="setup_8210_workgroup.bin"/>
+			<fileset dir="E:/BTT_Installer/8210/BTT8210_Workgroup/Btt8210_workgroup_Build_Output/Default_Configuration/Web_Installers/InstData/Windows/VM" includes="setup_8210_workgroup.exe"/>
+		</copy>
+    </target>
+    
+    <!-- Copy build report to BTT Build WebStie-->
+    
+    <target name="copy_buildrep">
+        <mkdir dir="X:/composer8210/BuildReport/${level}${build.type}"/>
+        <copy todir="X:/composer8210/BuildReport/${level}${build.type}">
+				   <fileset dir="D:/composer8210/SandBox/AllBuildLogs" includes="build_check.html"/>
+			  </copy>
+    </target>
+    
+    <!-- Copy build related Defect to BTT Build WebStie hyj add-->
+    
+    <target name="copy_relatedDefect">
+        <copy todir="X:/composer8210/RelatedDefect">
+				   <fileset dir="D:/composer8210/SandBox/AllBuildLogs/DefectReport" includes="${level}${build.type}.txt"/>
+			  </copy>
+    </target>
+    
+    <!-- Put FVT&SVT&Unit Test Result to BTT Build WebStie-->
+    
+     <target name="PutTestResult">
+    
+        <mkdir dir="X:/composer8210/TestResult/${level}${build.type}"/>
+   			<ftp action="get" server="9.181.85.66" userid="btttest" password="bttadmin"
+    					binary="yes" remotedir="BTT_USER_FREE/sandboxResult/" 
+    					skipFailedTransfers="true" preservelastmodified="yes" verbose="yes" depends="no">        
+     				<fileset dir="X:/composer8210/TestResult/${level}${build.type}" >
+     						<include name="**"/>
+    				</fileset>
+    		</ftp>  		
+    </target>
+    
+    <!-- Update BTT Build WebStie-->
+    
+     <target name="UpdateBTTWebSite">
+    
+        <java classname="com.ibm.btt.sandbox.util.SandBoxResult" fork="true" timeout="10000" output="logs.txt"
+              append="true">
+            <classpath>
+                <fileset dir="jars">
+                    <include name="SandboxUtil.jar"/>
+                </fileset>
+            </classpath>
+            <jvmarg value="-DresultFile=X:/composer8210/TestResult/${level}${build.type}"/>
+        </java>	
+    
+    </target>
+     
+                                      
+    <!--target name="build_all" depends="copy_build,
+                                      copy_sandbox,
+    																	copy_bvt,
+    																	copy_installer,
+    																	copy_buildrep,
+    																	copy_relatedDefect,
+    																	PutTestResult,
+    																	UpdateBTTWebSite"/-->													
+    																	
+    <target name="build_all" depends="copy_build,
+    																	copy_buildrep,
+    																	copy_relatedDefect,
+    																	UpdateBTTWebSite"/>
+    													
+    																	
+</project>

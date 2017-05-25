@@ -1,0 +1,17 @@
+BTTRuntimeMonitor/TagMonitorRes/Result/RuntimeMonitor/monitorBase.js
+BTTRuntimeMonitor/TagMonitorRes/Result/RuntimeMonitor/monitorInst.js
+BTTTestSuit/AccessibilityCase/WebContent/js/nls/nls/bttsample.js
+BTTTestSuit/TestWebService/WebServiceBankClient/WebContent/js/nls/nls/bttsample.js
+BTTToolsCommon/com.ibm.btt.tools.common/src/com/ibm/btt/tools/common/bridge/MappingParams.java
+BTTTransactionBuilder/com.ibm.btt.tools.perspective/src/com/ibm/btt/tools/projectexplorer/actions/NewViewAction.java
+DSEAccessControlService/src/com/ibm/dse/applsrv/aa/Association.java
+DSEAccessControlService/src/com/ibm/dse/applsrv/aa/DictionaryEnumerator.java
+DSEAccessControlService/src/com/ibm/dse/applsrv/aa/ArrayEnumerator.java
+DSEAccessControlService/src/com/ibm/dse/applsrv/aa/IntegerKeyEnumerator.java
+DSEAccessControlService/src/com/ibm/dse/applsrv/aa/ValueEnumerator.java
+DSEHtmlConnector/src/com/ibm/dse/automaton/html/DSEHtmlProcessor.java
+DSEWosaJxfsDSInfra/src/com/ibm/dse/wosabean/WOSADeviceBean.java
+DSEXmlConnector/src/com/ibm/dse/cs/xml/XmlRequestHandler.java
+SandBox/plugins/com.ibm.btt.ui.sandbox_1.0.2/src/com/ibm/btt/ui/sandbox/ExternalBTTProjectImportWizard.java
+SandBox/plugins/com.ibm.btt.ui.sandbox_1.0.2/src/com/ibm/btt/ui/sandbox/WizardBTTProjectsImportPage.java
+

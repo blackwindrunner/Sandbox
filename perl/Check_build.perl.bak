@@ -1,0 +1,107 @@
+#!/usr/local/bin/perl -w
+
+# Program: Check_build.perl
+# This program used to check the build result
+# Change history:
+#   2008/7/17 lwh created it used by build_bvt.bat.
+
+
+require 'ctime.pl';
+select(STDOUT); $| = 1; # flush after every write
+use strict;
+use SendMail;
+use Cwd;
+use dependencies;
+
+my $release="composer8210";
+my $buildDir="D:";
+my $cmd;
+my $family="btt\@9\.123\.123\.194\@8765";
+
+
+
+	open(HTML, ">$buildDir\\$release\\SandBox\\AllBuildLogs\\build_check\.html") or die "Cannot open $buildDir\\$release\\SandBox\\AllBuildLogs\\build_check\.log: $!\n";
+  
+  (my $sec,my $min,my $hour,my $mday,my $mon,my $year,my $wday,my $yday,my $isdst) = localtime(time);
+    if ($hour < 10 ) { $hour = "0$hour" }
+    if ($min < 10 ) { $min = "0$min" }
+    if ($sec < 10 ) { $sec = "0$sec" }
+    $year -= 100; # need to make at least two digits
+  	$year = sprintf "%2.2d", $year . "\n"; # and make sure it shows up as two characters
+ 		 ++$mon;
+  	$mon = sprintf "%2.2d", $mon . "\n";
+  	$mday = sprintf "%2.2d", $mday . "\n";
+  	my $daytime="$mon/$mday/20$year";
+    my $hms="$hour:$min:$sec";
+    
+    
+    print HTML "<html>\n";
+    print HTML "<head>\n";
+    print HTML "<meta http-equiv=Content-Type content=\"text/html; charset=US-ASCII\">\n";
+    print HTML "<title>BTT Build Report\n";
+    #print HTML "<link title=\"Style\" type=\"text/css\" rel=\"stylesheet\" href=\"stylesheet.css\">\n";
+    print HTML "</title>\n";
+    print HTML "</head>\n";
+    print HTML "<body>\n";
+    print HTML "<center><b><font color=blue size=+2>8210 Build Report </font><font color=blue size=+1> ( $daytime  $hms )</font>\n";
+    print HTML "<center><b><font color=blue size=+2></font>\n";
+    print HTML "<center><table width=\"95%\" cellspacing=\"2\" cellpadding=\"5\" border=\"1\" class=\"details\">\n";
+	
+	if (-e "$buildDir\\$release\\SandBox\\8210.txt"){
+      
+			open(COMFILE, "$buildDir\\$release\\SandBox\\8210.txt");
+			my @comline = <COMFILE>;
+			close COMFILE;
+			
+
+			for (my $com =0; $com < $#comline+1; $com++){
+                   	  chomp($comline[$com]);
+					if (-e "$buildDir\\$release\\$comline[$com]\\logs\\ant\.log"){
+                                         
+							open(ANTFILE, "$buildDir\\$release\\$comline[$com]\\logs\\ant\.log");
+							my @antlines = <ANTFILE>;
+							close ANTFILE;
+							
+							for (my $num = 0; $num < ($#antlines+1); $ num++){
+							            
+									if ($antlines[$num] =~ m/BUILD FAILED/) {
+                                                     
+									  print HTML "<tr> <td><font color=red>$comline[$com]: </font></td> <td><font color=red> BUILD FAILED: $antlines[($num+1)]</td></tr></font>";
+									  #open build failed defect
+                                                        
+                                                        $cmd = "Defect -open -family $family -release $release -component $comline[$com] -severity 1 -remarks \"$antlines[($num+1)]\" -abstract \"BVT: Build Failed\" -prefix d -phaseFound building -symptom build_failed -activity ft -odctrigger coverage -impact installability"; 
+                                                        print "\n$cmd\n";
+                                                        #system($cmd);
+			                                      #print HTML "\n\t**** $comline[$com]:  BUILD FAILED ****\n\tBUILD FAILED:  $antlines[($num+1)]\n";
+									} 
+									elsif ($antlines[$num] =~ m/BUILD SUCCESSFUL/) {
+									  print HTML "<tr> <td><font color=blue>$comline[$com]:</font> </td> <td> <font color=blue>BUILD SUCCESSFUL</font></td></tr>";
+										#print HTML "\n\t**** $comline[$com]:  BUILD SUCCESSFUL ****\n\n";
+									}
+ 							} 							
+			     }			
+			}
+}
+    print HTML "</table>\n";
+    print HTML "</body>\n";
+    print HTML "</html>\n";
+
+close HTML;
+ 
+if (-e "$buildDir\\$release\\SandBox\\AllBuildLogs\\build\.fail"){
+		system ("del $buildDir\\$release\\SandBox\\AllBuildLogs\\build\.fail");
+}
+ 
+if (-e "$buildDir\\$release\\SandBox\\AllBuildLogs\\build_check\.html"){ 
+      open(BUILDFILE, "$buildDir\\$release\\SandBox\\AllBuildLogs\\build_check\.html");
+			my @buildline = <BUILDFILE>;
+			close BUILDFILE;
+			
+			
+			foreach my $buildst (@buildline){
+			    if ($buildst =~ m/BUILD FAILED/){			    
+			       system ("cd.>$buildDir\\$release\\SandBox\\AllBuildLogs\\build\.fail");
+			       exit 1;
+			    }
+			}
+}

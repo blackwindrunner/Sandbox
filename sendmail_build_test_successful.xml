@@ -1,0 +1,173 @@
+<project name="put_web" default="build_all" basedir=".">
+
+
+    <!-- The following properties files
+        1. set local build machine requirements for implementation in
+        2. general and custom variable definitions for all drivers -->
+    		
+    <property file="C:/LocalSettings.properties"/>
+    <property name="build.type" value="_was7" />  
+	<property name="antContrib.lib.dir" value="${basedir}/jars/antContrib" />	
+	
+	
+	<property name="testResult" value="结果未知"/>
+	<loadfile property="message3" srcFile="index.html" encoding="utf-8"/>
+	<loadproperties srcFile="testResult.properties" encoding="utf-8"/>
+	<loadproperties srcFile="c:/mail_config.properties" encoding="utf-8"/>
+	<scriptdef name="propertyreset" language="javascript"  
+        description="Allows to assign @{property} new value">  
+        <attribute name="name"/>  
+        <attribute name="value"/>  
+        project.setProperty(attributes.get("name"), attributes.get("value"));  
+	</scriptdef> 
+	<taskdef resource="net/sf/antcontrib/antlib.xml" />  
+	<target name="generate_message" depends="result.transfer.CN">
+			<property name="message" value='
+&lt;html&gt;&lt;head&gt;&lt;meta http-equiv=&quot;Content-Type&quot; content=&quot;text/html; charset=utf-8&quot;&gt;&lt;title&gt;&lt;/title&gt;&lt;head&gt;&lt;body&gt;
+&lt;h1&gt;&lt;font color=&quot;#ff7f27&quot; &gt;&lt;b&gt;整 体 构 建 测 试 报 告&lt;/b&gt;&lt;/font&gt;&lt;/h1&gt;
+ &lt;font color=&quot;#7722ff&quot; &gt;&lt;b&gt;整体&lt;/b&gt;&lt;/font&gt;构建${buildResult_CN},测试结果${testResult_CN}${testResult_details}&lt;br/&gt;
+&lt;hr&gt;&lt;br/&gt;
+
+&lt;a href=&quot;http://192.168.1.247:8080/jenkins/job/btt-test-fvt/build_result/&quot; style=&quot;font-size:27px&quot;&gt;构建报告&lt;/a&gt;&lt;br/&gt;
+&lt;a href=&quot;http://192.168.1.247:8080/jenkins/job/btt-test-fvt/Test_result/&quot; style=&quot;font-size:27px&quot;&gt;测试报告 &lt;/a&gt;&lt;br/&gt;
+&lt;i&gt;请注意验证BSO,如果是火狐浏览器或者NOTES中访问,请在about:config中关闭security.csp.enable&lt;/i&gt;&lt;br/&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;
+
+		'/>
+	</target>
+	<target name="testResult.details">
+		<echo>${finalTestResult}</echo>
+		<if >
+			<or>
+				<equals arg1="${finalTestResult}" arg2="failed"/>
+				<equals arg1="${finalTestResult}" arg2="f" />
+			</or>
+			<then>
+				<property name="testResult_details" value="[错误${errors},失败${failures},成功${successful},总个数${tests},成功率${successfulRate}]"/>
+				<propertyreset name="testResult" value="f"/>  
+				<property name="mail_title" value="Unsuccessfully"/>
+			</then>
+		</if>
+		<if >
+			<or>
+				<equals arg1="${finalTestResult}" arg2="successful" />
+				<equals arg1="${finalTestResult}" arg2="s" />
+			</or>
+			<then>
+				<property name="testResult_details" value="[总个数${tests},成功率${successfulRate}]"/>
+				<propertyreset name="testResult" value="s"/>  
+				<property name="mail_title" value="Successfully"/>
+			</then>
+		</if>
+		
+	</target>
+		<taskdef resource="net/sf/antcontrib/antlib.xml">
+			<classpath>
+				<fileset dir="${antContrib.lib.dir}" includes="ant-contrib*.jar" />
+			</classpath>
+		</taskdef>
+    <!-- Copy build result to BTT Build WebSite -->
+    
+     <target name="result.transfer.CN" depends="testResult.details">  
+		<echo>构建结果国际化转换</echo>  
+		<echo>build result:${buildResult}</echo>
+		<if>
+			<or>
+				<equals arg1="${buildResult}" arg2="successful" />  
+				<equals arg1="${buildResult}" arg2="s" />  
+			</or>
+			<then>
+				<echo>build results :${buildResult}</echo>
+				<property name="buildResult_CN" value="&lt;font color=&quot;green&quot;&gt;&lt;b&gt;成功&lt;/b&gt;&lt;/font&gt;"/>
+			</then>
+			<else>
+				<if>
+					<or>
+						<equals arg1="${buildResult}" arg2="failed" />  
+						<equals arg1="${buildResult}" arg2="f" />  
+					</or>
+					<then>
+						<echo>build result f:${buildResult}</echo>
+						<property name="buildResult_CN" value="&lt;font color=&quot;red&quot;&gt;&lt;b&gt;失败&lt;/b&gt;&lt;/font&gt;"/>
+					</then>
+					<else>
+						<echo>build result o:${buildResult}</echo>
+						<property name="buildResult_CN" value="&lt;font color=&quot;orange&quot; &gt;&lt;b&gt;结果未知&lt;/b&gt;&lt;/font&gt;"/>
+					</else>
+				</if>
+				
+			</else>
+		</if>
+		<echo>测试结果国际化转换</echo>  
+		<if>
+			<or>
+				<equals arg1="${testResult}" arg2="successful" />  
+				<equals arg1="${testResult}" arg2="s" />  
+			</or>
+			<then>
+				<property name="testResult_CN" value="&lt;font color=&quot;green&quot;&gt;&lt;b&gt;成功&lt;/b&gt;&lt;/font&gt;"/>
+			</then>
+			<else>
+				<if>
+					<or>
+						<equals arg1="${testResult}" arg2="failed" /> 
+						<equals arg1="${testResult}" arg2="f" />  						
+					</or>
+					<then>
+						<property name="testResult_CN" value="&lt;font color=&quot;red&quot;&gt;&lt;b&gt;失败&lt;/b&gt;&lt;/font&gt;"/>
+					</then>
+					<else>
+						<property name="testResult_CN" value="&lt;font color=&quot;orange&quot; &gt;&lt;b&gt;结果未知&lt;/b&gt;&lt;/font&gt;"/>
+					</else>
+				</if>
+				
+			</else>
+		</if>
+		<echo> ${testResult_CN} ${defect}</echo>
+	</target>  
+     <!-- Update BTT Build WebStie-->
+     <target name="SendReportToTeam" depends="result.transfer.CN,generate_message">   
+        <mail mailhost="smtp.qq.com" mailport="465" ssl="true" enableStartTLS="true" subject="BTT8.2.1.0 Full Build Report(Jenkins Build ${mail_title})" user="${mail_user}" password="${maill_password}" charset="utf-8" encoding="mime" messagemimetype="text/html"> 
+			
+            <from address="yandongpeng@qq.com" name="BTT CI Server" /> 			
+                         
+            <to address="dong.peng.yan@unicomsi.com" name="dong.peng.yan" />  
+			<!-- 
+			<to address="hai.hui.jin@unicomsi.com" name="Hai Hui Jin" /> 
+			<to address="jing.shang@unicomsi.com" name=" Jing Shang" />
+			<to address="ling.ling.lu@unicomsi.com" name="Ling Ling Lu" />
+			<to address="ming.zhang@unicomsi.com" name="Ming Zhang" />
+			<to address="shao.ming.geng@unicomsi.com" name="Shao Ming Geng" />
+			<to address="tian.lin.zhang@unicomsi.com" name=" Tian Lin Zhang" />
+			<to address="xiu.lan.sun@unicomsi.com" name="Xiu Lan Sun " />	
+			-->
+            <message>
+            ${message}
+               
+              
+            </message>    
+			
+        </mail>    
+		
+      </target>
+  									
+    <target name="build_all" depends="SendReportToTeam"/>													
+    	<!--
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><title></title><head><body>
+<h1><font color="#ff7f27" ><b>整 体 构 建 测 试 报 告</b></font></h1>
+ <font color="#7722ff" ><b>整体</b></font>构建${buildResult_CN},测试结果${testResult_CN}${testResult_details}<br/>
+<hr><br/>
+
+<a href="http://192.168.1.247:8080/jenkins/job/btt-test-fvt/build_result/" style="font-size:27px">构建报告</a><br/>
+<a href="http://192.168.1.247:8080/jenkins/job/btt-test-fvt/Test_result/" style="font-size:27px">测试报告 </a><br/>
+<i>请注意验证BSO,如果是火狐浏览器或者NOTES中访问,请在about:config中关闭security.csp.enable</i><br/>
+
+</body>
+</html>
+-->
+
+
+		
+</project>

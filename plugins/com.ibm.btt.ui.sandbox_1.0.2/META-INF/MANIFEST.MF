@@ -1,0 +1,13 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Sandbox Plug-in
+Bundle-SymbolicName: com.ibm.btt.ui.sandbox;singleton:=true
+Bundle-Version: 1.0.2
+Bundle-Activator: com.ibm.btt.ui.sandbox.Activator
+Bundle-Vendor: IBM
+Bundle-Localization: plugin
+Require-Bundle: org.eclipse.ui,
+ org.eclipse.core.runtime,
+ org.eclipse.ui.ide,
+ org.eclipse.core.resources
+Eclipse-LazyStart: true

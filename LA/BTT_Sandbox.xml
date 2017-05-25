@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "stax.dtd">
+<stax>
+	
+  <!-- ****************************************************************** -->
+  <!--                       Bttest                        -->
+  <!--                                                                    -->
+  <!-- ****************************************************************** -->
+
+  <function name="BTTtest" scope="local">
+			  
+  <function-prolog>
+    This Function is to call the RFT to perform Dashboard testing for Monitor Models.
+	  
+  </function-prolog>
+	  
+  <function-epilog>
+     <![CDATA[
+		 <p>This function feeds some parameters to RFT</p>
+		 <p>And then call the command line to run testing.</p>
+     ]]>
+  </function-epilog>
+	  
+  <function-list-args>
+	<function-required-arg name="target"></function-required-arg>
+  </function-list-args> 
+ 	
+	
+		<sequence>
+	
+		
+		<call function="'cafRunCommandAdv'">[
+          target,
+		  '/SandBox/sandbox.sh',
+          '',
+          '/SandBox',
+          '/SandBox/sandbox.log'
+          ]
+		</call>
+		 <script>(callRC,callResult) = STAXResult</script>
+			  <if expr="callRC != 0">
+				  <throw exception="'eTerminateFunction'">'run Sandbox automation failed'</throw>
+			  </if>
+	   
+		<return>0</return>
+		</sequence>
+		
+   
+	    
+  </function>
+	
+</stax>

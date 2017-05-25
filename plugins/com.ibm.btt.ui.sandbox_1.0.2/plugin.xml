@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.2"?>
+<plugin>
+   <extension
+         point="org.eclipse.ui.importWizards">
+      <wizard
+            category="org.eclipse.ui.Basic"
+            class="com.ibm.btt.ui.sandbox.ExternalBTTProjectImportWizard"
+            icon="icons/group_go.png"
+            id="com.ibm.btt.ui.sandbox.ExternalBTTProjectImportWizard"
+            name="Exist BTT Project into Workspace">
+         <description>
+            Import existing BTT project into workspace
+         </description>
+      </wizard>
+   </extension>
+</plugin>

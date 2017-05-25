@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "stax.dtd">
+<stax>
+	
+  <!-- ****************************************************************** -->
+  <!--                       BTT_BuildDistribution_Sandbox_ext            -->
+  <!--                                                                    -->
+  <!-- ****************************************************************** -->
+
+  <function name="BTT_BuildDistribution_Sandbox_ext" scope="local">
+			  
+  <function-prolog>
+    This Function is used to:
+	  1) Distribute the zip file of Composer to different targets.
+	  2) Run the Sandbox on the targets which has the Composer file.
+	  
+  </function-prolog>
+	  
+  <function-epilog>
+     <![CDATA[
+		 <p>This function fits the platforms of Windows/Linux/Aix/SunOS</p>
+     ]]>
+  </function-epilog>
+	  
+  <function-list-args>
+	<function-required-arg name="target"></function-required-arg>
+	<function-required-arg name="SourceServer"></function-required-arg>
+	<function-required-arg name="SourceDirectory"></function-required-arg>
+	<function-required-arg name="SourceFileName"></function-required-arg>
+	<function-required-arg name="TargetDirectory"></function-required-arg>
+	<function-required-arg name="myCommand"></function-required-arg>
+  </function-list-args>
+	
+	<try>
+    
+	  <sequence>
+		<!-- Local Variables -->
+		<script>myLogLevel = "User7"</script>
+
+		<log level='myLogLevel'>'Starting the distribution of the Composer file.'</log>	
+		  
+		<!-- Copy the Composer file from the Source machine to different targets.-->    
+		<call function="'cafCopyFile'">SourceServer,SourceDirectory,SourceFileName,target,TargetDirectory,SourceFileName</call>
+		<script>(callRC,callResult) = STAXResult</script>
+		<if expr="callRC != 0">
+			<throw exception="'File.Distribution.Exception'">'I had a problem copying the Composer file.'</throw>
+		</if>
+		  
+		<!-- Run the Sandbox Testing -->
+		<log level='myLogLevel'>'Starting to run the sandbox.sh/sandbox.bat on the target.'</log>
+		<call function="'cafRunCommandAdv'">target,'%s%s%s' % (TargetDirectory,FileSeparator,myCommand),'',TargetDirectory,'%s%ssandbox.log' %(TargetDirectory,FileSeparator)</call>
+		<script>(callRC,callResult) = STAXResult</script>
+		<if expr="callRC != 0">
+			<throw exception="'Command.Execution.Exception'">'I had a problem running the sandbox command.'</throw>
+		</if>
+		 
+		<log level="'info'">'Done with the File Distribution and Sandbox Execution'</log>
+	  	  	  
+		<return>0</return>
+
+	  </sequence>
+		
+  <!-- ################################### Begin exception handlers ############################################################################# -->
+    <catch exception="'File.Distribution.Exception'" var="eInfo">
+      <sequence>
+        <log level="'fail'">'%s  %s:  Terminating function   Error: %s' % (STAXCurrentTestcase,STAXCurrentFunction,eInfo)</log>
+        <tcstatus result="'fail'">eInfo</tcstatus>
+      <return>1</return>
+      </sequence>
+    </catch>
+	
+	<catch exception="'Command.Execution.Exception'" var="eInfo">
+      <sequence>
+        <log level="'fail'">'%s  %s:  Terminating function   Error: %s' % (STAXCurrentTestcase,STAXCurrentFunction,eInfo)</log>
+        <tcstatus result="'fail'">eInfo</tcstatus>
+      <return>1</return>
+      </sequence>
+    </catch>
+  <!-- ################################### End exception handlers ############################################################################### -->
+
+	</try>
+	    
+  </function>
+	
+</stax>

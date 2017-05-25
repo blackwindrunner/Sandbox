@@ -1,0 +1,126 @@
+0    [main] INFO  com.unicomsi.btt.util.branding.License  - start ...
+14719 [Global.js] WARN  com.unicomsi.btt.util.branding.LicenseListHandler  - 
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\common\Global.js
+14719 [MessageBox.js] WARN  com.unicomsi.btt.util.branding.LicenseListHandler  - 
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\common\MessageBox.js
+14719 [WorkareaAPI.js] WARN  com.unicomsi.btt.util.branding.LicenseListHandler  - 
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\common\WorkareaAPI.js
+14719 [Util.js] WARN  com.unicomsi.btt.util.branding.LicenseListHandler  - 
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\common\Util.js
+14719 [desktop.js] WARN  com.unicomsi.btt.util.branding.LicenseListHandler  - 
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\desktop\desktop.js
+14719 [ServicelistAPI.js] WARN  com.unicomsi.btt.util.branding.LicenseListHandler  - 
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\common\ServicelistAPI.js
+14719 [desk.js] WARN  com.unicomsi.btt.util.branding.LicenseListHandler  - 
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\desktop\view\desk.js
+14719 [fixedboard.js] WARN  com.unicomsi.btt.util.branding.LicenseListHandler  - 
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\desktop\view\fixedboard.js
+14719 [desktopicon.js] WARN  com.unicomsi.btt.util.branding.LicenseListHandler  - 
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\desktop\view\desktopicon.js
+14719 [setting.js] WARN  com.unicomsi.btt.util.branding.LicenseListHandler  - 
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\desktop\view\setting.js
+14719 [servicetree.js] WARN  com.unicomsi.btt.util.branding.LicenseListHandler  - 
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\desktop\view\servicetree.js
+14719 [taskbar.js] WARN  com.unicomsi.btt.util.branding.LicenseListHandler  - 
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\desktop\view\taskbar.js
+14719 [startmenu.js] WARN  com.unicomsi.btt.util.branding.LicenseListHandler  - 
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\desktop\view\startmenu.js
+14719 [Console.js] WARN  com.unicomsi.btt.util.branding.LicenseListHandler  - 
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\exception\Console.js
+14719 [ComponentIoc.js] WARN  com.unicomsi.btt.util.branding.LicenseListHandler  - 
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\ioc\component\ComponentIoc.js
+14719 [ServiceIoc.js] WARN  com.unicomsi.btt.util.branding.LicenseListHandler  - 
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\ioc\component\ServiceIoc.js
+14719 [window.js] WARN  com.unicomsi.btt.util.branding.LicenseListHandler  - 
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\desktop\view\window.js
+14719 [Engine.js] WARN  com.unicomsi.btt.util.branding.LicenseListHandler  - 
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\ioc\core\Engine.js
+14719 [Repository.js] WARN  com.unicomsi.btt.util.branding.LicenseListHandler  - 
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\ioc\core\Repository.js
+14719 [ConfigParser.js] WARN  com.unicomsi.btt.util.branding.LicenseListHandler  - 
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\ioc\core\ConfigParser.js
+14719 [Factory.js] WARN  com.unicomsi.btt.util.branding.LicenseListHandler  - 
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\ioc\core\Factory.js
+14719 [Error.js] WARN  com.unicomsi.btt.util.branding.LicenseListHandler  - 
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\exception\Error.js
+14719 [LayoutIoc.js] WARN  com.unicomsi.btt.util.branding.LicenseListHandler  - 
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\ioc\component\LayoutIoc.js
+14719 [CatalogService.js] WARN  com.unicomsi.btt.util.branding.LicenseListHandler  - 
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\runtime\CatalogService.js
+14719 [iContext.js] WARN  com.unicomsi.btt.util.branding.LicenseListHandler  - 
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\runtime\iContext.js
+14735 [ResourceService.js] WARN  com.unicomsi.btt.util.branding.LicenseListHandler  - 
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\runtime\ResourceService.js
+14735 [Widget.js] WARN  com.unicomsi.btt.util.branding.LicenseListHandler  - 
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\runtime\Widget.js
+14735 [WgtDefService.js] WARN  com.unicomsi.btt.util.branding.LicenseListHandler  - 
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\runtime\WgtDefService.js
+14735 [WidgetRT.js] WARN  com.unicomsi.btt.util.branding.LicenseListHandler  - 
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\runtime\WidgetRT.js
+14735 [AbstractColumnLogic.js] WARN  com.unicomsi.btt.util.branding.LicenseListHandler  - 
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\workplace\abstractcontroller\AbstractColumnLogic.js
+14735 [WidgetDef.js] WARN  com.unicomsi.btt.util.branding.LicenseListHandler  - 
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\runtime\WidgetDef.js
+14735 [AbstractRowLogic.js] WARN  com.unicomsi.btt.util.branding.LicenseListHandler  - 
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\workplace\abstractcontroller\AbstractRowLogic.js
+14735 [AbstractPageLogic.js] WARN  com.unicomsi.btt.util.branding.LicenseListHandler  - 
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\workplace\abstractcontroller\AbstractPageLogic.js
+14735 [AbstractTabLogic.js] WARN  com.unicomsi.btt.util.branding.LicenseListHandler  - 
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\workplace\abstractcontroller\AbstractTabLogic.js
+14735 [AbstractServicelistLogic.js] WARN  com.unicomsi.btt.util.branding.LicenseListHandler  - 
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\workplace\abstractcontroller\AbstractServicelistLogic.js
+14735 [ColumnLogic.js] WARN  com.unicomsi.btt.util.branding.LicenseListHandler  - 
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\workplace\controller\ColumnLogic.js
+14735 [ServicelistLogic.js] WARN  com.unicomsi.btt.util.branding.LicenseListHandler  - 
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\workplace\controller\ServicelistLogic.js
+14735 [PageLogic.js] WARN  com.unicomsi.btt.util.branding.LicenseListHandler  - 
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\workplace\controller\PageLogic.js
+14735 [MainPage.js] WARN  com.unicomsi.btt.util.branding.LicenseListHandler  - 
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\workplace\MainPage.js
+14735 [ComponentBase.js] WARN  com.unicomsi.btt.util.branding.LicenseListHandler  - 
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\workplace\model\base\ComponentBase.js
+14735 [RowLogic.js] WARN  com.unicomsi.btt.util.branding.LicenseListHandler  - 
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\workplace\controller\RowLogic.js
+14735 [TabLogic.js] WARN  com.unicomsi.btt.util.branding.LicenseListHandler  - 
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\workplace\controller\TabLogic.js
+14735 [Page.js] WARN  com.unicomsi.btt.util.branding.LicenseListHandler  - 
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\workplace\model\layout\Page.js
+14735 [Row.js] WARN  com.unicomsi.btt.util.branding.LicenseListHandler  - 
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\workplace\model\layout\Row.js
+14735 [Tab.js] WARN  com.unicomsi.btt.util.branding.LicenseListHandler  - 
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\workplace\model\layout\Tab.js
+14735 [Column.js] WARN  com.unicomsi.btt.util.branding.LicenseListHandler  - 
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\workplace\model\layout\Column.js
+14735 [ServiceBase.js] WARN  com.unicomsi.btt.util.branding.LicenseListHandler  - 
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\workplace\model\servicelist\ServiceBase.js
+14735 [Service.js] WARN  com.unicomsi.btt.util.branding.LicenseListHandler  - 
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\workplace\model\servicelist\Service.js
+14735 [ServiceRepository.js] WARN  com.unicomsi.btt.util.branding.LicenseListHandler  - 
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\workplace\model\servicelist\ServiceRepository.js
+14735 [MainPortal.js] WARN  com.unicomsi.btt.util.branding.LicenseListHandler  - 
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\workplace\MainPortal.js
+14735 [ServiceCategory.js] WARN  com.unicomsi.btt.util.branding.LicenseListHandler  - 
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\workplace\model\servicelist\ServiceCategory.js
+14735 [WidgetAttribute.js] WARN  com.unicomsi.btt.util.branding.LicenseListHandler  - 
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\workplace\model\servicelist\WidgetAttribute.js
+14735 [ServiceWidget.js] WARN  com.unicomsi.btt.util.branding.LicenseListHandler  - 
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\workplace\model\servicelist\ServiceWidget.js
+14735 [ColumnContainerComp.js] WARN  com.unicomsi.btt.util.branding.LicenseListHandler  - 
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\workplace\view\ColumnContainerComp.js
+14735 [WidgetChildren.js] WARN  com.unicomsi.btt.util.branding.LicenseListHandler  - 
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\workplace\model\servicelist\WidgetChildren.js
+14735 [Container.js] WARN  com.unicomsi.btt.util.branding.LicenseListHandler  - 
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\workplace\view\Container.js
+14735 [Component.js] WARN  com.unicomsi.btt.util.branding.LicenseListHandler  - 
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\workplace\view\Component.js
+14735 [Drag.js] WARN  com.unicomsi.btt.util.branding.LicenseListHandler  - 
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\workplace\view\Drag.js
+14735 [TabContainerComp.js] WARN  com.unicomsi.btt.util.branding.LicenseListHandler  - 
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\workplace\view\TabContainerComp.js
+14735 [MenuService.js] WARN  com.unicomsi.btt.util.branding.LicenseListHandler  - 
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\workplace\view\MenuService.js
+14735 [PageContainerComp.js] WARN  com.unicomsi.btt.util.branding.LicenseListHandler  - 
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\workplace\view\PageContainerComp.js
+14750 [WidgetVO.js] WARN  com.unicomsi.btt.util.branding.LicenseListHandler  - 
+License : D:\composer8210\BTTWeb2Container\BTTWeb20\workplace\view\WidgetVO.js
+21031 [main] INFO  com.unicomsi.btt.util.branding.License  - done !!!

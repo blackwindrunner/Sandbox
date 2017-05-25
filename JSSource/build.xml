@@ -1,0 +1,131 @@
+<!-- Ant build script for BTTCore -->
+<project name="BTTWeb2JSLib" default="build_all" basedir=".">
+
+    <property file="C:/LocalSettings.properties"/>
+	<property name="dojo_src_path" value="../SandBox/dojo_for_zeroCode"/>
+    <property name="dojo_src_name" value="dojo_source.zip"/>
+	<property name="dojo_name" value="dojo.zip"/>
+	<property name="src" value="./sourceCode"/>
+	<property name="dojoBuild_path" value="${src}/util/buildscripts"/>
+	<property name="dojo_btt" value="dojo_BTT.js"/>
+	<property name="customizedDojo_path" value="../CustomizedDojo"/>
+	
+	<target name="get_dojoSrc">
+		<copy todir="${src}">
+            <fileset dir="${dojo_src_path}" includes="${dojo_src_name}"/>
+		</copy>
+	</target>
+	
+	<target name="unzip_dojoSrc" depends="get_dojoSrc">
+		<unzip src="${src}/${dojo_src_name}" dest="${src}"/>
+	</target>
+	
+	<!--this target is used for CustomizedDojo build, it will not affect to BTTWeb2JSLib build. Modified by sunxl -->
+	<target name="prepareCustomizedDojoEnv" depends="unzip_dojoSrc">
+		<mkdir dir="${customizedDojo_path}" />
+		<copy todir="${customizedDojo_path}/sourceCode">
+			<fileset dir="./sourceCode" includes="**"/>
+		</copy>
+	</target>
+	
+	<target name="dojo_build" depends="unzip_dojoSrc">
+		<echo message="build"/>
+		<exec executable="cmd.exe"  failonerror="false" dir="${dojoBuild_path}">
+                <arg line="/c build.bat profile=../../../btt-build.profile.js action=release releaseName=btt optimize=shrinksafe removeDefaultNameSpaces=true"/>
+         </exec>  
+	</target>
+	
+	<target name="deliverable_src" >
+		<mkdir dir="deliverables" />
+		<move file="${src}/release/btt/com/ibm/btt/btt.js.uncompressed.js" todir="./sourceCode/com/ibm/btt/"/>
+		<checksum file="./sourceCode/com/ibm/btt/btt.js.uncompressed.js"/>
+		<zip destfile="deliverables/BTTWeb2JSLib_src.zip" basedir="./sourceCode/" includes="com/"/>
+	</target>
+	
+	<target name="deliverable_zip" >
+		<checksum file="./sourceCode/release/btt/com/ibm/btt/btt.js"/>
+		<delete>
+			<fileset dir="./sourceCode/release/btt/com/ibm/btt/dijit/nls/" includes="**/*.uncompressed.js"/>
+		</delete>
+		<copy todir="sourceCode/release/btt/com/ibm/btt" file="./sourceCode/com/ibm/btt/btt.js.uncompressed.js"/>
+		<checksum file="./sourceCode/release/btt/com/ibm/btt/btt.js.uncompressed.js"/>
+		<zip destfile="deliverables/BTTWeb2JSLib.zip" basedir="./sourceCode/release/btt/" includes="com/ibm/btt/btt.js.uncompressed.js,com/ibm/btt/btt.js.uncompressed.js.MD5,com/ibm/btt/btt.js,com/ibm/btt/btt.js.MD5,com/ibm/btt/dijit/nls/,com/ibm/btt/dijit/templates/,com/ibm/btt/dijit/images/"/>
+	</target>
+	
+	<target name="zip_dojo" >
+		<!--<move file="${src}/release/btt/dojo/dojo.js" tofile="${src}/release/btt/dojo/${dojo_btt}"/>-->
+		<!--<move file="${src}/release/btt/dojo/dojo.js.uncompressed.js" tofile="${src}/release/btt/dojo/${dojo_btt}.uncompressed.js"/>-->
+		<!--copy file="${src}/dojo/dojo.js" tofile="${src}/release/btt/dojo/dojo.js"/-->
+		<checksum file="${src}/release/btt/dojo/dojo.js"/>
+		<checksum file="${src}/release/btt/dojo/dojo.js.uncompressed.js"/>
+		<checksum file="${src}/release/btt/dojox/dojox.js"/>
+		<checksum file="${src}/release/btt/dojox/dojox.js.uncompressed.js"/>
+		<!--zip destfile="${dojo_src_path}/${dojo_name}" basedir="${src}/release/btt/" includes="dojo/,dijit/,dojox/"/-->
+	</target>
+	
+	<target name="remove_installation">
+		<mkdir dir="installation/lib"/>
+		<mkdir dir="installation/plugins"/>
+		<mkdir dir="installation/samples"/>
+		<mkdir dir="installation/template"/>
+			<delete>
+				<fileset dir="installation/lib" includes="**"/>
+				<fileset dir="installation/plugins" includes="**"/>
+				<fileset dir="installation/samples" includes="**"/>
+				<fileset dir="installation/template" includes="**"/>
+        </delete>
+    </target>
+	
+	
+	<target name="remove_jars">
+    <mkdir dir="deliverables"/>
+        <delete>
+            <fileset dir="deliverables" includes="**"/>
+        </delete>
+    </target>
+
+    <target name="remove_classes">
+    <mkdir dir="bin"/>
+        <delete>
+            <fileset dir="bin" includes="**"/>
+        </delete>
+    </target>
+	 <target name="deliverable_installation" >
+        <copy todir="installation/lib">
+            <fileset dir="deliverables" includes="BTTWeb2JSLib.zip"/>
+			<fileset dir="deliverables" includes="BTTWeb2JSLib_src.zip"/>
+        </copy>
+    </target>
+	<target name="delete_release" >
+		<delete dir="${src}/release"/>
+	</target>
+	<!--remove ../CustomizedDojo folder -->
+	<target name="removeCustomizedDojoEnv">
+		<delete dir="${customizedDojo_path}"/>	
+	</target>
+	<target name="clean" depends="remove_installation,remove_jars,remove_classes,delete_release,removeCustomizedDojoEnv">
+	</target>
+
+	<target name="delete_temp" >
+		<delete file="${src}/${dojo_src_name}"/>
+		<delete dir="${src}/dijit"/>
+		<delete dir="${src}/dojo"/>
+		<delete dir="${src}/dojox"/>
+		<!-- delete dir="${src}/release"/ -->
+		<delete dir="${src}/util"/>
+		<delete dir="${src}/org"/>
+		<delete dir="${src}/cometd"/>
+		<delete dir="${src}/gridx"/>
+	</target>
+	
+    <target name="build_all" depends="clean,
+									  prepareCustomizedDojoEnv,
+									  dojo_build,
+									  zip_dojo,
+									  deliverable_src,
+									  deliverable_zip,
+									  deliverable_installation,
+									  delete_temp
+								   "/>
+    
+</project>

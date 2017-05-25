@@ -1,0 +1,339 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "stax.dtd">
+<stax>
+
+  <!-- ****************************************************************** -->
+  <!--                          mon_62FullBvtTest                         -->
+  <!--                                                                    -->
+  <!--                                                                    -->
+  <!-- ****************************************************************** -->
+
+  <function name="mon_62FullBvtTest" scope="local">
+    <function-prolog>
+      This function will run the BVT Suite of tests on a single target machine.
+	  It will install the selected Monitor build on the target machine
+	  It will run all possible BVT models
+	  this function will send the formal BVT email
+	  It will uninstall monitor at completeion of test
+		
+	  Not a publicly accessible function
+		
+
+		Tests that will be run:
+			ClaimProcessingTracker
+			AutoParts
+			BeverageMonitor
+		    PatientVisit
+			OrderItem
+			CDG003
+			CDG005
+			CDG012
+			CDG015
+		
+    </function-prolog>
+
+    <function-epilog>
+      <![CDATA[
+      ]]>
+    </function-epilog>
+
+    <function-list-args>
+		<function-required-arg name="target">Hostname/IP address of the target machine</function-required-arg>
+		<function-required-arg name="buildPath">Build to Install or Build that exists on target if already installed</function-required-arg>
+	</function-list-args>
+	
+	<try>  
+	  <sequence>
+		
+		<!-- Local variables -->	
+		<script>myLogLevel="User7"</script>
+		<!-- IGNORE THESE PREFIXES FOR FORMAL BVT -->
+		<script>prefixIgnoreList = ['mock']</script>
+		  
+		<!-- Get the InstallLibrary where the working functions are -->	
+		<script>libraryLoc="bpm/monitor/testcases/bvtLibrary.xml"</script>
+        <log level='myLogLevel'>'MJL: Library Location is %s' % (libraryLoc)</log>
+		 
+        <call function="'cafImportCustomLibrary'"> [libraryLoc] </call>
+        <script>importRC = STAXResult</script>
+        <if expr="importRC != 0">
+		  <throw exception="'eTerminateFunction'">'Failed to Import the necessary library %s for this function.' % (libraryLoc)</throw>
+	    </if>
+		  
+		<!-- Edit BuildPath so its the MediaRepository Location not LA Server this will apply to all calls -->
+	    <script>buildPath = buildPath.replace('/mnt','')</script>
+	    <log level='myLogLevel'>'The media repository location of build is : %s' % (buildPath)</log>
+		  
+		<!-- ***** Logic for handling a LATEST Build selection ***** -->
+		<!-- determine RELEASE from BuildPath -->
+		<script>split = buildPath.split('monitor_builds/')</script>
+		<script>split2 = split[-1].split('/')</script>	
+		<script>releaseLevel = split2[0]</script>
+		
+		<!-- determine build Selected from BuildPath -->
+		<script>split = buildPath.split('CDMON/')</script>
+		<script>buildSelected = split[-1]</script>
+		   
+	    <log level="'info'">'MJL: Build selected is %s' % (buildSelected)</log>
+	    <if expr="buildSelected == 'latest'">
+		  <sequence>
+			  <!-- resolve the media Server variable -->
+	          <call function="'cafResolveLAVar'">'Config/mediaServer'</call>
+              <script>mediaServer = STAXResult</script>
+			  <!-- catToRun = the location on media server where the latest61.txt resides -->
+			  <script>catToRun = 'cat /bpmmedia/monitor_builds/%sLatest' % (releaseLevel)</script>
+			  <log level="'info'">'Install Latest Build was selected...retrieving latest build for release %s' % (releaseLevel)</log>
+			  <call function="'cafRunCommand'">mediaServer,catToRun</call>
+			  <script>(callRC,callResult) = STAXResult</script>
+			  <if expr="callRC != 0">
+				  <throw exception="'eTerminateFunction'">'MJL: Was unable to get the latest build from media server! Contact Matt Lishok'</throw>
+				  <else>
+					  <sequence>
+						  <script>realPath = callResult</script>
+						  <log level='myLogLevel'>'Setting the buildPath to %s' % realPath</log>
+						  <script>buildPath = realPath</script>
+					  </sequence>
+				  </else>
+			  </if>
+		  </sequence>
+	    </if>  
+		  
+		<!-- ***** Parsing and logic to ignore certain prefixes (onyl applies to this formal BVT function ***** -->
+		<!-- now that latest has gave us a true path..get build selected again -->
+		<script>split = buildPath.split('CDMON/')</script>
+		<script>buildSelected = split[-1]</script>
+		<log level="'info'">'Checking build prefix of bvt candidate'</log>
+		<iterate var="prefix" in="prefixIgnoreList">
+		  <sequence>
+		    <if expr="buildSelected.startswith(prefix) == 1">
+				<sequence>
+					<!-- then we want to ignore this build as a bvt candidate -->
+					<log level='myLogLevel'>'Build %s is not a BVT candidate build. Prefix %s is in ignore list' % (buildSelected,prefix)</log>
+					<throw exception="'eTerminateFunction'">'IGNORE THIS FAILURE. BUILD %s IS NOT A BVT CANDIDATE' % (buildSelected)</throw>
+				</sequence>
+			</if>
+		  </sequence>  
+	    </iterate>
+		  
+		<!-- Call Formal BVT Test -->
+		
+		<try>    
+		  <call function="'mon_62BvtTest'">{
+			  'target'                    : target,
+			  'buildPath'                 : buildPath,
+			  'installBuild'              : 'true',
+			  'continueOnPartial'         : 'true',
+			  'runClaim'                  : 'on',
+			  'runAuto'                   : 'on',
+			  'runBev'                    : 'on',
+			  'runOrder'                  : 'on',
+			  'runPatVis'                 : 'on',
+			  'runCdg03'                  : 'on',
+			  'runCdg05'                  : 'on',
+			  'runCdg12'                  : 'on',
+			  'runCdg15'                  : 'on',
+			  'runPortalDash'             : 'off',
+			  'runBspaceDash'             : 'off',
+			  'wasHomeDirectory'          : 'C:\\IBM\\WebSphere\\MonServer',
+			  'wasServerName'             : 'server1',
+			  'profileNameInWas'          : 'WBMon01',
+			  'dbName'                    : 'MONITOR',
+			  'dbSchema'                  : 'MONITOR',
+			  'dbUser'                    : 'wbi',
+			  'dbPass'                    : 'wb1monitor',
+			  'sendEmail'                 : 'true',
+			  'unInstallBuild'            : 'true',
+			  'tryToReimage'              : 'true'
+		  }</call>
+		  <catch exception="'...'" var="eInfo">
+			<throw exception="'eTerminateFunction'">eInfo</throw>
+		  </catch>
+		</try>
+		  
+	  <return>0</return>	   
+		
+	  </sequence>
+		
+	  <!-- ################################### Begin exception handlers ###################################################### -->
+
+      <catch exception="'eTerminateFunction'" var="eInfo">
+        <sequence>
+		  <!-- Collect logs here : SystemOut.log, maybe trace.log etc -->
+          <log level="'fail'">'%s  %s:  Terminating function   Error: %s' % (STAXCurrentTestcase,STAXCurrentFunction,eInfo)</log>
+          <tcstatus result="'fail'">eInfo</tcstatus>
+          <return>1</return>
+        </sequence>
+      </catch>
+
+      <!-- ################################### End exception handlers ######################################################### -->
+	  
+	</try>	
+  </function>
+	
+  <!-- ****************************************************************** -->
+  <!--                          mon_61FullBvtTest                         -->
+  <!--                                                                    -->
+  <!--                                                                    -->
+  <!-- ****************************************************************** -->
+
+  <function name="mon_61FullBvtTest" scope="local">
+    <function-prolog>
+      This function will run the BVT Suite of tests on a single target machine.
+	  It will install the selected Monitor build on the target machine
+	  It will run all possible BVT models
+	  this function will send the formal BVT email
+	  It will uninstall monitor at completeion of test
+		
+	  Not a publicly accessible function
+		
+
+		Tests that will be run:
+			ClaimProcessingTracker
+			AutoParts
+			BeverageMonitor
+		    PatientVisit
+			OrderItem
+			CDG003
+			CDG005
+			CDG012
+			CDG015
+		
+    </function-prolog>
+
+    <function-epilog>
+      <![CDATA[
+      ]]>
+    </function-epilog>
+
+    <function-list-args>
+		<function-required-arg name="target">Hostname/IP address of the target machine</function-required-arg>
+		<function-required-arg name="buildPath">Build to Install or Build that exists on target if already installed</function-required-arg>
+	</function-list-args>
+	
+	<try>  
+	  <sequence>
+		
+		<!-- Local variables -->	
+		<script>myLogLevel="User7"</script>
+		<!-- IGNORE THESE PREFIXES FOR FORMAL BVT -->
+		<script>prefixIgnoreList = ['mock']</script>
+		  
+		<!-- Get the InstallLibrary where the working functions are -->	
+		<script>libraryLoc="bpm/monitor/testcases/bvtLibrary.xml"</script>
+        <log level='myLogLevel'>'MJL: Library Location is %s' % (libraryLoc)</log>
+		 
+        <call function="'cafImportCustomLibrary'"> [libraryLoc] </call>
+        <script>importRC = STAXResult</script>
+        <if expr="importRC != 0">
+		  <throw exception="'eTerminateFunction'">'Failed to Import the necessary library %s for this function.' % (libraryLoc)</throw>
+	    </if>
+		  
+		<!-- Edit BuildPath so its the MediaRepository Location not LA Server this will apply to all calls -->
+	    <script>buildPath = buildPath.replace('/mnt','')</script>
+	    <log level='myLogLevel'>'The media repository location of build is : %s' % (buildPath)</log>
+		  
+		<!-- ***** Logic for handling a LATEST Build selection ***** -->
+		<!-- determine RELEASE from BuildPath -->
+		<script>split = buildPath.split('monitor_builds/')</script>
+		<script>split2 = split[-1].split('/')</script>	
+		<script>releaseLevel = split2[0]</script>
+		
+		<!-- determine build Selected from BuildPath -->
+		<script>split = buildPath.split('CDMON/')</script>
+		<script>buildSelected = split[-1]</script>
+		   
+	    <log level="'info'">'MJL: Build selected is %s' % (buildSelected)</log>
+	    <if expr="buildSelected == 'latest'">
+		  <sequence>
+			  <!-- resolve the media Server variable -->
+	          <call function="'cafResolveLAVar'">'Config/mediaServer'</call>
+              <script>mediaServer = STAXResult</script>
+			  <!-- catToRun = the location on media server where the latest61.txt resides -->
+			  <script>catToRun = 'cat /bpmmedia/monitor_builds/%sLatest' % (releaseLevel)</script>
+			  <log level="'info'">'Install Latest Build was selected...retrieving latest build for release %s' % (releaseLevel)</log>
+			  <call function="'cafRunCommand'">mediaServer,catToRun</call>
+			  <script>(callRC,callResult) = STAXResult</script>
+			  <if expr="callRC != 0">
+				  <throw exception="'eTerminateFunction'">'MJL: Was unable to get the latest build from media server! Contact Matt Lishok'</throw>
+				  <else>
+					  <sequence>
+						  <script>realPath = callResult</script>
+						  <log level='myLogLevel'>'Setting the buildPath to %s' % realPath</log>
+						  <script>buildPath = realPath</script>
+					  </sequence>
+				  </else>
+			  </if>
+		  </sequence>
+	    </if>  
+		  
+		<!-- ***** Parsing and logic to ignore certain prefixes (onyl applies to this formal BVT function ***** -->
+		<!-- now that latest has gave us a true path..get build selected again -->
+		<script>split = buildPath.split('CDMON/')</script>
+		<script>buildSelected = split[-1]</script>
+		<log level="'info'">'Checking build prefix of bvt candidate'</log>
+		<iterate var="prefix" in="prefixIgnoreList">
+		  <sequence>
+		    <if expr="buildSelected.startswith(prefix) == 1">
+				<sequence>
+					<!-- then we want to ignore this build as a bvt candidate -->
+					<log level='myLogLevel'>'Build %s is not a BVT candidate build. Prefix %s is in ignore list' % (buildSelected,prefix)</log>
+					<throw exception="'eTerminateFunction'">'IGNORE THIS FAILURE. BUILD %s IS NOT A BVT CANDIDATE' % (buildSelected)</throw>
+				</sequence>
+			</if>
+		  </sequence>  
+	    </iterate>
+		  
+		<!-- Call Formal BVT Test -->
+		
+		<try>    
+		  <call function="'mon_61BvtTest'">{
+			  'target'                    : target,
+			  'buildPath'                 : buildPath,
+			  'installBuild'              : 'true',
+			  'continueOnPartial'         : 'true',
+			  'runClaim'                  : 'on',
+			  'runAuto'                   : 'on',
+			  'runBev'                    : 'on',
+			  'runOrder'                  : 'on',
+			  'runPatVis'                 : 'on',
+			  'runCdg03'                  : 'on',
+			  'runCdg05'                  : 'on',
+			  'runCdg12'                  : 'on',
+			  'runCdg15'                  : 'on',
+			  'wasHomeDirectory'          : 'C:\\IBM\\WebSphere\\MonServer',
+			  'wasServerName'             : 'server1',
+			  'profileNameInWas'          : 'WBMon01',
+			  'dbName'                    : 'MONITOR',
+			  'dbSchema'                  : 'MONITOR',
+			  'dbUser'                    : 'wbi',
+			  'dbPass'                    : 'wb1monitor',
+			  'sendEmail'                 : 'true',
+			  'unInstallBuild'            : 'true'
+		  }</call>
+		  <catch exception="'...'" var="eInfo">
+			<throw exception="'eTerminateFunction'">eInfo</throw>
+		  </catch>
+		</try>
+		  
+	  <return>0</return>	   
+		
+	  </sequence>
+		
+	  <!-- ################################### Begin exception handlers ###################################################### -->
+
+      <catch exception="'eTerminateFunction'" var="eInfo">
+        <sequence>
+		  <!-- Collect logs here : SystemOut.log, maybe trace.log etc -->
+          <log level="'fail'">'%s  %s:  Terminating function   Error: %s' % (STAXCurrentTestcase,STAXCurrentFunction,eInfo)</log>
+          <tcstatus result="'fail'">eInfo</tcstatus>
+          <return>1</return>
+        </sequence>
+      </catch>
+
+      <!-- ################################### End exception handlers ######################################################### -->
+	  
+	</try>	
+  </function>
+	
+		  		
+</stax>

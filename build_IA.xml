@@ -1,0 +1,116 @@
+<project name="build_IA" default="build_all" basedir=".">
+
+
+    <!-- The following properties files
+        1. set local build machine requirements for implementation in
+        2. general and custom variable definitions for all drivers -->
+    		
+    <property file="C:/LocalSettings.properties"/>
+    <property name="javac.encoding" value="GBK"/>
+	<property name="IA_home" value="C:\\Program Files (x86)\\installAnywhere 2015"/>
+    <property name="BTT_installer_home" value="E:\\BTT_Installer\\8210"/>
+	<property name="build.type" value="_was7"/> 
+	
+    <target name="copy_source">
+		<mkdir dir="${BTT_installer_home}\materials\BTTInstallPackaging"/>
+		<unzip src="${ENG_WORK_SPACE}\BTTInstallPackaging\InstallPackaging.zip" dest="${BTT_installer_home}\materials\BTTInstallPackaging"/>
+    </target>
+	<target name="update_plugin" depends="copy_source">
+		<exec dir="${ENG_WORK_SPACE}" executable="cmd.exe" >      
+			<arg line="/c ${ENG_WORK_SPACE}\SandBox\update_BTTPlugin_Windows.bat" />   
+			<arg line="/c exit" />   
+		</exec>
+	</target>
+	<target name="zip_BTT_IDE_Windows" depends="update_plugin">
+		<zip zipfile="${BTT_installer_home}\materials\BTT_IDE_Windows.zip" basedir="${BTT_installer_home}\materials" includes="BTT_IDE_Windows/**"/>
+    </target>
+    
+	<!--target name="prepare_IDE_WIndows" depends="copy_source">
+		<unzip src="${BTT_installer_home}\materials\BTT_IDE_Windows.zip" dest="${BTT_installer_home}\materials"/>
+		<delete file="${BTT_installer_home}\materials\BTT_IDE_Windows.zip"/>
+		<exec dir="${ENG_WORK_SPACE}" executable="cmd.exe" >      
+			<arg line="/c ${ENG_WORK_SPACE}\SandBox\update_BTTPlugin_Windows.bat" />   
+			<arg line="/c exit" />   
+		</exec>
+		<zip zipfile="${BTT_installer_home}\materials\BTT_IDE_Windows.zip" basedir="${BTT_installer_home}\materials" includes="BTT_IDE_Windows/**"/>
+    </target-->
+	
+    <!-- Create a silent installer for BVT-->
+   <!--not use -->
+    <!--target name="create_installer">   	
+		<taskdef name="buildinstaller" classname="com.zerog.ia.integration.ant.InstallAnywhereAntTask">
+			<classpath location="${WAS_HOME}/deploytool/itp/plugins/org.apache.ant_1.6.5/lib/iaant.jar"/>
+		</taskdef>		
+		<buildinstaller IAlocation="H:\BTTInstallerIA\InstallAnywhere8"
+                    IAProjectFile="H:\BTTInstallerIA\BTT801\BTT811.iap_xml"
+                    BuildWindowsWithVM = "true"
+                    BuildWindowsWithoutVM = "false"/>   					
+    </target -->
+	
+    <!-- Create a gui installer for PVT-->
+   
+    <!-- target name="create_guiinstaller_workgroup">   	
+    	<taskdef name="buildinstaller" classname="com.zerog.ia.integration.ant.InstallAnywhereAntTask">
+			<classpath location="${IA_home}\resource\build\iaant.jar"/>
+		</taskdef>		
+		<buildinstaller IAlocation="${IA_home}"
+                    	IAProjectFile="${BTT_installer_home}\BTT8210_Workgroup\Btt8210_workgroup.iap_xml"
+                    	BuildLinuxWithVM = "true"
+                    	BuildWindowsWithVM = "true"
+                    	BuildLinuxWithoutVM = "false"
+                    	BuildWindowsWithoutVM = "false"/>                   
+    </target -->
+    
+	<target name="create_guiinstaller_enterprise_win">   	
+		<taskdef name="buildinstaller" classname="com.zerog.ia.integration.ant.InstallAnywhereAntTask">
+			<classpath location="${IA_home}\resource\build\iaant.jar"/>
+		</taskdef>		
+		<buildinstaller IAlocation="${IA_home}"
+                    	IAProjectFile="${BTT_installer_home}\BTT8210_Windows\Btt8210_enterprise.iap_xml"
+                    	BuildLinuxWithVM = "false"
+                    	BuildWindowsWithVM = "true"
+                    	BuildLinuxWithoutVM = "false"
+                    	BuildWindowsWithoutVM = "false"/>                   
+    </target>
+    <target name="create_guiinstaller_enterprise_linux">   	
+    	<taskdef name="buildinstaller" classname="com.zerog.ia.integration.ant.InstallAnywhereAntTask">
+			<classpath location="${IA_home}\resource\build\iaant.jar"/>
+		</taskdef>		
+		<buildinstaller IAlocation="${IA_home}"
+                    	IAProjectFile="${BTT_installer_home}\BTT8210_Linux\Btt8210_enterprise.iap_xml"
+                    	BuildLinuxWithVM = "true"
+                    	BuildWindowsWithVM = "false"
+                    	BuildLinuxWithoutVM = "false"
+                    	BuildWindowsWithoutVM = "false"/>                   
+    </target>
+	<target name="clean">
+		<delete dir="${BTT_installer_home}\materials\BTTInstallPackaging"/>
+		<delete file="${BTT_installer_home}\materials\BTT_IDE_Windows.zip"/>
+	</target>
+	
+	<!-- Copy Installers to BTT Build WebStie-->
+    
+    <target name="copy_installer">
+        <mkdir dir="X:/composer8210/Installation/${level}${build.type}"/>
+        <copy todir="X:/composer8210/Installation/${level}${build.type}">
+			<fileset dir="E:/BTT_Installer/8210/BTT8210_Windows/Btt8210_enterprise_Build_Output/Default_Configuration/Web_Installers/InstData/Windows/VM" includes="setup_8210_enterprise.exe"/>
+			<fileset dir="E:/BTT_Installer/8210/BTT8210_Linux/Btt8210_enterprise_Build_Output/Default_Configuration/Web_Installers/InstData/Linux/VM" includes="setup_8210_enterprise.bin"/>
+			
+		</copy>
+    </target>
+	
+	<target name="ftp" description="ftp" >  
+		<ftp server="9.112.232.33"  
+             userid="root"  
+             password="Xinmima11">  
+			<fileset dir ="/root/Downloads/BTT installer"></fileset>  
+		</ftp>  
+	</target>  
+	<target name="build_all" depends="clean,
+									copy_source,
+									update_plugin,
+									zip_BTT_IDE_Windows,
+									create_guiinstaller_enterprise_win,
+									create_guiinstaller_enterprise_linux,
+									copy_installer"/>
+</project>

@@ -1,0 +1,358 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE stax SYSTEM "stax.dtd">
+<stax>
+	
+  <!-- ****************************************************************** -->
+  <!--                       mon_callPortalRFT_All                        -->
+  <!--                                                                    -->
+  <!-- ****************************************************************** -->
+
+  <function name="mon_callPortalRFT_All" scope="local">
+			  
+  <function-prolog>
+    This Function is to call the RFT to perform Dashboard testing for Monitor Models.
+	  
+  </function-prolog>
+	  
+  <function-epilog>
+     <![CDATA[
+		 <p>This function feeds some parameters to RFT</p>
+		 <p>And then call the command line to run testing.</p>
+     ]]>
+  </function-epilog>
+	  
+  <function-list-args>
+	<function-required-arg name="target">Hostname of the target (Monitor Machine)</function-required-arg>
+	<function-required-arg name="DashLocation">Hostname/IP address of the Portal Dashboard machine</function-required-arg>
+	<function-required-arg name="portalWASInstallLocation">Location to the WAS Install for Portal</function-required-arg>
+	<function-required-arg name="monVersion">release Level of Monitor</function-required-arg>		
+	<function-required-arg name="PortalUserName">Portal user name</function-required-arg>
+	<function-required-arg name="PortalPassword">Portal password</function-required-arg>
+	<function-required-arg name="rftbrowserName">Name of the browser to use values are "Mozilla Firefox" and "Internet Explorer"</function-required-arg>
+	<function-required-arg name="portalScript">name of Portal script to run</function-required-arg>
+  </function-list-args>
+
+  <try>
+	  
+    
+  <sequence>
+	
+	<!-- Local Variables -->
+	
+	<script>myLogLevel = "User7"</script>
+    <!-- <script>myName="autoparts01"</script> -->
+	<script></script>  
+	  
+    <!-- Starting the important part -->
+    
+	<log level='myLogLevel'>'Starting the %s RFT test' % (portalScript)</log>
+	  
+	<!-- Determine the application from the MonitorVersion -->
+	<if expr="monVersion == 'MON61.CDMON'">
+	 	<script>appName = 'PortalGui612'</script>
+	</if>
+	<if expr="monVersion == 'MON62.CDMON'">
+	    <script>appName = 'DashboardGui62'</script>
+	</if>
+	  
+	<!-- Setup Browser Information -->	 
+	<if expr="rftbrowserName == 'Mozilla Firefox'">
+	  <sequence>
+		<script>rftbrowserPath = 'C:\Program Files\Mozilla Firefox'</script>
+		<script>rftbrowserCommand = 'firefox.exe'</script>
+	  </sequence>
+	</if>
+
+	<if expr="rftbrowserName == 'Internet Explorer'">
+	  <sequence>
+		<script>rftbrowserPath = 'C:\Program Files\Internet Explorer'</script>
+		<script>rftbrowserCommand = 'iexplore.exe'</script>
+	  </sequence>
+	</if>
+	  
+    <!-- Load the RFT library functions -->
+    
+	<log level='myLogLevel'>'Loading Rational Functional Tester automation libraries...'</log>
+	<call function="'cafImportCAFLibrary'">'rftFunctions/libraryFunctions.xml'</call>
+	<script>callRC = STAXResult</script>
+	<if expr="callRC != 0">
+		<throw exception="'MonitorAutoException.PortalDashboard.RFTLibraryImportFailed'">'Failed to import the Rational Functional Tester automation libraries.  Please install the Rational Lotus Automator update before continuing or contact your Lotus Automator administrator for assistance'</throw>
+    </if>
+	  
+	<!-- Request a RFT server from the resouce pool -->
+	
+	<log level='myLogLevel'>'Checking out RFT server from resource pool...'</log>
+	<call function="'cafRespoolRequest'">'local','RFT Servers','1800000'</call>
+	<script>(callRC,callResult) = STAXResult</script>
+	<if expr="callRC != 0">
+		<throw exception="'MonitorAutoException.PortalDashboard.RFTResPoolCheckOutException'">'Failed to check out a server from the RFT server resource pool.  Please contact your automation administrator for further assistance'</throw>
+		<else>
+			<sequence>
+				<script>rftServer = callResult</script>
+				<log level='myLogLevel'>'Checked out RFT Server : %s successfully' % (rftServer)</log>
+			</sequence>
+		</else>
+    </if>
+	  
+	<!-- Initialize variables for the DashLocation (the machine with Portal installed) -->
+	<try>
+		<call function="'cafInitializeTarget'">DashLocation</call>
+		<catch exception="'...'" var="eInfo">
+			<throw exception="'MonitorAutoException.PortalDashboard.UnabletoInitialize'">eInfo</throw>
+		</catch>
+	</try>
+	  
+	<!-- Enure Portal is started on the Portal Machine given -->
+	<!-- Note this will work only on Windows Portal target...not unix !! -->
+	<if expr="Platform == 'Windows'">
+		<sequence>
+	      <log level="'info'">'Starting Portal Server...'</log>
+	      <script>portalParms = '-profileName wp_profile WebSphere_Portal'</script>
+	      <log level="'info'">'Portal Parms = %s' % (portalParms)</log>
+	      <call function="'cafRunCommand'">DashLocation,'"%s%sbin%sstartServer.bat"' % (portalWASInstallLocation,FileSeparator,FileSeparator),portalParms</call>     
+	      <script>(callRC,callResult) = STAXResult</script>
+	      <if expr="callRC != 0">
+		      <throw exception="'MonitorAutoException.PortalDashboard.StartError'">'Start Portal Server command failed. Error : %s' % (callResult)</throw>
+	        <elseif expr="callResult.lower().count('may already be running') > 0">
+			  <log level="'info'">'Portal server appears to be started already'</log>
+		    </elseif>
+		    <elseif expr="callResult.lower().count('open for e-business') > 0">
+			  <log level="'info'">'Portal server started successfully'</log>
+		    </elseif>
+		    <else>
+			  <throw exception="'MonitorAutoException.PortalDashboard.StartError'">'Unable to determine if Portal is started. Info : %s' % (callResult)</throw>
+		    </else>
+	      </if>
+		</sequence>
+	</if>
+	<!-- Other Platform Portal Start routines here..(or parth of if Platform lop above -->	  
+	
+	  
+	<!-- Call RFT to run test-->
+	  
+	<log level='myLogLevel'>'Call RFT to run Portal Dashboard testing...'</log>
+	<call function="'cafRunRFTTest'">
+	  {
+		'rftServer'                    : rftServer,
+		'rftScript'                    : portalScript,
+		'rftScriptArgs'                : '%s %s false' % (PortalUserName,PortalPassword),
+		'maxExecutionTime'             : '60m',
+		'rftProjectArchive'            : '/monitor/jars/%s.jar' % (appName),
+		'initializeRftServer'          : 1,
+		'scriptSource'                 : 'custom',
+		'appName'                      : appName,
+		'appKind'                      : 'html',
+		'appPath'                      : 'http://%s:10038/wps/portal' % (DashLocation),
+		'appCommand'                   : '',
+		'appJvm'                       : rftbrowserName,
+		'appClasspath'                 : '',
+		'appArgs'                      : '',
+		'appWorkingDir'                : '',
+		'browserName'                  : rftbrowserName,
+		'browserPath'                  : rftbrowserPath,
+		'browserCommand'               : rftbrowserCommand,
+		'jobOutputLogTargetDescriptor' : DashLocation
+	  }
+	</call>
+	<script>(callRC,callResult) = STAXResult</script>
+	<if expr="callRC != 0">
+		<throw exception="'MonitorAutoException.PortalDashboard.RFTTestingFailed'">'Failed to run RFT testing for monitor models.  Error:  %s' % (callResult)</throw>
+	</if>
+	  
+	<log level='myLogLevel'>'The callRC from runRFT = %s, Result = %s' % (callRC,callResult)</log>
+	  
+	<!-- Catch any verfication failures of a successful call, but failed run -->
+	<if expr="callResult.count('Fail') > 0">
+		<throw exception="'MonitorAutoException.PortalDashboard.RFTFailure'">'RFT completed, but with Failed verfication point. See Job Output Log'</throw>
+	</if>  
+	  	  	  
+	<return>0</return>
+
+  </sequence>
+	  
+   <catch exception="'...'" var="eInfo">
+        <rethrow/>
+      </catch>
+
+	<!-- Release the RFT server to the resouce pool -->
+	<finally>
+		<sequence>
+		  <log level='myLogLevel'>'Checking in RFT server to resource pool...'</log>
+		  <call function="'cafRespoolRelease'">'local','RFT Servers',rftServer</call>
+		  <script>(callRC,callResult) = STAXResult</script>
+		  <if expr="callRC != 0">
+			<log level="'error'">'Error checking Resource %s back into resource pool' % (rftServer)</log>
+			  <else>
+				  <log level='myLogLevel'>'Checked resource %s back into resource pool successfully.' % (rftServer)</log>
+			  </else>		
+          </if>
+		</sequence>				
+	</finally>
+	  
+  </try>
+	    
+  </function>
+  
+  <!-- ****************************************************************** -->
+  <!--                       mon_callBusinessRFT_All                      -->
+  <!--                                                                    -->
+  <!-- ****************************************************************** -->
+  
+  <function name="mon_callBusinessRFT_All" scope="local">
+			  
+  <function-prolog>
+    This Function is to call the RFT to perform Dashboard testing for Monitor Models.
+	  
+  </function-prolog>
+	  
+  <function-epilog>
+     <![CDATA[
+		 <p>This function feeds some parameters to RFT</p>
+		 <p>And then call the command line to run testing.</p>
+     ]]>
+  </function-epilog>
+	  
+  <function-list-args>
+	<function-required-arg name="target">Hostname of the target (Monitor Machine)</function-required-arg>
+	<function-required-arg name="WASInstallLocation">Location to the WAS Install for Monitor</function-required-arg>
+	<function-required-arg name="monVersion">Release level of Monitor being tested MON6.1 MON6.2</function-required-arg>		
+	<function-required-arg name="isSecurity">If enable the security</function-required-arg>
+	<function-required-arg name="WC_defaulthost">WC_defaulthost such as(9080,9081)</function-required-arg> 
+	<function-required-arg name="rftbrowserName">Name of the browser to use values are "Mozilla Firefox" and "Internet Explorer"</function-required-arg>
+	<function-required-arg name="busScript">name of Business script to run</function-required-arg>
+	<function-optional-arg name="BSUserName">Business user name</function-optional-arg>
+	<function-optional-arg name="BSPassword">Business password</function-optional-arg>
+  </function-list-args>
+
+  <try>
+	  
+    
+  <sequence>
+	
+	<!-- Local Variables -->
+	<script>myLogLevel = "User7"</script>
+    <!-- <script>myName="autoparts01"</script> -->
+	<script></script>  
+	  
+    <!-- Starting the important part -->
+	<log level='myLogLevel'>'Starting the %s RFT test' % (busScript)</log>	
+	  
+	<!-- Determine the application from the MonitorVersion -->  
+	<if expr="monVersion == 'MON61.CDMON'">
+	 	<script>appName = 'BusSpaceGui612'</script>
+	  </if> 
+	<if expr="monVersion == 'MON62.CDMON'">
+	 	<script>appName = 'DashboardGui62'</script>
+	</if>
+	  
+	<!-- Setup Browser Information --> 
+	<if expr="rftbrowserName == 'Mozilla Firefox'">
+	  <sequence>
+		<script>rftbrowserPath = 'C:\Program Files\Mozilla Firefox'</script>
+		<script>rftbrowserCommand = 'firefox.exe'</script>
+	  </sequence>
+	</if>
+	<if expr="rftbrowserName == 'Internet Explorer'">
+	  <sequence>
+		<script>rftbrowserPath = 'C:\Program Files\Internet Explorer'</script>
+		<script>rftbrowserCommand = 'iexplore.exe'</script>
+	  </sequence>
+	</if>
+	  
+    <!-- Load the RFT library functions -->
+	<log level='myLogLevel'>'Loading Rational Functional Tester automation libraries...'</log>
+	<call function="'cafImportCAFLibrary'">'rftFunctions/libraryFunctions.xml'</call>
+	<script>callRC = STAXResult</script>
+	<if expr="callRC != 0">
+		<throw exception="'MonitorAutoException.Dashboard.RFTLibraryImportFailed'">'Failed to import the Rational Functional Tester automation libraries.  Please install the Rational Lotus Automator update before continuing or contact your Lotus Automator administrator for assistance'</throw>
+    </if>
+	      
+	
+	  
+	<!-- Request a RFT server from the resouce pool -->
+	<log level='myLogLevel'>'Checking out RFT server from resource pool...'</log>
+	<call function="'cafRespoolRequest'">'local','RFT Servers','1800000'</call>
+	<script>(callRC,callResult) = STAXResult</script>
+	<if expr="callRC != 0">
+		<throw exception="'MonitorAutoException.Dashboard.RFTResPoolCheckOutException'">'Failed to check out a server from the RFT server resource pool.  Please contact your automation administrator for further assistance'</throw>
+		<else>
+			<sequence>
+				<script>rftServer = callResult</script>
+				<log level='myLogLevel'>'Checked out RFT Server : %s successfully' % (rftServer)</log>
+			</sequence>
+		</else>
+    </if>
+	  
+	<!-- Initialize variables for the target (this probably unnecssary hangover from portalJAR) -->
+	<try>
+		<call function="'cafInitializeTarget'">target</call>
+		<catch exception="'...'" var="eInfo">
+			<throw exception="'MonitorAutoException.Dashboard.UnabletoInitialize'">eInfo</throw>
+		</catch>
+	</try>
+	  
+	<!-- Call RFT to run test-->
+	<log level='myLogLevel'>'Call RFT to run  Dashboard testing...'</log>
+	<call function="'cafRunRFTTest'">
+	  {
+		'rftServer'                    : rftServer,
+		'rftScript'                    : busScript,
+		'rftScriptArgs'                : '%s %s %s' % (BSUserName,BSPassword,isSecurity),
+		'maxExecutionTime'             : '720m',
+		'rftProjectArchive'            : '/monitor/jars/%s.jar' % (appName),
+		'initializeRftServer'          : 1,
+		'scriptSource'                 : 'custom',
+		'appName'                      : appName,
+		'appKind'                      : 'html',
+		'appPath'                      : 'http://%s:%s/BusinessSpace' % (target,WC_defaulthost),
+		'appCommand'                   : '',
+		'appJvm'                       : rftbrowserName,
+		'appClasspath'                 : '',
+		'appArgs'                      : '',
+		'appWorkingDir'                : '',
+		'browserName'                  : rftbrowserName,
+		'browserPath'                  : rftbrowserPath,
+		'browserCommand'               : rftbrowserCommand,
+		'jobOutputLogTargetDescriptor' : target
+	  }
+	</call>
+	<script>(callRC,callResult) = STAXResult</script>
+	<if expr="callRC != 0">
+		<throw exception="'MonitorAutoException.Dashboard.RFTTestingFailed'">'Failed to run RFT testing for monitor models.  Error:  %s' % (callResult)</throw>
+	</if>
+	  
+	<log level='myLogLevel'>'The callRC from runRFT = %s, Result = %s' % (callRC,callResult)</log>
+	  
+	<!-- Catch any verfication failures of a successful call, but failed run -->
+	<if expr="callResult.count('Fail') > 0">
+		<throw exception="'MonitorAutoException.Dashboard.RFTFailure'">'RFT completed, but with Failed verfication point. See Job Output Log'</throw>
+	</if>  
+	  	  	  
+	<return>0</return>
+
+  </sequence>
+	  
+   <catch exception="'...'" var="eInfo">
+        <rethrow/>
+   </catch>
+
+	<!-- Release the RFT server to the resouce pool -->
+	<finally>
+		<sequence>
+		  <log level='myLogLevel'>'Checking in RFT server to resource pool...'</log>
+		  <call function="'cafRespoolRelease'">'local','RFT Servers',rftServer</call>
+		  <script>(callRC,callResult) = STAXResult</script>
+		  <if expr="callRC != 0">
+			<log level="'error'">'Error checking Resource %s back into resource pool' % (rftServer)</log>
+			  <else>
+				  <log level='myLogLevel'>'Checked resource %s back into resource pool successfully.' % (rftServer)</log>
+			  </else>		
+          </if>
+		</sequence>				
+	</finally>
+	  
+  </try>
+	    
+  </function>
+	
+</stax>

@@ -1,0 +1,9 @@
+runfvt.log
+AllBuildLogs/*.log
+AllBuildLogs/*.html
+AllBuildLogs/*
+
+testResult.properties
+buildResult.txt
+a.bat
+b.bat

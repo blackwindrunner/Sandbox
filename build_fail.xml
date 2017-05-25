@@ -1,0 +1,21 @@
+<project name="build_fail" default="build_all" basedir=".">
+
+
+    <!-- The following properties files
+        1. set local build machine requirements for implementation in
+        2. general and custom variable definitions for all drivers -->
+    		
+    <property file="C:/LocalSettings.properties"/>
+    <property name="build.type" value="_was7" /> 
+
+    <!-- Put the build zip to testing machine -->
+    <target name="copy_report">
+        <mkdir dir="X:/composer8210/BuildReport/${level}${build.type}"/>
+        <mkdir dir="X:/composer8210/SerialBuild/${level}${build.type}"/>
+        <copy todir="X:/composer8210/BuildReport/${level}${build.type}">
+				   <fileset dir="D:/composer8210/SandBox/AllBuildLogs" includes="build_check.html"/>
+			  </copy>
+    </target>  
+    
+    <target name="build_all" depends="copy_report"/>                                   
+</project>

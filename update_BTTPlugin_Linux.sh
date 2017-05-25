@@ -1,0 +1,5 @@
+"opt/UNICOM/Multichannel_Bank_Transformation_Toolkit_8.2.1.0/BTT_IDE_Linux/eclipse" -nosplash -application org.eclipse.equinox.p2.director -uninstallIU com.ibm.btt.tools.feature.feature.group -destination "opt/UNICOM/Multichannel_Bank_Transformation_Toolkit_8.2.1.0/BTT_IDE_Linux" 
+
+"opt/UNICOM/Multichannel_Bank_Transformation_Toolkit_8.2.1.0/BTT_IDE_Linux/eclipse" -nosplash -application org.eclipse.equinox.p2.garbagecollector.application -profile epp.package.jee
+
+"opt/UNICOM/Multichannel_Bank_Transformation_Toolkit_8.2.1.0/BTT_IDE_Linux/eclipse" -nosplash -application org.eclipse.equinox.p2.director -repository "jar:file:$USER_INSTALL_DIR$/plugins/updateSite/BTT_UpdateSite.zip!/" -installIU com.ibm.btt.tools.feature.feature.group -destination "opt/UNICOM/Multichannel_Bank_Transformation_Toolkit_8.2.1.0/BTT_IDE_Linux"

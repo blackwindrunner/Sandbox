@@ -1,0 +1,7 @@
+@echo off
+
+@for /f %%N IN (D:\\composer8105\\SandBox\\8105.txt) Do @( cd .. & rd %%N /S /Q) & cd SandBox  >>D:\\composer8105\\SandBox\\AllBuildLogs\\build_del.log
+@for /f %%N IN (D:\\composer8105\\SandBox\\8105_1.txt) Do @( cd .. & rd %%N /S /Q) & cd SandBox  >> D:\\composer8105\\SandBox\\AllBuildLogs\\build_del.log
+@for /f %%N IN (D:\\composer8105\\SandBox\\8105_2.txt) Do @( cd .. & rd %%N /S /Q) & cd SandBox  >> D:\\composer8105\\SandBox\\AllBuildLogs\\build_del.log
+@for /f %%N IN (D:\\composer8105\\SandBox\\8105_3.txt) Do @( cd .. & rd %%N /S /Q) & cd SandBox  >> D:\\composer8105\\SandBox\\AllBuildLogs\\build_del.log
+@for /f %%N IN (D:\\composer8105\\SandBox\\8105_4.txt) Do @( cd .. & rd %%N /S /Q) & cd SandBox  >> D:\\composer8105\\SandBox\\AllBuildLogs\\build_del.log
