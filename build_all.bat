@@ -19,6 +19,7 @@ if not exist %ENG_WORK_SPACE%\\SandBox\\AllBuildLogs\\build.fail (
 	echo buildResult=s>> buildResult.txt
 	call ant -buildfile %ENG_WORK_SPACE%\\SandBox\\sendmail_build_successful.xml -logfile %ENG_WORK_SPACE%\\SandBox\\AllBuildLogs\sendmail.log -verbose
 	echo build successful!!!
+	goto successful
 ) else ( 
 	echo build failed!!! 
 	echo defect=none> buildResult.txt
@@ -29,6 +30,8 @@ if not exist %ENG_WORK_SPACE%\\SandBox\\AllBuildLogs\\build.fail (
 )
 :failed
 	exit 1
+:successful
+	exit 0
 :end
   echo.
   echo.
