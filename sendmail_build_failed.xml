@@ -6,62 +6,17 @@
         2. general and custom variable definitions for all drivers -->
     		
     <property file="C:/LocalSettings.properties"/>
-    
+    <loadproperties srcFile="c:/mail_config.properties" encoding="utf-8"/>
     <!-- Copy build result to BTT Build WebSite -->
     
      
      <!-- Update BTT Build WebStie-->
-     <target name="SendReportToTeam">   
-        <mail mailhost="D23ML028.cn.ibm.com" mailport="25" subject="BTT8.2.0.4 Daily Build Report(Build Failed)" user="sunxl" password="3edc4rfv">    
-            <from address="dpyan@cn.ibm.com" name="BTT Build" /> 
-                 <fileset dir="AllBuildLogs/">     
-                      <include name="build_check.html"/>
-                 </fileset>
-                   
-            <!--to address="liujuan@cn.ibm.com" name="BTT Team"/>        
-            <to address="yanjunh@cn.ibm.com" name="BTT Team" />    
-            <to address="jinhaih@cn.ibm.com" name="BTT Team" />    
-            <to address="liyugong@cn.ibm.com" name="BTT Team" />    
-            <to address="liyunli@cn.ibm.com" name="BTT Team" />   
-            <to address="lulingl@cn.ibm.com" name="BTT Team" />      
-            <to address="shaoyu@cn.ibm.com" name="BTT Team" /> 
-            <to address="tangwf@cn.ibm.com" name="BTT Team" /> 
-            <to address="allenwang@cn.ibm.com" name="BTT Team" />    
-            <to address="wjfang@cn.ibm.com" name="BTT Team" />
-            <to address="cdlhuiz@cn.ibm.com" name="BTT Team" /> 
-            <to address="lvstao@cn.ibm.com" name="BTT Team" /> 
-            <to address="jianqin@cn.ibm.com" name="BTT Team" /> 
-            <to address="cdlhuiz@cn.ibm.com" name="BTT Team" /> 
-            <to address="lcrespo@es.ibm.com" name="BTT Team" />  
-            <to address="liujianm@cn.ibm.com" name="BTT Team" />  
-            <to address="baiyue@cn.ibm.com" name="BTT Team" />    
-            <to address="gengsm@cn.ibm.com" name="BTT Team" /> 
-            <to address="jeffrey.yu@cn.ibm.com" name="BTT Team" />      
-            <cc address="aliceliu@cn.ibm.com" name="BTT Team" />   
-            <to address="Y99XLN@es.ibm.com" name="BTT Team" />   
-            <to address="pilarg@es.ibm.com" name="BTT Team" />    
-            <to address="RVALCARCEL@es.ibm.com" name="BTT Team" />    
-            <to address="sandra_pastoriza@es.ibm.com" name="BTT Team" />  
-            <to address="CARLOS1@es.ibm.com" name="BTT Team" />  
-            <to address="ines.gonzalez@es.ibm.com  " name="BTT Team" />  
-            <to address="liuxql@cn.ibm.com" name="BTT Team" /> 
-			<to address="jianqin@cn.ibm.com" name="BTT Team" />
-			<to address="lvstao@cn.ibm.com" name="BTT Team" />
-			<to address="lulingl@cn.ibm.com" name="BTT Team" />
-			<to address="zhoujunt@cn.ibm.com" name="BTT Team" />
-			<to address="zhaomm@cn.ibm.com" name="BTT Team" />			
-			<to address="yanjunh@cn.ibm.com" name="BTT Team" />
-			<to address="juanzhao@cn.ibm.com" name="BTT Team" />
-			<to address="liujuan@cn.ibm.com" name="BTT Team" />				
-            <to address="dpyan@cn.ibm.com" name="BTT Team" />               
-            <to address="ztlzhang@cn.ibm.com" name="BTT Team" />
-			<to address="vndliyj@cn.ibm.com" name="BTT Team" />
-			<to address="zmingcdl@cn.ibm.com" name="BTT Team" />
-			<to address="wsongn@cn.ibm.com" name="BTT Team" />
-			<to address="vndlmmli@cn.ibm.com" name="BTT Team" />
-			<to address="jshang@cn.ibm.com" name="BTT Team" />--> 
-			<to address="xiulsun@cn.ibm.com" name="BTT Team" />
-			<to address="dpyan@cn.ibm.com" name="BTT Team" />
+      <target name="SendReportToTeam">   
+       <mail mailhost="smtp.qq.com" mailport="465" ssl="true" enableStartTLS="true" subject="BTT8.2.1.0 Serial Build Report(Build failed)-${build.type}" user="${mail_user}" password="${maill_password}" charset="utf-8" encoding="mime" messagemimetype="text/html">    
+            <from address="yandongpeng@qq.com" name="BTT CI Server" /> 			
+                         
+            <to address="dong.peng.yan@unicomsi.com" name="dong.peng.yan" />  
+			<!--to address="jing.shang@unicomsi.com" name="dong.peng.yan" />-->	
             <message>Build Failed!!! Pls check attached files to identify the problems.
 
             NOTE: This is a build machine generated memo.
