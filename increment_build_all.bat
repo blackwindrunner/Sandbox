@@ -1,15 +1,11 @@
-@echo off
+@echo no
 
 call D:\\BTT_workspace_increment\\SandBox\\setupenv.bat
 cd %ENG_WORK_SPACE%\\SandBox
 
 rem call %ENG_WORK_SPACE%\\SandBox\\build.bat -c builddse
 call %ENG_WORK_SPACE%\\SandBox\\build.bat -c buildall
-echo test1
-call %ENG_WORK_SPACE%\\SandBox\\build.bat -c j9build
-echo test2
-call %ENG_WORK_SPACE%\\SandBox\\build.bat -c installbuild
-call %ENG_WORK_SPACE%\\SandBox\\updateSite.bat
+
 perl -S %ENG_WORK_SPACE%\\SandBox\\perl\\Check_build.perl >>%ENG_WORK_SPACE%\\SandBox\\AllBuildLogs\\check_build.log
 rem perl -S %ENG_WORK_SPACE%\\SandBox\\perl\\CheckJavaDoc.pl composer8210
 set JAVA_HOME=C:\Program Files (x86)\Java\jdk1.6.0_45\jre
@@ -19,6 +15,7 @@ if not exist %ENG_WORK_SPACE%\\SandBox\\AllBuildLogs\\build.fail (
 	echo buildResult=s>> buildResult.txt
 	call ant -buildfile %ENG_WORK_SPACE%\\SandBox\\sendmail_build_successful.xml -logfile %ENG_WORK_SPACE%\\SandBox\\AllBuildLogs\sendmail.log -verbose
 	echo build successful!!!
+	goto successful
 ) else ( 
 	echo build failed!!! 
 	echo defect=none> buildResult.txt
@@ -29,6 +26,8 @@ if not exist %ENG_WORK_SPACE%\\SandBox\\AllBuildLogs\\build.fail (
 )
 :failed
 	exit 1
+:successful
+	exit 0
 :end
   echo.
   echo.

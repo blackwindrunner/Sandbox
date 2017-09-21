@@ -14,7 +14,7 @@ use Cwd;
 #use dependencies;
 
 my $release="composer8210";
-my $buildDir="D:\\BTT_workspace";
+my $buildDir="D:\\BTT_workspace_increment";
 my $cmd;
 my $family="btt\@9\.123\.123\.194\@8765";
 
