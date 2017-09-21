@@ -1,0 +1,35 @@
+<?xml version="1.0"  encoding="UTF-8"?>
+
+<project name="increment_depend_comp_jars" default="init" basedir=".">
+	<property environment="env" />
+	<property name="btt_build" value="D:\\BTT_workspace_increment"/>
+	<property name="antContrib.lib.dir" value="${basedir}/jars/antContrib" />
+	
+	
+	<taskdef resource="net/sf/antcontrib/antlib.xml">
+		<classpath>
+			<fileset dir="${antContrib.lib.dir}" includes="ant-contrib*.jar" />
+		</classpath>
+	</taskdef>
+	<target name="copy_temp_build_fils">      
+		<echo message="${defectDependComponentName}"/>
+		<copy todir="${basedir}/increment_jars" overwrite="true">
+            <fileset dir="${btt_build}/${defectDependComponentName}/deliverables" includes="*.jar"/>
+    
+        </copy>
+  
+	</target>
+	
+	<loadfile property="defectDependCom.file" srcFile="properties/defectDependCom.properties"/>
+	<target name="copy_dependent_file">
+		<echo>copy dependent file </echo> 
+        <foreach list="${defectDependCom.file}" target="copy_temp_build_fils" param="defectDependComponentName" delimiter="${line.separator}"/>
+    </target>    
+    
+	<target name="init" description="copy related jar to update folder">
+        <echo>copy related jar to update folder</echo>
+        <mkdir dir="${basedir}/increment_jars"/>
+		<antcall target="copy_dependent_file" />
+	</target>
+	
+</project>

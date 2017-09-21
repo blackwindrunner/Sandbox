@@ -7,3 +7,7 @@ testResult.properties
 buildResult.txt
 a.bat
 b.bat
+
+
+/increment_jars
+set_classpath_jars.txt

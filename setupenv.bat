@@ -20,7 +20,7 @@ set TOOLKIT_PLATFORM=%J9_HOME%\\plugins\\com.ibm.pvc.wece.device.win32.x86_6.2.0
 
 set ITP_LOC=%WAS_HOME%\\deploytool\\itp
 set PATH=%ANTLOC%;%WAS_HOME%;%WAS_HOME%\\bin;%JAVA_HOME%\bin;%WAS_HOME%\\deploytool;%PATH%;%J9_HOME%;
-set CLASSPATH=%JAVA_HOME%\lib;%CLASSPATH%;%INCREMENT_JARS%;
+set CLASSPATH=%JAVA_HOME%\lib;%CLASSPATH%;
 set LOCAL_SETTINGS_FILE=C:\\LocalSettings.properties
 echo.>%LOCAL_SETTINGS_FILE%
 echo # Generated: %DATE% - %TIME%>>%LOCAL_SETTINGS_FILE%
