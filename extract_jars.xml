@@ -1,0 +1,18 @@
+<project name="extract_jars" default="extract" basedir=".">
+
+
+   
+
+    
+    <target name="extract">
+        
+        <copy todir="D:\\BTT_workspace_increment\\SandBox\\increment_jars" flatten="true">
+			 <fileset dir="D:\\BTT_workspace">
+				<include name="**\\deliverables\\**.jar"/>
+            </fileset> 
+		</copy>
+    </target>
+
+    													
+    																	
+</project>

@@ -1,7 +1,7 @@
 @echo off
-
-set ENG_WORK_SPACE=D:\\BTT_workspace
-set BTT_BUILD=D:\\BTT_workspace
+set INCREMENT_JARS=D:\\BTT_workspace_increment\\SandBox\\increment_jars
+set ENG_WORK_SPACE=D:\\BTT_workspace_increment
+set BTT_BUILD=D:\\BTT_workspace_increment
 set WAS_HOME=D:\\WAS7\\AppServer
 
 set RAD_HOME=D:\\RAD91\\RADSE
@@ -19,8 +19,8 @@ set JAVA_HOME=%WAS_HOME%\\java
 set TOOLKIT_PLATFORM=%J9_HOME%\\plugins\\com.ibm.pvc.wece.device.win32.x86_6.2.0.0-20081017\\jre
 
 set ITP_LOC=%WAS_HOME%\\deploytool\\itp
-set PATH=%ANTLOC%;%WAS_HOME%;%WAS_HOME%\\bin;%JAVA_HOME%\bin;%WAS_HOME%\\deploytool;%PATH%;%J9_HOME%
-set CLASSPATH=%JAVA_HOME%\lib;%CLASSPATH%
+set PATH=%ANTLOC%;%WAS_HOME%;%WAS_HOME%\\bin;%JAVA_HOME%\bin;%WAS_HOME%\\deploytool;%PATH%;%J9_HOME%;
+set CLASSPATH=%JAVA_HOME%\lib;%CLASSPATH%;%INCREMENT_JARS%;
 set LOCAL_SETTINGS_FILE=C:\\LocalSettings.properties
 echo.>%LOCAL_SETTINGS_FILE%
 echo # Generated: %DATE% - %TIME%>>%LOCAL_SETTINGS_FILE%
