@@ -125,15 +125,16 @@ Defect &lt;font color="red" &gt;&lt;b&gt;${defect}&lt;/b&gt;&lt;/font&gt; &lt;fo
 		<echo> ${testResult_CN} ${defect}</echo>
 	</target>  
      <!-- Update BTT Build WebStie-->
-      <target name="SendReportToTeam" depends="result.transfer.CN,generate_message">  
+      <target name="SendReportToTeam" depends="result.transfer.CN,generate_message">   
          <mail mailhost="smtp.qq.com" mailport="465" ssl="true" enableStartTLS="true" subject="BTT8.2.1.0 Serial Build Report(Build Successfully)-${build.type}" user="${mail_user}" password="${maill_password}" charset="utf-8" encoding="mime" messagemimetype="text/html">    
             <from address="yandongpeng@qq.com" name="BTT CI Server" /> 			
                          
-            <to address="dong.peng.yan@unicomsi.com" name="dong.peng.yan" />            
-         
+            <to address="dong.peng.yan@unicomsi.com" name="dong.peng.yan" />  
+			<!--to address="jing.shang@unicomsi.com" name="dong.peng.yan" />-->	            	
+            <message>
 						
 								
-            <message>
+           
             ${message}
                
               
@@ -163,4 +164,5 @@ Defect <font color="red" ><b>${defect}</b></font> <font color="#7722ff" ><b>ä¸´æ
 
 
 		
+
 </project>

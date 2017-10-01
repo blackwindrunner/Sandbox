@@ -75,4 +75,3 @@ if ( __name__ == "__main__"):
    print("===errors:"+Handler.errors)
    print("===failures:"+Handler.failures)
    docTestResultDetials()
-   
