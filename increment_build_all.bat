@@ -4,15 +4,22 @@ call D:\\BTT_workspace_increment\\SandBox\\setupenv.bat
 cd %ENG_WORK_SPACE%\\SandBox
 set sandbox_catalog=%ENG_WORK_SPACE%\\SandBox
 set propertiesFolder=%ENG_WORK_SPACE%\\SandBox\\properties
+set increment_ci_Folder=%ENG_WORK_SPACE%\\SandBox\\increment_ci
 rem call %ENG_WORK_SPACE%\\SandBox\\build.bat -c builddse
 rem call %ENG_WORK_SPACE%\\SandBox\\build.bat -c buildall
-rem 删除文件
-call rm %propertiesFolder%\\defectDependCom.properties
 
+rem 清理文件
+rem 删除defect依赖文件文件
+call rm %propertiesFolder%\\defectDependCom.properties
+rem 删除组件日志文件
+cd increment_ci
+python %increment_ci_Folder%\\clean.py
+rem python %increment_ci_Folder%\\all_comp_dependency.py
+cd ..
 rem 根据defect所在的组件，来生成组件的依赖组件
-@for /f %%a IN (%propertiesFolder%\\defectComponent.properties) Do @(cat %propertiesFolder%\\defectDependCom.properties %ENG_WORK_SPACE%\\%%a\\dependencies.properties | sort | uniq >> %propertiesFolder%\\defectDependCom.properties)
+@for /f %%a IN (%propertiesFolder%\\defectComponent.properties) Do @(cat %propertiesFolder%\\defectDependCom.properties %ENG_WORK_SPACE%\\%%a\\DependencyComponents.properties | sort | uniq >> %propertiesFolder%\\defectDependCom.properties)
 rem 对被依赖的组件解压之前保留的版本  
-@for /f %%d IN (%propertiesFolder%\\defectDependCom.properties) Do @(echo extract deliverables **%%d**  &"%ProgramFiles%\\7-Zip\\7z.exe" x -y -o"%ENG_WORK_SPACE%\\%%d" "D:\\8204_deliverables_zip\\%%d.zip" )
+@for /f %%d IN (%propertiesFolder%\\defectDependCom.properties) Do @(echo extract deliverables **%%d**  &"%ProgramFiles%\\7-Zip\\7z.exe" x -y -o"%ENG_WORK_SPACE%\\%%d" "D:\\8210_deliverables_zip\\%%d.zip" )
 
 rem 被依赖的组件复制jar
 call ant -f increment_depend_comp_jars.xml
@@ -33,21 +40,21 @@ if not exist %ENG_WORK_SPACE%\\SandBox\\AllBuildLogs\\build.fail (
 	echo build  successful!!!
 	echo defect=none> buildResult.txt
 	echo buildResult=s>> buildResult.txt
-	call ant -buildfile %ENG_WORK_SPACE%\\SandBox\\sendmail_build_successful.xml -logfile %ENG_WORK_SPACE%\\SandBox\\AllBuildLogs\sendmail.log -verbose
+	rem call ant -buildfile %ENG_WORK_SPACE%\\SandBox\\sendmail_build_successful.xml -logfile %ENG_WORK_SPACE%\\SandBox\\AllBuildLogs\sendmail.log -verbose
 	echo build successful!!!
 	goto successful
 ) else ( 
 	echo build failed!!! 
 	echo defect=none> buildResult.txt
 	echo buildResult=f>> buildResult.txt	
-	call ant -buildfile %ENG_WORK_SPACE%\\SandBox\\sendmail_build_failed.xml -logfile %ENG_WORK_SPACE%\\SandBox\\AllBuildLogs\sendmail.log -verbose
+	rem call ant -buildfile %ENG_WORK_SPACE%\\SandBox\\sendmail_build_failed.xml -logfile %ENG_WORK_SPACE%\\SandBox\\AllBuildLogs\sendmail.log -verbose
 	echo build failed!!!
 	goto failed
 )
 :failed
-	exit 1
+	rem exit 1
 :successful
-	exit 0
+	rem exit 0
 :end
   echo.
   echo.

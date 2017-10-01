@@ -2,7 +2,7 @@
 
 rem set another environment properties file for Mobile components 
 set LOCAL_SETTINGS_FILE_J9=C:\\LocalSettings_J9.properties
-set ENG_WORK_SPACE=D:\\BTT_workspace
+set ENG_WORK_SPACE=D:\\BTT_workspace_increment
 set J9_HOME=D:\\LE6.2\\device\\toolkit-platforms\\win32\\eclipse
 
 set WAS_HOME=D:\\WAS7\\AppServer
