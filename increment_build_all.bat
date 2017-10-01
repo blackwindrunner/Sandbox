@@ -14,7 +14,7 @@ call rm %propertiesFolder%\\defectDependCom.properties
 rem 删除组件日志文件
 cd increment_ci
 python %increment_ci_Folder%\\clean.py
-rem python %increment_ci_Folder%\\all_comp_dependency.py
+python %increment_ci_Folder%\\all_comp_dependency.py
 cd ..
 rem 根据defect所在的组件，来生成组件的依赖组件
 @for /f %%a IN (%propertiesFolder%\\defectComponent.properties) Do @(cat %propertiesFolder%\\defectDependCom.properties %ENG_WORK_SPACE%\\%%a\\DependencyComponents.properties | sort | uniq >> %propertiesFolder%\\defectDependCom.properties)
@@ -40,21 +40,21 @@ if not exist %ENG_WORK_SPACE%\\SandBox\\AllBuildLogs\\build.fail (
 	echo build  successful!!!
 	echo defect=none> buildResult.txt
 	echo buildResult=s>> buildResult.txt
-	rem call ant -buildfile %ENG_WORK_SPACE%\\SandBox\\sendmail_build_successful.xml -logfile %ENG_WORK_SPACE%\\SandBox\\AllBuildLogs\sendmail.log -verbose
+	call ant -buildfile %ENG_WORK_SPACE%\\SandBox\\sendmail_build_successful.xml -logfile %ENG_WORK_SPACE%\\SandBox\\AllBuildLogs\sendmail.log -verbose
 	echo build successful!!!
 	goto successful
 ) else ( 
 	echo build failed!!! 
 	echo defect=none> buildResult.txt
 	echo buildResult=f>> buildResult.txt	
-	rem call ant -buildfile %ENG_WORK_SPACE%\\SandBox\\sendmail_build_failed.xml -logfile %ENG_WORK_SPACE%\\SandBox\\AllBuildLogs\sendmail.log -verbose
+	call ant -buildfile %ENG_WORK_SPACE%\\SandBox\\sendmail_build_failed.xml -logfile %ENG_WORK_SPACE%\\SandBox\\AllBuildLogs\sendmail.log -verbose
 	echo build failed!!!
 	goto failed
 )
 :failed
-	rem exit 1
+	exit 1
 :successful
-	rem exit 0
+	exit 0
 :end
   echo.
   echo.
