@@ -13,3 +13,14 @@ b.bat
 properties/defectDependCom.properties
 properties/defectComponent.properties
 
+
+increment_ci/git_logs/stat.txt
+increment_ci/git_logs/name_only.txt
+increment_ci/git_logs/diff.txt
+increment_ci/git_logs/log--pretty.txt
+increment_ci/git_logs/commit_id.txt
+increment_ci/__pycache__/xml_tool.cpython-36.pyc
+8210.txt
+buildResult.txt
+properties/defectComponent.properties
+properties/defectDependCom.properties
