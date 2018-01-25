@@ -11,10 +11,21 @@ select(STDOUT); $| = 1; # flush after every write
 use strict;
 #use SendMail;
 use Cwd;
+## 判断环境变量中是否存在版本，如果不存在，通过setupenv为perl设定环境变量
+if(!$ENV{VERSION}){
+	my @lines=`call ..\\setupenv.bat && set`;
+	foreach (@lines) {
+		next unless /^(\w+)=(.*)$/;
+		$ENV{$1}=$2;
+	}
+}
+
 #use dependencies;
 
-my $release="composer8210";
-my $buildDir="D:\\BTT_workspace_increment";
+my $release="composer$ENV{VERSION}";
+print "VERSION=$ENV{VERSION}\n";
+my $buildDir=$ENV{ENG_WORK_SPACE};
+print "ENG_WORK_SPACE=$ENV{ENG_WORK_SPACE}\n";
 my $cmd;
 my $family="btt\@9\.123\.123\.194\@8765";
 
@@ -43,13 +54,13 @@ my $family="btt\@9\.123\.123\.194\@8765";
     print HTML "</title>\n";
     print HTML "</head>\n";
     print HTML "<body>\n";
-    print HTML "<center><b><font color=blue size=+2>8210 Build Report </font><font color=blue size=+1> ( $daytime  $hms )</font>\n";
+    print HTML "<center><b><font color=blue size=+2>$ENV{VERSION} Build Report </font><font color=blue size=+1> ( $daytime  $hms )</font>\n";
     print HTML "<center><b><font color=blue size=+2></font>\n";
     print HTML "<center><table width=\"95%\" cellspacing=\"2\" cellpadding=\"5\" border=\"1\" class=\"details\">\n";
 	
-	if (-e "$buildDir\\SandBox\\8210.txt"){
+	if (-e "$buildDir\\SandBox\\$ENV{VERSION}.txt"){
       
-			open(COMFILE, "$buildDir\\SandBox\\8210.txt");
+			open(COMFILE, "$buildDir\\SandBox\\$ENV{VERSION}.txt");
 			my @comline = <COMFILE>;
 			close COMFILE;
 			

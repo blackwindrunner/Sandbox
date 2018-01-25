@@ -1,21 +1,21 @@
 @echo off
-set INCREMENT_JARS=D:\\BTT_workspace_increment\\SandBox\\increment_jars
-set ENG_WORK_SPACE=D:\\BTT_workspace_increment
-set BTT_BUILD=D:\\BTT_workspace_increment
+set VERSION=8211
+set WORK_SPACE=D:\\BTT_workspace_%VERSION%
+set JENKINS_WORK_SPACE=%WORKSPACE%
+set release=composer%VERSION%
 set WAS_HOME=D:\\WAS7\\AppServer
-
 set RAD_HOME=D:\\RAD91\\RADSE
 set RAD_SHARED_HOME=D:\\RAD91\\SDPShared
 set J9_HOME=D:\\LE6.2\\device\\toolkit-platforms\\win32\\eclipse
 
-set release=composer8210
 set ANTVERSION=apache-ant-1.9.3
 set ANTLOC=C:\\Apache\\apache-ant-1.9.3\\bin
 
+set INCREMENT_JARS=%WORK_SPACE%\\SandBox\\increment_jars
+set ENG_WORK_SPACE=%WORK_SPACE%
+set BTT_BUILD=%WORK_SPACE%
 set EJBDEPLOYED_WAS_HOME=%WAS_HOME%
-
 set JAVA_HOME=%WAS_HOME%\\java
-
 set TOOLKIT_PLATFORM=%J9_HOME%\\plugins\\com.ibm.pvc.wece.device.win32.x86_6.2.0.0-20081017\\jre
 
 set ITP_LOC=%WAS_HOME%\\deploytool\\itp
@@ -28,6 +28,8 @@ echo.>>%LOCAL_SETTINGS_FILE%
 echo # The following properties are specific environment variables for>>%LOCAL_SETTINGS_FILE%
 echo # release %release% Ant builds on this machine (%USERDOMAIN%):>>%LOCAL_SETTINGS_FILE%
 echo.>>%LOCAL_SETTINGS_FILE%
+echo VERSION=%VERSION%>>%LOCAL_SETTINGS_FILE%
+echo JENKINS_WORK_SPACE=%JENKINS_WORK_SPACE%>>%LOCAL_SETTINGS_FILE%
 echo WAS_HOME=%WAS_HOME%>>%LOCAL_SETTINGS_FILE%
 echo RAD_HOME=%RAD_HOME%>>%LOCAL_SETTINGS_FILE%
 echo RAD_SHARED_HOME=%RAD_SHARED_HOME%>>%LOCAL_SETTINGS_FILE%

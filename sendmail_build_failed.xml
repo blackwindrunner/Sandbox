@@ -12,7 +12,7 @@
      
      <!-- Update BTT Build WebStie-->
       <target name="SendReportToTeam">   
-       <mail mailhost="smtp.qq.com" mailport="465" ssl="true" enableStartTLS="true" subject="BTT8.2.1.0 Serial Build Report(Build failed)-${build.type}" user="${mail_user}" password="${maill_password}" charset="utf-8" encoding="mime" messagemimetype="text/html">    
+       <mail mailhost="smtp.qq.com" mailport="465" ssl="true" enableStartTLS="true" subject="BTT ${VERSION} Serial Build Report(Build failed)-${build.type}" user="${mail_user}" password="${maill_password}" charset="utf-8" encoding="mime" messagemimetype="text/html">    
             <from address="yandongpeng@qq.com" name="BTT CI Server" /> 			
                          
             <to address="dong.peng.yan@unicomsi.com" name="dong.peng.yan" />  

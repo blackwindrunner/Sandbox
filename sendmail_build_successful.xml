@@ -27,8 +27,8 @@
 Defect &lt;font color="red" &gt;&lt;b&gt;${defect}&lt;/b&gt;&lt;/font&gt; &lt;font color="#7722ff" &gt;&lt;b&gt;临时&lt;/b&gt;&lt;/font&gt;构建${buildResult_CN},测试结果${testResult_CN}${testResult_details}&lt;br/&gt;
 &lt;hr&gt;&lt;br/&gt;
 
-&lt;a href="http://9.112.248.185:8080/jenkins/job/8204_temp_build/build_result/" style="font-size:27px"&gt;构建报告&lt;/a&gt;&lt;br/&gt;
-&lt;a href="http://9.112.248.185:8080/jenkins/job/8204_temp_build/Test_result/" style="font-size:27px"&gt;测试报告 &lt;/a&gt;&lt;br/&gt;
+&lt;a href="http://9.112.248.185:8080/jenkins/job/${VERSION}_temp_build/build_result/" style="font-size:27px"&gt;构建报告&lt;/a&gt;&lt;br/&gt;
+&lt;a href="http://9.112.248.185:8080/jenkins/job/${VERSION}_temp_build/Test_result/" style="font-size:27px"&gt;测试报告 &lt;/a&gt;&lt;br/&gt;
 &lt;i&gt;请注意验证BSO,如果是火狐浏览器或者NOTES中访问,请在about:config中关闭security.csp.enable&lt;/i&gt;&lt;br/&gt;
 &lt;img src="https://img.shields.io/travis/rust-lang/rust.svg"/&gt;
 &lt;/body&gt;
@@ -126,7 +126,7 @@ Defect &lt;font color="red" &gt;&lt;b&gt;${defect}&lt;/b&gt;&lt;/font&gt; &lt;fo
 	</target>  
      <!-- Update BTT Build WebStie-->
       <target name="SendReportToTeam" depends="result.transfer.CN,generate_message">   
-         <mail mailhost="smtp.qq.com" mailport="465" ssl="true" enableStartTLS="true" subject="BTT8.2.1.0 Serial Build Report(Build Successfully)-${build.type}" user="${mail_user}" password="${maill_password}" charset="utf-8" encoding="mime" messagemimetype="text/html">    
+         <mail mailhost="smtp.qq.com" mailport="465" ssl="true" enableStartTLS="true" subject="BTT ${VERSION} Serial Build Report(Build Successfully)-${build.type}" user="${mail_user}" password="${maill_password}" charset="utf-8" encoding="mime" messagemimetype="text/html">    
             <from address="yandongpeng@qq.com" name="BTT CI Server" /> 			
                          
             <to address="dong.peng.yan@unicomsi.com" name="dong.peng.yan" />  
@@ -154,8 +154,8 @@ Defect &lt;font color="red" &gt;&lt;b&gt;${defect}&lt;/b&gt;&lt;/font&gt; &lt;fo
 Defect <font color="red" ><b>${defect}</b></font> <font color="#7722ff" ><b>临时</b></font>构建${buildResult_CN},测试结果${testResult_CN}${testResult_details}<br/>
 <hr><br/>
 
-<a href="http://9.112.248.185:8080/jenkins/job/8204_temp_build/build_result/" style="font-size:27px">构建报告</a><br/>
-<a href="http://9.112.248.185:8080/jenkins/job/8204_temp_build/Test_result/" style="font-size:27px">测试报告 </a><br/>
+<a href="http://9.112.248.185:8080/jenkins/job/${VERSION}_temp_build/build_result/" style="font-size:27px">构建报告</a><br/>
+<a href="http://9.112.248.185:8080/jenkins/job/${VERSION}_temp_build/Test_result/" style="font-size:27px">测试报告 </a><br/>
 <i>请注意验证BSO,如果是火狐浏览器或者NOTES中访问,请在about:config中关闭security.csp.enable</i><br/>
 <img src="https://img.shields.io/travis/rust-lang/rust.svg"/>
 </body>

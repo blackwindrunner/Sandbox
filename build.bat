@@ -36,32 +36,32 @@ if not "%3"=="-dep" goto invalidparmdep
 :serialbuild
   call setupenv.bat
   del  AllBuildLogs\ant.log
-  @for /f %%N IN (8210.txt) Do @(cd .. & cd %%N & echo. & echo ------%%N BUILD------ & md logs  & ant -logfile logs\ant.log -verbose & findstr /i "build successful" logs\ant.log || echo BUILD FAILED & more logs\ant.log >>..\SandBox\AllBuildLogs\ant.log & echo. & echo ----------\SandBox\AllBuildLogs\ant.log) & cd .. & cd SandBox
+  @for /f %%N IN (8211.txt) Do @(cd .. & cd %%N & echo. & echo ------%%N BUILD------ & md logs  & ant -logfile logs\ant.log -verbose & findstr /i "build successful" logs\ant.log || echo BUILD FAILED & more logs\ant.log >>..\SandBox\AllBuildLogs\ant.log & echo. & echo ----------\SandBox\AllBuildLogs\ant.log) & cd .. & cd SandBox
   
 :exctestsuite
   cd %ENG_WORK_SPACE%\\SandBox
   call %ENG_WORK_SPACE%\\SandBox\\setupenv.bat
   call %ENG_WORK_SPACE%\\SandBox\\build_level.bat
   echo level=%level_serialbuild%>>C:\\LocalSettings.properties
-  @for /f %%N IN (%ENG_WORK_SPACE%\\SandBox\\8210_test.txt) Do @(perl -S D:\composer8210\SandBox\perl\CMVCExtract.perl -r composer8210 -c %%N -l %level_serialbuild% -p D:\composer8210 >>%ENG_WORK_SPACE%\\SandBox\\AllBuildLogs\\cmvcextract.log & cd %ENG_WORK_SPACE%\\%%N & md %ENG_WORK_SPACE%\\%%N\\logs & ant -buildfile %ENG_WORK_SPACE%\\%%N\\build.xml -logfile %ENG_WORK_SPACE%\\%%N\\logs\\ant.log -verbose) & cd %ENG_WORK_SPACE%\\SandBox
+  @for /f %%N IN (%ENG_WORK_SPACE%\\SandBox\\%VERSION%_test.txt) Do @(perl -S D:\composer8211\SandBox\perl\CMVCExtract.perl -r composer8211 -c %%N -l %level_serialbuild% -p D:\composer8211 >>%ENG_WORK_SPACE%\\SandBox\\AllBuildLogs\\cmvcextract.log & cd %ENG_WORK_SPACE%\\%%N & md %ENG_WORK_SPACE%\\%%N\\logs & ant -buildfile %ENG_WORK_SPACE%\\%%N\\build.xml -logfile %ENG_WORK_SPACE%\\%%N\\logs\\ant.log -verbose) & cd %ENG_WORK_SPACE%\\SandBox
 
 :excbuilddse
   cd %ENG_WORK_SPACE%\\SandBox
   call %ENG_WORK_SPACE%\\SandBox\\setupenv.bat
   call %ENG_WORK_SPACE%\\SandBox\\build_level.bat
   echo level=%level_serialbuild%>>C:\\LocalSettings.properties
-  @for /f %%N IN (%ENG_WORK_SPACE%\\SandBox\\8210_dse.txt) Do @(perl -S D:\composer8210\SandBox\perl\CMVCExtract.perl -r composer8210 -c %%N -l %level_serialbuild% -p D:\composer8210 >>%ENG_WORK_SPACE%\\SandBox\\AllBuildLogs\\cmvcextract.log & cd %ENG_WORK_SPACE%\\%%N & md %ENG_WORK_SPACE%\\%%N\\logs & ant -buildfile %ENG_WORK_SPACE%\\%%N\\build.xml -logfile %ENG_WORK_SPACE%\\%%N\\logs\\ant.log -verbose) & cd %ENG_WORK_SPACE%\\SandBox
+  @for /f %%N IN (%ENG_WORK_SPACE%\\SandBox\\8211_dse.txt) Do @(perl -S D:\composer8211\SandBox\perl\CMVCExtract.perl -r composer8211 -c %%N -l %level_serialbuild% -p D:\composer8211 >>%ENG_WORK_SPACE%\\SandBox\\AllBuildLogs\\cmvcextract.log & cd %ENG_WORK_SPACE%\\%%N & md %ENG_WORK_SPACE%\\%%N\\logs & ant -buildfile %ENG_WORK_SPACE%\\%%N\\build.xml -logfile %ENG_WORK_SPACE%\\%%N\\logs\\ant.log -verbose) & cd %ENG_WORK_SPACE%\\SandBox
 	
 :excbuild
   cd %ENG_WORK_SPACE%\\SandBox
   call %ENG_WORK_SPACE%\\SandBox\\setupenv.bat
   call %ENG_WORK_SPACE%\\SandBox\\build_level.bat
   echo level=%level_serialbuild%>>C:\\LocalSettings.properties
-  @for /f %%N IN (%ENG_WORK_SPACE%\\SandBox\\8210.txt) Do @(perl -S D:\composer8210\SandBox\perl\CMVCExtract.perl -r composer8210 -c %%N -l %level_serialbuild% -p D:\composer8210 >>%ENG_WORK_SPACE%\\SandBox\\AllBuildLogs\\cmvcextract.log & cd %ENG_WORK_SPACE%\\%%N & md %ENG_WORK_SPACE%\\%%N\\logs & ant -buildfile %ENG_WORK_SPACE%\\%%N\\build.xml -logfile %ENG_WORK_SPACE%\\%%N\\logs\\ant.log -verbose) & cd %ENG_WORK_SPACE%\\SandBox
+  @for /f %%N IN (%ENG_WORK_SPACE%\\SandBox\\8211.txt) Do @(perl -S D:\composer8211\SandBox\perl\CMVCExtract.perl -r composer8211 -c %%N -l %level_serialbuild% -p D:\composer8211 >>%ENG_WORK_SPACE%\\SandBox\\AllBuildLogs\\cmvcextract.log & cd %ENG_WORK_SPACE%\\%%N & md %ENG_WORK_SPACE%\\%%N\\logs & ant -buildfile %ENG_WORK_SPACE%\\%%N\\build.xml -logfile %ENG_WORK_SPACE%\\%%N\\logs\\ant.log -verbose) & cd %ENG_WORK_SPACE%\\SandBox
   
 :buildall
   call %ENG_WORK_SPACE%\\SandBox\\setupenv.bat
-  @for /f %%N IN (%ENG_WORK_SPACE%\\SandBox\\8210.txt) Do @(cd .. & cd %%N  & echo. & echo ------%%N BUILD------ & md logs & call ant -buildfile %ENG_WORK_SPACE%\\%%N\\build.xml -logfile %ENG_WORK_SPACE%\\%%N\\logs\\ant.log -verbose) & cd %ENG_WORK_SPACE%\\SandBox
+  @for /f %%N IN (%ENG_WORK_SPACE%\\SandBox\\%VERSION%.txt) Do @(cd .. & cd %%N  & echo. & echo ------%%N BUILD------ & md logs & call ant -buildfile %ENG_WORK_SPACE%\\%%N\\build.xml -logfile %ENG_WORK_SPACE%\\%%N\\logs\\ant.log -verbose) & cd %ENG_WORK_SPACE%\\SandBox
   goto end
  
 :excbuildother
@@ -69,38 +69,38 @@ if not "%3"=="-dep" goto invalidparmdep
   call %ENG_WORK_SPACE%\\SandBox\\setupenv.bat
   call %ENG_WORK_SPACE%\\SandBox\\build_level.bat
   echo level=%level_serialbuild%>>C:\\LocalSettings.properties
-  @for /f %%N IN (%ENG_WORK_SPACE%\\SandBox\\8210_1.txt) Do @(cd %ENG_WORK_SPACE%\\%%N & md %ENG_WORK_SPACE%\\%%N\\logs & ant -buildfile %ENG_WORK_SPACE%\\%%N\\build.business.template.xml -logfile %ENG_WORK_SPACE%\\%%N\\logs\\ant_build_business_template.log -verbose) & echo. & echo ------BUILD 1------ & cd ../SandBox &   @for /f %%N IN (%ENG_WORK_SPACE%\\SandBox\\8210_2.txt) Do @(perl -S D:\composer8210\SandBox\perl\CMVCExtract.perl -r composer8210 -c %%N -l %level_serialbuild% -p D:\composer8210 >>%ENG_WORK_SPACE%\\SandBox\\AllBuildLogs\\cmvcextract.log & cd %ENG_WORK_SPACE%\\%%N & md %ENG_WORK_SPACE%\\%%N\\logs & ant -buildfile %ENG_WORK_SPACE%\\%%N\\build.xml -logfile %ENG_WORK_SPACE%\\%%N\\logs\\ant.log -verbose) & cd ../SandBox &   @for /f %%N IN (%ENG_WORK_SPACE%\\SandBox\\8210_3.txt) Do @(cd %ENG_WORK_SPACE%\\%%N & md %ENG_WORK_SPACE%\\%%N\\logs & ant -buildfile %ENG_WORK_SPACE%\\%%N\\build.xml -logfile %ENG_WORK_SPACE%\\%%N\\logs\\ant_businesstemplate.log -verbose) & echo. & echo ------BUILD 3------ & cd %ENG_WORK_SPACE%\\SandBox
+  @for /f %%N IN (%ENG_WORK_SPACE%\\SandBox\\8211_1.txt) Do @(cd %ENG_WORK_SPACE%\\%%N & md %ENG_WORK_SPACE%\\%%N\\logs & ant -buildfile %ENG_WORK_SPACE%\\%%N\\build.business.template.xml -logfile %ENG_WORK_SPACE%\\%%N\\logs\\ant_build_business_template.log -verbose) & echo. & echo ------BUILD 1------ & cd ../SandBox &   @for /f %%N IN (%ENG_WORK_SPACE%\\SandBox\\8211_2.txt) Do @(perl -S D:\composer8211\SandBox\perl\CMVCExtract.perl -r composer8211 -c %%N -l %level_serialbuild% -p D:\composer8211 >>%ENG_WORK_SPACE%\\SandBox\\AllBuildLogs\\cmvcextract.log & cd %ENG_WORK_SPACE%\\%%N & md %ENG_WORK_SPACE%\\%%N\\logs & ant -buildfile %ENG_WORK_SPACE%\\%%N\\build.xml -logfile %ENG_WORK_SPACE%\\%%N\\logs\\ant.log -verbose) & cd ../SandBox &   @for /f %%N IN (%ENG_WORK_SPACE%\\SandBox\\8211_3.txt) Do @(cd %ENG_WORK_SPACE%\\%%N & md %ENG_WORK_SPACE%\\%%N\\logs & ant -buildfile %ENG_WORK_SPACE%\\%%N\\build.xml -logfile %ENG_WORK_SPACE%\\%%N\\logs\\ant_businesstemplate.log -verbose) & echo. & echo ------BUILD 3------ & cd %ENG_WORK_SPACE%\\SandBox
 	
 :excbuildgtb
   cd %ENG_WORK_SPACE%\\Sandbox
   call %ENG_WORK_SPACE%\\Sandbox\\setupenvGTB.bat
   call %ENG_WORK_SPACE%\\Sandbox\\build_level.bat
   echo level=%level_serialbuild%>>C:\\LocalSettings.properties
-  @for /f %%N IN (%ENG_WORK_SPACE%\\SandBox\\8210_GTB.txt) Do @(cd .. & cd %%N  & echo. & echo ------%%N BUILD------ & md logs & ant -buildfile %ENG_WORK_SPACE%\\%%N\\build.xml -logfile %ENG_WORK_SPACE%\\%%N\\logs\\ant.log -verbose) & cd %ENG_WORK_SPACE%\\SandBox
+  @for /f %%N IN (%ENG_WORK_SPACE%\\SandBox\\8211_GTB.txt) Do @(cd .. & cd %%N  & echo. & echo ------%%N BUILD------ & md logs & ant -buildfile %ENG_WORK_SPACE%\\%%N\\build.xml -logfile %ENG_WORK_SPACE%\\%%N\\logs\\ant.log -verbose) & cd %ENG_WORK_SPACE%\\SandBox
   
 :refactorbuild
   cd %ENG_WORK_SPACE%\\SandBox
   call %ENG_WORK_SPACE%\\SandBox\\setupenv.bat
   call %ENG_WORK_SPACE%\\SandBox\\build_level.bat
   echo level=%level_serialbuild%>>C:\\LocalSettings.properties
-  @for /f %%N IN (%ENG_WORK_SPACE%\\SandBox\\8210_ref.txt) Do @(perl -S D:\composer8210\SandBox\perl\CMVCExtract.perl -r composer8210 -c %%N -l %level_serialbuild% -p D:\composer8210 >>%ENG_WORK_SPACE%\\SandBox\\AllBuildLogs\\cmvcextract.log & cd %ENG_WORK_SPACE%\\%%N & md %ENG_WORK_SPACE%\\%%N\\logs & ant -buildfile %ENG_WORK_SPACE%\\%%N\\build.xml -logfile %ENG_WORK_SPACE%\\%%N\\logs\\ant.log -verbose) & cd %ENG_WORK_SPACE%\\SandBox
+  @for /f %%N IN (%ENG_WORK_SPACE%\\SandBox\\8211_ref.txt) Do @(perl -S D:\composer8211\SandBox\perl\CMVCExtract.perl -r composer8211 -c %%N -l %level_serialbuild% -p D:\composer8211 >>%ENG_WORK_SPACE%\\SandBox\\AllBuildLogs\\cmvcextract.log & cd %ENG_WORK_SPACE%\\%%N & md %ENG_WORK_SPACE%\\%%N\\logs & ant -buildfile %ENG_WORK_SPACE%\\%%N\\build.xml -logfile %ENG_WORK_SPACE%\\%%N\\logs\\ant.log -verbose) & cd %ENG_WORK_SPACE%\\SandBox
 
 :j9build
   cd %ENG_WORK_SPACE%\\SandBox
   call %ENG_WORK_SPACE%\\SandBox\\setupenv_J9.bat
   echo level=%level_serialbuild%>>C:\\LocalSettings_J9.properties
-  @for /f %%N IN (%ENG_WORK_SPACE%\\SandBox\\8210_J9.txt) Do @(cd .. & cd %%N  & echo. & echo ------%%N BUILD------ & md logs & ant -buildfile %ENG_WORK_SPACE%\\%%N\\build.xml -logfile %ENG_WORK_SPACE%\\%%N\\logs\\ant.log -verbose) & cd %ENG_WORK_SPACE%\\SandBox
+  @for /f %%N IN (%ENG_WORK_SPACE%\\SandBox\\%VERSION%_J9.txt) Do @(cd .. & cd %%N  & echo. & echo ------%%N BUILD------ & md logs & ant -buildfile %ENG_WORK_SPACE%\\%%N\\build.xml -logfile %ENG_WORK_SPACE%\\%%N\\logs\\ant.log -verbose) & cd %ENG_WORK_SPACE%\\SandBox
   
 :builddse
   cd %ENG_WORK_SPACE%\\SandBox
-  @for /f %%N IN (%ENG_WORK_SPACE%\\SandBox\\8210_dse.txt) Do @(cd .. & cd %%N  & echo. & echo ------%%N BUILD------ & md logs & ant -buildfile %ENG_WORK_SPACE%\\%%N\\build.xml -logfile %ENG_WORK_SPACE%\\%%N\\logs\\ant.log -verbose) & cd %ENG_WORK_SPACE%\\SandBox
+  @for /f %%N IN (%ENG_WORK_SPACE%\\SandBox\\%VERSION%_dse.txt) Do @(cd .. & cd %%N  & echo. & echo ------%%N BUILD------ & md logs & ant -buildfile %ENG_WORK_SPACE%\\%%N\\build.xml -logfile %ENG_WORK_SPACE%\\%%N\\logs\\ant.log -verbose) & cd %ENG_WORK_SPACE%\\SandBox
 
 :ws7build
   cd %ENG_WORK_SPACE%\\SandBox
   call %ENG_WORK_SPACE%\\SandBox\\setupenv_ws7.bat
   call %ENG_WORK_SPACE%\\SandBox\\build_level.bat
   echo level=%level_serialbuild%>>C:\\LocalSettings_ws7.properties
-  @for /f %%N IN (%ENG_WORK_SPACE%\\SandBox\\8210_ws7.txt) Do @(cd .. & cd %%N  & echo. & echo ------%%N BUILD------ & md logs & ant -buildfile %ENG_WORK_SPACE%\\%%N\\build.xml -logfile %ENG_WORK_SPACE%\\%%N\\logs\\ant.log -verbose) & cd %ENG_WORK_SPACE%\\SandBox
+  @for /f %%N IN (%ENG_WORK_SPACE%\\SandBox\\8211_ws7.txt) Do @(cd .. & cd %%N  & echo. & echo ------%%N BUILD------ & md logs & ant -buildfile %ENG_WORK_SPACE%\\%%N\\build.xml -logfile %ENG_WORK_SPACE%\\%%N\\logs\\ant.log -verbose) & cd %ENG_WORK_SPACE%\\SandBox
 
 
 :installbuild
@@ -108,7 +108,7 @@ if not "%3"=="-dep" goto invalidparmdep
   call %ENG_WORK_SPACE%\\SandBox\\setupenv.bat
   call %ENG_WORK_SPACE%\\SandBox\\build_level.bat
   echo level=%level_serialbuild%>>C:\\LocalSettings.properties
-  @for /f %%N IN (%ENG_WORK_SPACE%\\SandBox\\8210_Install.txt) Do @(cd .. & cd %%N  & echo. & echo ------%%N BUILD------ & md logs & ant -buildfile %ENG_WORK_SPACE%\\%%N\\build.xml -logfile %ENG_WORK_SPACE%\\%%N\\logs\\ant.log -verbose) & cd %ENG_WORK_SPACE%\\SandBox
+  @for /f %%N IN (%ENG_WORK_SPACE%\\SandBox\\%VERSION%_Install.txt) Do @(cd .. & cd %%N  & echo. & echo ------%%N BUILD------ & md logs & ant -buildfile %ENG_WORK_SPACE%\\%%N\\build.xml -logfile %ENG_WORK_SPACE%\\%%N\\logs\\ant.log -verbose) & cd %ENG_WORK_SPACE%\\SandBox
 
 
 

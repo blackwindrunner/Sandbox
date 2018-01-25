@@ -1,15 +1,18 @@
 @echo off
+call setupenv.bat
 
-call D:\\BTT_workspace_increment\\SandBox\\setupenv.bat
 cd %ENG_WORK_SPACE%\\SandBox
 
 rem call %ENG_WORK_SPACE%\\SandBox\\build.bat -c builddse
+echo build buildall
 call %ENG_WORK_SPACE%\\SandBox\\build.bat -c buildall
-echo test1
+echo build j9
 call %ENG_WORK_SPACE%\\SandBox\\build.bat -c j9build
-echo test2
-call %ENG_WORK_SPACE%\\SandBox\\build.bat -c installbuild
-call %ENG_WORK_SPACE%\\SandBox\\updateSite.bat
+echo build install
+rem call %ENG_WORK_SPACE%\\SandBox\\build.bat -c installbuild
+echo build updateSite
+rem call %ENG_WORK_SPACE%\\SandBox\\updateSite.bat
+echo exec perl check build
 perl -S %ENG_WORK_SPACE%\\SandBox\\perl\\Check_build.perl >>%ENG_WORK_SPACE%\\SandBox\\AllBuildLogs\\check_build.log
 rem perl -S %ENG_WORK_SPACE%\\SandBox\\perl\\CheckJavaDoc.pl composer8210
 set JAVA_HOME=C:\Program Files (x86)\Java\jdk1.6.0_45\jre
