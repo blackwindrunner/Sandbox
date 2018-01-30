@@ -88,7 +88,7 @@ if not "%3"=="-dep" goto invalidparmdep
 :j9build
   cd %ENG_WORK_SPACE%\\SandBox
   call %ENG_WORK_SPACE%\\SandBox\\setupenv_J9.bat
-  echo level=%level_serialbuild%>>C:\\LocalSettings_J9.properties
+  echo Log_info:level=%level_serialbuild%>>C:\\LocalSettings_J9.properties
   @for /f %%N IN (%ENG_WORK_SPACE%\\SandBox\\%VERSION%_J9.txt) Do @(cd .. & cd %%N  & echo. & echo ------%%N BUILD------ & md logs & ant -buildfile %ENG_WORK_SPACE%\\%%N\\build.xml -logfile %ENG_WORK_SPACE%\\%%N\\logs\\ant.log -verbose) & cd %ENG_WORK_SPACE%\\SandBox
   
 :builddse
@@ -107,7 +107,7 @@ if not "%3"=="-dep" goto invalidparmdep
   cd %ENG_WORK_SPACE%\\SandBox
   call %ENG_WORK_SPACE%\\SandBox\\setupenv.bat
   call %ENG_WORK_SPACE%\\SandBox\\build_level.bat
-  echo level=%level_serialbuild%>>C:\\LocalSettings.properties
+  echo Log_info:level=%level_serialbuild%>>C:\\LocalSettings.properties
   @for /f %%N IN (%ENG_WORK_SPACE%\\SandBox\\%VERSION%_Install.txt) Do @(cd .. & cd %%N  & echo. & echo ------%%N BUILD------ & md logs & ant -buildfile %ENG_WORK_SPACE%\\%%N\\build.xml -logfile %ENG_WORK_SPACE%\\%%N\\logs\\ant.log -verbose) & cd %ENG_WORK_SPACE%\\SandBox
 
 

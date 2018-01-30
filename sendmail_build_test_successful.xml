@@ -28,8 +28,8 @@
  &lt;font color=&quot;#7722ff&quot; &gt;&lt;b&gt;整体&lt;/b&gt;&lt;/font&gt;构建${buildResult_CN},测试结果${testResult_CN}${testResult_details}&lt;br/&gt;
 &lt;hr&gt;&lt;br/&gt;
 
-&lt;a href=&quot;http://192.168.1.247:8080/jenkins/job/btt-test-fvt/build_result/&quot; style=&quot;font-size:27px&quot;&gt;构建报告&lt;/a&gt;&lt;br/&gt;
-&lt;a href=&quot;http://192.168.1.247:8080/jenkins/job/btt-test-fvt/Test_result/&quot; style=&quot;font-size:27px&quot;&gt;测试报告 &lt;/a&gt;&lt;br/&gt;
+&lt;a href=&quot;http://10.200.0.185:8080/jenkins/job/btt-test-fvt/build_result/&quot; style=&quot;font-size:27px&quot;&gt;构建报告&lt;/a&gt;&lt;br/&gt;
+&lt;a href=&quot;http://10.200.0.185:8080/jenkins/job/btt-test-fvt/Test_result/&quot; style=&quot;font-size:27px&quot;&gt;测试报告 &lt;/a&gt;&lt;br/&gt;
 &lt;i&gt;请注意验证BSO,如果是火狐浏览器或者NOTES中访问,请在about:config中关闭security.csp.enable&lt;/i&gt;&lt;br/&gt;
 
 &lt;/body&gt;
@@ -129,7 +129,7 @@
 	</target>  
      <!-- Update BTT Build WebStie-->
      <target name="SendReportToTeam" depends="result.transfer.CN,generate_message">   
-        <mail mailhost="smtp.qq.com" mailport="465" ssl="true" enableStartTLS="true" subject="BTT8.2.1.0 Full Build Report(Jenkins Build ${mail_title})" user="${mail_user}" password="${maill_password}" charset="utf-8" encoding="mime" messagemimetype="text/html"> 
+        <mail mailhost="smtp.qq.com" mailport="465" ssl="true" enableStartTLS="true" subject="BTT ${VERSION} Full Build Report(Jenkins Build ${mail_title})" user="${mail_user}" password="${maill_password}" charset="utf-8" encoding="mime" messagemimetype="text/html"> 
 			
             <from address="yandongpeng@qq.com" name="BTT CI Server" /> 			
                          
@@ -162,8 +162,8 @@
  <font color="#7722ff" ><b>整体</b></font>构建${buildResult_CN},测试结果${testResult_CN}${testResult_details}<br/>
 <hr><br/>
 
-<a href="http://192.168.1.247:8080/jenkins/job/btt-test-fvt/build_result/" style="font-size:27px">构建报告</a><br/>
-<a href="http://192.168.1.247:8080/jenkins/job/btt-test-fvt/Test_result/" style="font-size:27px">测试报告 </a><br/>
+<a href="http://10.200.0.185:8080/jenkins/job/btt-test-fvt/build_result/" style="font-size:27px">构建报告</a><br/>
+<a href="http://10.200.0.185:8080/jenkins/job/btt-test-fvt/Test_result/" style="font-size:27px">测试报告 </a><br/>
 <i>请注意验证BSO,如果是火狐浏览器或者NOTES中访问,请在about:config中关闭security.csp.enable</i><br/>
 
 </body>

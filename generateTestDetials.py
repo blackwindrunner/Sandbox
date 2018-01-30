@@ -18,20 +18,20 @@ class MovieHandler( xml.sax.ContentHandler ):
    def startElement(self, tag, attributes):
       self.CurrentData = tag
       if tag == "testsuite":
-		print "*****testsuite*****"
-		self.errors = attributes["errors"]
-		self.failures = attributes["failures"]
-		self.tests = attributes["tests"]
-		print "errors:", self.errors
-		print "failures:", self.failures
-		print "tests:", self.tests
-		print "successful rate:",self.rate
-		global tests_total
-		global errors_total
-		global failures_total
-		tests_total+=int(self.tests)
-		errors_total+=int(self.failures)
-		failures_total+=int(self.errors)
+          print("*****testsuite*****")
+          self.errors = attributes["errors"]
+          self.failures = attributes["failures"]
+          self.tests = attributes["tests"]
+          print("errors:", self.errors)
+          print("failures:", self.failures)
+          print("tests:", self.tests)
+          print("successful rate:",self.rate)
+          global tests_total
+          global errors_total
+          global failures_total
+          tests_total+=int(self.tests)
+          errors_total+=int(self.failures)
+          failures_total+=int(self.errors)
 def docTestResultDetials():
 	fp = open('testResult.properties','w') 
 	enter="\n"
@@ -60,7 +60,7 @@ def docTestResultDetials():
 def getTests_total():
 	return tests_total
 if ( __name__ == "__main__"):
-   print getTests_total()
+   print(getTests_total())
    
    # 创建一个 XMLReader
    parser = xml.sax.make_parser()
@@ -71,7 +71,7 @@ if ( __name__ == "__main__"):
    Handler = MovieHandler()
    parser.setContentHandler( Handler )
    
-   parser.parse("D:\\BTT_workspace\\BTTAutomation\\build\\report\\fvt\\TESTS-TestSuites.xml")
+   parser.parse("D:\\BTT_workspace_8211\\BTTAutomation\\build\\report\\fvt\\TESTS-TestSuites.xml")
    print("===errors:"+Handler.errors)
    print("===failures:"+Handler.failures)
    docTestResultDetials()
