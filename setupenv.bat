@@ -1,7 +1,11 @@
 @echo off
-set VERSION=8211
-set WORK_SPACE=D:\\BTT_workspace_%VERSION%
+set VERSION=8212
 set JENKINS_WORK_SPACE=%WORKSPACE%
+if defined JENKINS_WORK_SPACE (
+	set WORK_SPACE=%JENKINS_WORK_SPACE%
+)else (
+	set WORK_SPACE=D:\\BTT_workspace_%VERSION%
+)
 set release=composer%VERSION%
 set WAS_HOME=D:\\WAS7\\AppServer
 set RAD_HOME=D:\\RAD91\\RADSE
