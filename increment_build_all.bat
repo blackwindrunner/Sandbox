@@ -1,6 +1,6 @@
 @echo no
+call setupenv.bat
 
-call D:\\BTT_workspace_increment\\SandBox\\setupenv.bat
 cd %ENG_WORK_SPACE%\\SandBox
 set sandbox_catalog=%ENG_WORK_SPACE%\\SandBox
 set propertiesFolder=%ENG_WORK_SPACE%\\SandBox\\properties
