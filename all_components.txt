@@ -94,13 +94,9 @@ BTTDeviceManagement
 BTTToolsAppWizard
 BTTTestSuit
 BTTTransactionBuilder
+BTTClientEngine
 BTTSample
 BTTUnicaIntegration
 BTTSmartChannel
 BTTMobileAdapter
 BTTInstallPackaging
-
-
-
-
-

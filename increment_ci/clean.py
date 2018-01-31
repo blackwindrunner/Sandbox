@@ -1,5 +1,6 @@
 import os,shutil
-btt_all_component = open("../8210.txt")
+print(os.environ.get('VERSION'))
+btt_all_component = open("../"+os.environ.get('VERSION')+".txt")
 
 for component in btt_all_component:
 
