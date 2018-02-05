@@ -40,7 +40,7 @@ call ant -f increment_depend_comp_jars.xml
 
 rem 把依赖的jar循环加入到classpath，用于编译时使用
 @setlocal enabledelayedexpansion
-@for %%i in ("D:\BTT_workspace_increment\SandBox\increment_jars\*.jar") Do set  classpath=!classpath!;%%i; 
+@for %%i in ("%ENG_WORK_SPACE%\SandBox\increment_jars\*.jar") Do set  classpath=!classpath!;%%i; 
 @setlocal disabledelayedexpansion
 
 rem 按defectComponent.properties文件内容包含的组件进行构建，这句的算法需要在论文中体现

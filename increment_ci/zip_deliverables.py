@@ -6,7 +6,7 @@ def make_jars_to_zip(source_dir, output_filename):
   #pre_len = len(os.path.dirname(source_dir))#获得组件之前的路径
   for parent,dirnames,filenames in os.walk(source_dir):
     for filename in filenames:
-      if filename.strip().__contains__(".jar"):
+      if filename.strip().__contains__(".jar") or filename.strip().__contains__(".zip"):
         pathfile = os.path.join(parent, filename)
         arcname = pathfile[len(source_dir):].strip(os.path.sep)   #相对路径
         print("filename:"+filename)
