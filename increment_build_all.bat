@@ -5,6 +5,8 @@ cd %ENG_WORK_SPACE%\\SandBox
 set sandbox_catalog=%ENG_WORK_SPACE%\\SandBox
 set propertiesFolder=%ENG_WORK_SPACE%\\SandBox\\properties
 set increment_ci_Folder=%ENG_WORK_SPACE%\\SandBox\\increment_ci
+set cygwin=c:\\cygwin\\bin
+set ProgramFiles=C:\\Program Files
 rem call %ENG_WORK_SPACE%\\SandBox\\build.bat -c builddse
 rem call %ENG_WORK_SPACE%\\SandBox\\build.bat -c buildall
 cd %ENG_WORK_SPACE%
@@ -20,7 +22,7 @@ rem note: git diff 65de678 HEAD~1000 --name-only > %increment_ci_Folder%\\git_lo
 cd %ENG_WORK_SPACE%\\SandBox
 rem 清理文件
 rem 删除defect依赖文件文件
-call rm %propertiesFolder%\\defectDependCom.properties
+%cygwin%\\rm %propertiesFolder%\\defectDependCom.properties
 
 cd increment_ci
 rem 根据diff.txt文件来获取defect影响的组件，生成缺陷组件文件
@@ -31,9 +33,9 @@ rem 将classpath转换成依赖文件
 python %increment_ci_Folder%\\all_comp_dependency.py
 cd ..
 rem 根据defect所在的组件，来生成组件的依赖组件
-@for /f %%a IN (%propertiesFolder%\\defectComponent.properties) Do @(cat %propertiesFolder%\\defectDependCom.properties %ENG_WORK_SPACE%\\%%a\\DependencyComponents.properties | sort | uniq >> %propertiesFolder%\\defectDependCom.properties)
+@for /f %%a IN (%propertiesFolder%\\defectComponent.properties) Do @(%cygwin%\\cat %propertiesFolder%\\defectDependCom.properties %ENG_WORK_SPACE%\\%%a\\DependencyComponents.properties | %cygwin%\\sort | %cygwin%\\uniq >> %propertiesFolder%\\defectDependCom.properties)
 rem 对被依赖的组件解压之前保留的版本  
-@for /f %%d IN (%propertiesFolder%\\defectDependCom.properties) Do @(echo extract deliverables **%%d**  &"%ProgramFiles%\\7-Zip\\7z.exe" x -y -o"%ENG_WORK_SPACE%\\%%d" "D:\\%VERSION%_deliverables_zip\\%%d.zip" )
+@for /f %%d IN (%propertiesFolder%\\defectDependCom.properties) Do @(echo extract deliverables **%%d**  & "%ProgramFiles%\\7-Zip\\7z.exe" x -y -o"%ENG_WORK_SPACE%\\%%d" "D:\\%VERSION%_deliverables_zip\\%%d.zip" )
 
 rem 被依赖的组件复制jar
 call ant -f increment_depend_comp_jars.xml

@@ -23,9 +23,22 @@ if(!$ENV{VERSION}){
 #use dependencies;
 
 my $release="composer$ENV{VERSION}";
-print "VERSION=$ENV{VERSION}\n";
+#print "VERSION=$ENV{VERSION}\n";
 my $buildDir=$ENV{ENG_WORK_SPACE};
-print "ENG_WORK_SPACE=$ENV{ENG_WORK_SPACE}\n";
+#print "ENG_WORK_SPACE=$ENV{ENG_WORK_SPACE}\n";
+if(index($buildDir,"\\")!=-1){
+	my $replace_to="\\";
+	my $replace_with="";
+	substr($buildDir,index($buildDir,$replace_to),length($replace_to),$replace_with);
+	#print "$buildDir\n";
+}elsif(index($buildDir,"/")!=-1){
+	my $to="/";
+	my $with="\\";
+	substr($buildDir,index($buildDir,$to),length($to),$with);
+	#print "$buildDir\n";
+}
+
+
 my $cmd;
 my $family="btt\@9\.123\.123\.194\@8765";
 
