@@ -51,6 +51,7 @@ rem 按defectComponent.properties文件内容包含的组件进行构建，这�
 
 perl -S %ENG_WORK_SPACE%\\SandBox\\perl\\Check_build.perl >>%ENG_WORK_SPACE%\\SandBox\\AllBuildLogs\\check_build.log
 rem perl -S %ENG_WORK_SPACE%\\SandBox\\perl\\CheckJavaDoc.pl composer8210
+call %ENG_WORK_SPACE%\\SandBox\\increment_build_put.bat
 set JAVA_HOME=C:\Program Files (x86)\Java\jdk1.6.0_45\jre
 if not exist %ENG_WORK_SPACE%\\SandBox\\AllBuildLogs\\build.fail ( 
 	echo build  successful!!!

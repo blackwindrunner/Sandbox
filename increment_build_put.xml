@@ -1,0 +1,87 @@
+<project name="put_web" default="build_all" basedir=".">
+
+
+    <!-- The following properties files
+        1. set local build machine requirements for implementation in
+        2. general and custom variable definitions for all drivers -->
+    <property environment="env" />
+    <property file="C:/LocalSettings.properties"/>
+    <property name="build.type" value="_was7"/> 
+	<property name="build.path" value="Y:/IncrementCI"/> 
+	<property name="local.path" value="${env.ENG_WORK_SPACE}"/> 
+	<property name="antContrib.lib.dir" value="${basedir}/jars/antContrib" />
+	<taskdef resource="net/sf/antcontrib/antlib.xml">
+		<classpath>
+			<fileset dir="${antContrib.lib.dir}" includes="ant-contrib*.jar" />
+		</classpath>
+	</taskdef>
+	<loadfile property="defectComponent.file" srcFile="properties/defectComponent.properties"/>
+	
+	
+	<target name="copy_component_file">
+		<echo>copy component file </echo> 
+        <foreach list="${defectComponent.file}" target="copy_build" param="defectComponentName" delimiter="${line.separator}"/>
+    </target>  
+    <!-- Copy build result to BTT Build WebSite -->
+    <target name="copy_build">
+        <mkdir dir="${build.path}/SerialBuild/admin_${level}${build.type}"/>
+       
+			  <zip zipfile="${local.path}/${defectComponentName}/${defectComponentName}.zip" basedir="${local.path}/${defectComponentName}/deliverables" includes="**/**"/>
+			  
+			<copy todir="${build.path}/SerialBuild/admin_${level}${build.type}">
+					  
+				<fileset dir="${local.path}/${defectComponentName}" includes="${defectComponentName}.zip"/>
+				
+				
+			 </copy> 
+ 
+    </target>
+
+
+
+
+    
+
+    <!-- Copy build report to BTT Build WebStie-->
+    
+    <target name="copy_buildrep">
+        <mkdir dir="${build.path}/BuildReport/admin_${level}${build.type}"/>
+        <copy todir="${build.path}/BuildReport/admin_${level}${build.type}">
+				   <fileset dir="${local.path}/SandBox/AllBuildLogs" includes="build_check.html"/>
+			  </copy>
+    </target>
+    
+    <!-- Copy build related Defect to BTT Build WebStie hyj add-->
+    
+    <target name="copy_relatedDefect">
+        <copy todir="${build.path}/RelatedDefect/admin" failonerror="false">
+				   <fileset dir="${local.path}/SandBox/AllBuildLogs/DefectReport" includes="${level}${build.type}.txt"/>
+			  </copy>
+    </target>
+    
+
+    
+    <!-- Update BTT Build WebStie-->
+    
+     <target name="UpdateBTTWebSite">
+    
+        <java classname="com.ibm.btt.sandbox.util.SandBoxResult" fork="true" timeout="10000" output="logs.txt"
+              append="true">
+            <classpath>
+                <fileset dir="jars">
+                    <include name="SandboxUtil.jar"/>
+                </fileset>
+            </classpath>
+            <jvmarg value="-DresultFile=${build.path}/TestResult/admin_${level}${build.type}"/>
+        </java>	
+    
+    </target>
+     													
+    																	
+    <target name="build_all" depends="copy_component_file,
+    																	copy_buildrep,
+    																	copy_relatedDefect,
+    																	UpdateBTTWebSite"/>
+    													
+    																	
+</project>
