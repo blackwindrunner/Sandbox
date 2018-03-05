@@ -26,7 +26,7 @@
 &lt;h1&gt;&lt;font color="#ff7f27" &gt;&lt;b&gt;临 时 构 建 测 试 报 告&lt;/b&gt;&lt;/font&gt;&lt;/h1&gt;
 Defect &lt;font color="red" &gt;&lt;b&gt;${defect}&lt;/b&gt;&lt;/font&gt; &lt;font color="#7722ff" &gt;&lt;b&gt;临时&lt;/b&gt;&lt;/font&gt;构建${buildResult_CN},测试结果${testResult_CN}${testResult_details}&lt;br/&gt;
 &lt;hr&gt;&lt;br/&gt;
-
+&lt;a href=&quot;http://10.200.0.185:8080/job/${env.JOB_NAME}/BUILD_DETAILS/&quot; style=&quot;font-size:27px&quot;&gt;增量构建明细&lt;/a&gt;&lt;br/&gt;
 &lt;a href="http://10.200.0.185:8080/job/${env.JOB_NAME}/build_result/" style="font-size:27px"&gt;构建报告&lt;/a&gt;&lt;br/&gt;
 &lt;a href="http://10.200.0.185:8080/job/${env.JOB_NAME}/Test_result/" style="font-size:27px"&gt;测试报告 &lt;/a&gt;&lt;br/&gt;
 &lt;i&gt;请注意验证BSO,如果是火狐浏览器或者NOTES中访问,请在about:config中关闭security.csp.enable&lt;/i&gt;&lt;br/&gt;
