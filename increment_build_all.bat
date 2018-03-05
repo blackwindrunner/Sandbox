@@ -12,6 +12,9 @@ rem call %ENG_WORK_SPACE%\\SandBox\\build.bat -c buildall
 cd %ENG_WORK_SPACE%
 git log --pretty=format:"%%h - %%an, %%ar : %%s" -1
 git log --pretty=format:"%%h - %%an, %%ar : %%s" -1 > %increment_ci_Folder%\\git_logs\\log--pretty.txt
+git rev-parse HEAD>%increment_ci_Folder%\\git_logs\\commit_id.txt
+git log --stat -1>%increment_ci_Folder%\\git_logs\\stat.txt
+
 rem note: git log --pretty=format:"%h - %an, %ar : %s" -1 > %increment_ci_Folder%\\git_logs\\log--pretty.txt
 rem note: git log --name-only -1
 rem note: git log --name-only -1 > %increment_ci_Folder%\\git_logs\\name_only.txt
@@ -31,6 +34,7 @@ rem 删除组件日志文件，deliverables，installation
 python %increment_ci_Folder%\\clean.py
 rem 将classpath转换成依赖文件
 python %increment_ci_Folder%\\all_comp_dependency.py
+
 cd ..
 rem 根据defect所在的组件，来生成组件的依赖组件
 @for /f %%a IN (%propertiesFolder%\\defectComponent.properties) Do @(%cygwin%\\cat %propertiesFolder%\\defectDependCom.properties %ENG_WORK_SPACE%\\%%a\\DependencyComponents.properties | %cygwin%\\sort | %cygwin%\\uniq >> %propertiesFolder%\\defectDependCom.properties)
@@ -50,6 +54,7 @@ rem 按defectComponent.properties文件内容包含的组件进行构建，这�
 
 
 perl -S %ENG_WORK_SPACE%\\SandBox\\perl\\Check_build.perl >>%ENG_WORK_SPACE%\\SandBox\\AllBuildLogs\\check_build.log
+cd %increment_ci_Folder% & python Details.py %branch%
 rem perl -S %ENG_WORK_SPACE%\\SandBox\\perl\\CheckJavaDoc.pl composer8210
 call %ENG_WORK_SPACE%\\SandBox\\increment_build_put.bat
 set JAVA_HOME=C:\Program Files (x86)\Java\jdk1.6.0_45\jre

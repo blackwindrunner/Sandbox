@@ -24,3 +24,5 @@ increment_ci/__pycache__/xml_tool.cpython-36.pyc
 buildResult.txt
 properties/defectComponent.properties
 properties/defectDependCom.properties
+increment_ci/details.html
+properties/defectComponent.properties
