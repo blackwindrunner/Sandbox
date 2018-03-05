@@ -24,11 +24,11 @@
     </target>  
     <!-- Copy build result to BTT Build WebSite -->
     <target name="copy_build">
-        <mkdir dir="${build.path}/SerialBuild/admin_${level}${build.type}"/>
+        <mkdir dir="${build.path}/SerialBuild/${env.BUILD_USER_ID}_${level}${build.type}_${env.branch}"/>
        
 			  <zip zipfile="${local.path}/${defectComponentName}/${defectComponentName}.zip" basedir="${local.path}/${defectComponentName}/deliverables" includes="**/**"/>
 			  
-			<copy todir="${build.path}/SerialBuild/admin_${level}${build.type}">
+			<copy todir="${build.path}/SerialBuild/${env.BUILD_USER_ID}_${level}${build.type}_${env.branch}">
 					  
 				<fileset dir="${local.path}/${defectComponentName}" includes="${defectComponentName}.zip"/>
 				
@@ -45,8 +45,8 @@
     <!-- Copy build report to BTT Build WebStie-->
     
     <target name="copy_buildrep">
-        <mkdir dir="${build.path}/BuildReport/admin_${level}${build.type}"/>
-        <copy todir="${build.path}/BuildReport/admin_${level}${build.type}">
+        <mkdir dir="${build.path}/BuildReport/${env.BUILD_USER_ID}_${level}${build.type}_${env.branch}"/>
+        <copy todir="${build.path}/BuildReport/${env.BUILD_USER_ID}_${level}${build.type}_${env.branch}">
 				   <fileset dir="${local.path}/SandBox/AllBuildLogs" includes="build_check.html"/>
 			  </copy>
     </target>
@@ -54,7 +54,7 @@
     <!-- Copy build related Defect to BTT Build WebStie hyj add-->
     
     <target name="copy_relatedDefect">
-        <copy todir="${build.path}/RelatedDefect/admin" failonerror="false">
+        <copy todir="${build.path}/RelatedDefect/${env.BUILD_USER_ID}" failonerror="false">
 				   <fileset dir="${local.path}/SandBox/AllBuildLogs/DefectReport" includes="${level}${build.type}.txt"/>
 			  </copy>
     </target>
@@ -72,7 +72,7 @@
                     <include name="SandboxUtil.jar"/>
                 </fileset>
             </classpath>
-            <jvmarg value="-DresultFile=${build.path}/TestResult/admin_${level}${build.type}"/>
+            <jvmarg value="-DresultFile=${build.path}/TestResult/${env.BUILD_USER_ID}_${level}${build.type}_${env.branch}"/>
         </java>	
     
     </target>

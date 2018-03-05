@@ -6,6 +6,7 @@
         2. general and custom variable definitions for all drivers -->
     		
     <property file="C:/LocalSettings.properties"/>
+	<property environment="env" />
     <loadproperties srcFile="c:/mail_config.properties" encoding="utf-8"/>
     <!-- Copy build result to BTT Build WebSite -->
     
@@ -20,6 +21,8 @@
             <message>Build Failed!!! Pls check attached files to identify the problems.
 
             NOTE: This is a build machine generated memo.
+			&lt;br/&gt;
+			&lt;img src="https://img.shields.io/badge/build-failing-red.svg"/&gt;
             </message>    
         </mail>    
       </target>

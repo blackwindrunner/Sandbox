@@ -15,7 +15,7 @@ git log --pretty=format:"%%h - %%an, %%ar : %%s" -1 > %increment_ci_Folder%\\git
 rem note: git log --pretty=format:"%h - %an, %ar : %s" -1 > %increment_ci_Folder%\\git_logs\\log--pretty.txt
 rem note: git log --name-only -1
 rem note: git log --name-only -1 > %increment_ci_Folder%\\git_logs\\name_only.txt
-
+git log --name-only -1 > %increment_ci_Folder%\\git_logs\\name_only.txt
 rem note: git diff  HEAD@{2} --name-only > %increment_ci_Folder%\\git_logs\\diff.txt
 git diff HEAD~1 --name-only > %increment_ci_Folder%\\git_logs\\diff.txt
 rem note: git diff 65de678 HEAD~1000 --name-only > %increment_ci_Folder%\\git_logs\\diff.txt
@@ -54,24 +54,22 @@ rem perl -S %ENG_WORK_SPACE%\\SandBox\\perl\\CheckJavaDoc.pl composer8210
 call %ENG_WORK_SPACE%\\SandBox\\increment_build_put.bat
 set JAVA_HOME=C:\Program Files (x86)\Java\jdk1.6.0_45\jre
 if not exist %ENG_WORK_SPACE%\\SandBox\\AllBuildLogs\\build.fail ( 
-	echo build  successful!!!
 	echo defect=none> buildResult.txt
 	echo buildResult=s>> buildResult.txt
 	rem call ant -buildfile %ENG_WORK_SPACE%\\SandBox\\sendmail_build_successful.xml -logfile %ENG_WORK_SPACE%\\SandBox\\AllBuildLogs\sendmail.log -verbose
 	echo build successful!!!
 	goto successful
 ) else ( 
-	echo build failed!!! 
 	echo defect=none> buildResult.txt
 	echo buildResult=f>> buildResult.txt	
-	rem call ant -buildfile %ENG_WORK_SPACE%\\SandBox\\sendmail_build_failed.xml -logfile %ENG_WORK_SPACE%\\SandBox\\AllBuildLogs\sendmail.log -verbose
+	call ant -buildfile %ENG_WORK_SPACE%\\SandBox\\sendmail_build_failed.xml -logfile %ENG_WORK_SPACE%\\SandBox\\AllBuildLogs\sendmail.log -verbose
 	echo build failed!!!
 	goto failed
 )
 :failed
-	rem exit 1
+	exit 1
 :successful
-	rem exit 0
+	exit 0
 :end
   echo.
   echo.
