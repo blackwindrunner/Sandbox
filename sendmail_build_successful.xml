@@ -129,8 +129,14 @@ Defect &lt;font color="red" &gt;&lt;b&gt;${defect}&lt;/b&gt;&lt;/font&gt; &lt;fo
          <mail mailhost="smtp.qq.com" mailport="465" ssl="true" enableStartTLS="true" subject="BTT ${VERSION} Serial Build Report(Build Successfully)-${build.type}" user="${mail_user}" password="${maill_password}" charset="utf-8" encoding="mime" messagemimetype="text/html">    
             <from address="yandongpeng@qq.com" name="BTT CI Server" /> 			
                          
-            <to address="dong.peng.yan@unicomsi.com" name="dong.peng.yan" />  
-			<!--to address="jing.shang@unicomsi.com" name="dong.peng.yan" />-->	            	
+				<to address="dong.peng.yan@unicomsi.com" name="dong.peng.yan" />  
+				<!--to address="jing.shang@unicomsi.com" name="jing.shang" />       
+				<to address="ling.ling.lu@unicomsi.com" name="ling.ling.lu" /> 
+				<to address="shao.ming.geng@unicomsi.com" name="shao.ming.geng" />  
+				<to address="ming.zhang@unicomsi.com" name="ming.zhang" />       
+				<to address="hai.hui.jin@unicomsi.com" name="hai.hui.jin" /> 	
+				<to address="xiu.lan.sun@unicomsi.com" name="xiu.lan.sun" />       
+				<to address="tian.lin.zhang@unicomsi.com" name="tian.lin.zhang" /--> 				
             <message>
 						
 								

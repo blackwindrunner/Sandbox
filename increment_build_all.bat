@@ -61,7 +61,7 @@ set JAVA_HOME=C:\Program Files (x86)\Java\jdk1.6.0_45\jre
 if not exist %ENG_WORK_SPACE%\\SandBox\\AllBuildLogs\\build.fail ( 
 	echo defect=none> buildResult.txt
 	echo buildResult=s>> buildResult.txt
-	rem call ant -buildfile %ENG_WORK_SPACE%\\SandBox\\sendmail_build_successful.xml -logfile %ENG_WORK_SPACE%\\SandBox\\AllBuildLogs\sendmail.log -verbose
+	call ant -buildfile %ENG_WORK_SPACE%\\SandBox\\sendmail_build_successful.xml -logfile %ENG_WORK_SPACE%\\SandBox\\AllBuildLogs\sendmail.log -verbose
 	echo build successful!!!
 	goto successful
 ) else ( 
